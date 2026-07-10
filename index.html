@@ -296,6 +296,14 @@
 
             <form id="inputForm" oninput="calculateRealtime(); simpanSaldoLocal();" class="space-y-6">
                 
+                <!-- Kotak Jumlah Trip (Netral/Aktivitas) -->
+                <div class="bg-blue-50/50 dark:bg-blue-500/5 rounded-2xl border border-blue-100 dark:border-blue-500/20 p-4 focus-within:border-blue-500 transition-all">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Total Trip Diselesaikan</label>
+                    </div>
+                    <input type="number" id="in_trip" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-2xl outline-none" placeholder="0">
+                </div>
+                
                 <!-- Saldo Awal Group -->
                 <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden">
                     <div class="absolute -right-6 -top-6 text-slate-50 dark:text-white/5 text-8xl pointer-events-none">
@@ -417,14 +425,7 @@
                                     </div>
                                     <input type="number" id="in_tips" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
                                 </div>
-                                
-                                <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Jumlah Trip</label>
-                                    </div>
-                                    <input type="number" id="in_trip" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-
+                    
                                 <!-- Dynamic Manual Income Entries -->
                                 <div class="border-t border-slate-100 dark:border-white/5 pt-4 mt-2">
                                     <div class="flex justify-between items-center mb-3">
