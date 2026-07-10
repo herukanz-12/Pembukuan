@@ -1,8 +1,9 @@
 const CACHE_NAME = 'ojolku-cache-v1';
 const ASSETS_TO_CACHE = [
   './index.html',
-  './manifest.json'
-  // Anda bisa menambahkan aset gambar lokal di sini jika ada
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // Event Install: Menyimpan file-file penting ke dalam cache
