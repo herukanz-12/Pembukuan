@@ -350,7 +350,7 @@
                             </div>
                             <div class="flex items-center justify-between bg-white dark:bg-cardDark p-2.5 rounded-xl border border-slate-100 dark:border-white/5">
                                 <span class="text-[10px] font-bold text-slate-500 uppercase px-2">KM Saat Ganti Oli</span>
-                                <input type="number" id="km_oli" class="w-24 bg-slate-50 dark:bg-bgDark rounded-lg text-center border-none p-1.5 text-sm font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-orange-400 outline-none" placeholder="15000">
+                                <input type="number" id="km_oli" oninput="simpanKmOliLocal()" class="w-24 bg-slate-50 dark:bg-bgDark rounded-lg text-center border-none p-1.5 text-sm font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-orange-400 outline-none" placeholder="15000">
                             </div>
                         </div>
 
@@ -461,7 +461,7 @@
                 <div class="relative z-10 mb-5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Update Speedometer (KM Saat Ini)</label>
                     <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand transition-all">
-                        <input type="number" id="km_sekarang" oninput="cekOli()" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
+                        <input type="number" id="km_sekarang" oninput="cekOli(); simpanKmOliLocal();" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
                         <span class="bg-white dark:bg-cardDark px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 shadow-sm mr-1">KM</span>
                     </div>
                 </div>
@@ -699,6 +699,43 @@
             }
         }
 
+        // --- Simpan & muat data KM Oli secara lokal (biar tidak hilang saat app ditutup) ---
+        function simpanKmOliLocal() {
+            let kmOli = getVal('km_oli');
+            let kmSekarang = getVal('km_sekarang');
+            localStorage.setItem('km_oli', kmOli);
+            localStorage.setItem('km_sekarang', kmSekarang);
+        }
+
+        function muatKmOliLocal() {
+            let savedKmOli = localStorage.getItem('km_oli');
+            let savedKmSekarang = localStorage.getItem('km_sekarang');
+
+            if(savedKmOli && savedKmOli !== "0") {
+                document.getElementById('km_oli').value = savedKmOli;
+            }
+            if(savedKmSekarang && savedKmSekarang !== "0") {
+                document.getElementById('km_sekarang').value = savedKmSekarang;
+            }
+            cekOli();
+        }
+
+        // Cek apakah oli sudah waktunya ganti, lalu tampilkan toast otomatis jika iya
+        function cekOliOtomatisSaatBuka() {
+            const BATAS_OLI = 2000;
+            let kmTerakhir = getVal('km_oli');
+            let kmSekarang = getVal('km_sekarang');
+
+            if(kmTerakhir > 0 && kmSekarang > 0) {
+                let selisih = kmSekarang - kmTerakhir;
+                if(selisih >= BATAS_OLI) {
+                    setTimeout(() => {
+                        showToast("⚠️ Waktunya ganti oli! Sudah " + selisih.toLocaleString('id-ID') + " KM.");
+                    }, 600);
+                }
+            }
+        }
+
         function resetForm() {
             document.getElementById('inputForm').reset();
             calculateRealtime();
@@ -747,6 +784,8 @@
         
         // Init calc on load
         calculateRealtime();
+        muatKmOliLocal();
+        cekOliOtomatisSaatBuka();
 
         // --- Register Service Worker (agar PWA bisa jalan offline & bisa di-install) ---
         if ('serviceWorker' in navigator) {
