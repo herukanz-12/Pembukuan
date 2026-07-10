@@ -127,9 +127,14 @@
                 <p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Digital Logbook</p>
             </div>
         </div>
-        <button onclick="toggleTheme()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-brand-neon hover:bg-slate-200 dark:hover:bg-white/10 transition border border-transparent dark:border-white/10 shadow-inner">
-            <i id="theme-icon" class="fa-solid fa-sun"></i>
-        </button>
+        <div class="flex items-center gap-2">
+            <button onclick="openModalSettings()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 transition border border-transparent dark:border-white/10 shadow-inner">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button onclick="toggleTheme()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-brand-neon hover:bg-slate-200 dark:hover:bg-white/10 transition border border-transparent dark:border-white/10 shadow-inner">
+                <i id="theme-icon" class="fa-solid fa-sun"></i>
+            </button>
+        </div>
     </header>
 
     <!-- TOAST NOTIFICATION -->
@@ -148,9 +153,47 @@
         <!-- ========================================== -->
         <section id="view-dashboard" class="tab-content active">
             
+            <!-- Peringatan Pajak STNK & SIM Berkedip -->
+            <div id="alert-pajak" class="hidden mb-4 p-4 bg-red-600 text-white rounded-2xl animate-pulse text-sm font-bold shadow-float flex items-center gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                <div class="flex-1">
+                    <span id="alert-pajak-msg">Peringatan Pajak Aktif!</span>
+                </div>
+            </div>
+            
             <div class="mb-6">
                 <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Halo, Pejuang Jalanan! 🛵</h2>
                 <p class="text-sm text-slate-500 dark:text-slate-400">Semoga harimu gacor hari ini.</p>
+            </div>
+
+            <!-- Target Progress Bar Indikator -->
+            <div class="bg-white dark:bg-cardDark p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-glass mb-6">
+                <div class="flex justify-between items-center text-xs font-bold mb-2">
+                    <span class="text-slate-500 dark:text-slate-400 uppercase tracking-wider">Progres Target Pendapatan</span>
+                    <span id="target-progress-text" class="text-brand">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-bgDark rounded-full h-3 overflow-hidden shadow-inner border border-slate-200 dark:border-white/5">
+                    <div id="target-progress-bar" class="bg-gradient-to-r from-brand to-brand-neon h-3 rounded-full progress-bar-fill" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[10px] font-medium text-slate-400 mt-1">
+                    <span>Bersih: <span id="target-bersih-val">Rp 0</span></span>
+                    <span>Target: <span id="target-setting-val">Rp 0</span></span>
+                </div>
+            </div>
+
+            <!-- Rata-rata per Trip Card -->
+            <div class="bg-white dark:bg-cardDark p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-glass mb-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center"><i class="fa-solid fa-calculator"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Rata-rata / Trip Hari Ini</p>
+                        <p class="text-base font-bold text-slate-800 dark:text-white" id="dash-avg-trip">Rp 0</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-500 font-medium">Total Trip</p>
+                    <p class="text-base font-bold text-slate-800 dark:text-white" id="dash-total-trip">0 Trip</p>
+                </div>
             </div>
 
             <!-- Digital Wallet Card -->
@@ -373,6 +416,13 @@
                                         </select>
                                     </div>
                                     <input type="number" id="in_tips" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+                                
+                                <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Jumlah Trip</label>
+                                    </div>
+                                    <input type="number" id="in_trip" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
                                 </div>
 
                                 <!-- Dynamic Manual Income Entries -->
@@ -657,6 +707,18 @@
             </div>
         </section>
 
+        <!-- ========================================== -->
+        <!-- 5. TAB RIWAYAT VIEW -->
+        <!-- ========================================== -->
+        <section id="view-riwayat" class="tab-content">
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Riwayat Laporan</h2>
+            <p class="text-xs text-slate-500 mb-6">Ringkasan pendapatan dari hari-hari sebelumnya</p>
+            
+            <div id="riwayat-list-container" class="space-y-4 mb-8">
+                <!-- Rendered dynamically via JS -->
+            </div>
+        </section>
+
     </main>
 
     <!-- Modal Tambah Hutang -->
@@ -717,31 +779,71 @@
         </div>
     </div>
 
+    <!-- Modal Pengaturan (Settings) -->
+    <div id="modal-settings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-6 opacity-0 transition-opacity">
+        <div class="bg-white dark:bg-cardDark rounded-[2rem] w-full max-w-sm p-6 shadow-float transform scale-95 transition-transform duration-300" id="modal-settings-content">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4"><i class="fa-solid fa-gear text-brand"></i> Pengaturan Aplikasi</h3>
+            <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Target Pendapatan (Rp)</label>
+                    <input type="number" id="set_target" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none" placeholder="200000">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">% Sedekah</label>
+                        <input type="number" id="set_sedekah" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none" placeholder="2.5" step="0.1">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">% Tabungan</label>
+                        <input type="number" id="set_tabungan" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none" placeholder="10" step="1">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Jatuh Tempo STNK</label>
+                    <input type="date" id="set_stnk" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Jatuh Tempo SIM</label>
+                    <input type="date" id="set_sim" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeModalSettings()" class="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-sm">Batal</button>
+                    <button onclick="simpanSettings()" class="flex-1 py-3 rounded-xl bg-brand text-white font-bold text-sm shadow-neon">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Navigation (Floating Glassmorphism) -->
     <nav class="fixed bottom-6 w-full z-40 px-6">
         <div class="backdrop-blur-xl bg-white/80 dark:bg-cardDark/80 border border-slate-200/50 dark:border-white/10 shadow-float rounded-[2rem] p-2 flex justify-between items-center relative overflow-hidden">
             
             <!-- Active Indicator Pill -->
-            <div id="nav-indicator" class="absolute top-2 bottom-2 w-1/4 bg-slate-100 dark:bg-white/5 rounded-2xl transition-all duration-300 ease-in-out -z-10 left-0"></div>
+            <div id="nav-indicator" class="absolute top-2 bottom-2 w-1/5 bg-slate-100 dark:bg-white/5 rounded-2xl transition-all duration-300 ease-in-out -z-10 left-0"></div>
 
-            <button onclick="switchTab('dashboard', 0)" class="nav-btn group flex flex-col items-center w-1/4 py-2 relative active" data-target="view-dashboard">
+            <button onclick="switchTab('dashboard', 0)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative active" data-target="view-dashboard">
                 <i class="fa-solid fa-chart-pie text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Beranda</span>
             </button>
             
-            <button onclick="switchTab('input', 1)" class="nav-btn group flex flex-col items-center w-1/4 py-2 relative" data-target="view-input">
+            <button onclick="switchTab('input', 1)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-input">
                 <i class="fa-solid fa-circle-plus text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Input</span>
             </button>
             
-            <button onclick="switchTab('monitor', 2)" class="nav-btn group flex flex-col items-center w-1/4 py-2 relative" data-target="view-monitor">
+            <button onclick="switchTab('monitor', 2)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-monitor">
                 <i class="fa-solid fa-chart-line text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Monitor</span>
             </button>
 
-            <button onclick="switchTab('hutang', 3)" class="nav-btn group flex flex-col items-center w-1/4 py-2 relative" data-target="view-hutang">
+            <button onclick="switchTab('hutang', 3)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-hutang">
                 <i class="fa-solid fa-handshake-angle text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Cicilan</span>
+            </button>
+
+            <button onclick="switchTab('riwayat', 4)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-riwayat">
+                <i class="fa-solid fa-history text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
+                <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Riwayat</span>
             </button>
         </div>
     </nav>
@@ -1124,10 +1226,172 @@
                 ? "font-extrabold text-3xl text-brand drop-shadow-md"
                 : "font-extrabold text-3xl text-red-500 drop-shadow-md";
 
-            let shodaqoh = bersihMon > 0 ? bersihMon * 0.025 : 0;
-            let tabungan = bersihMon > 0 ? bersihMon * 0.1 : 0;
+            // Mengambil persentase alokasi dari settings (localStorage) atau default
+            let pctSedekah = parseFloat(localStorage.getItem('set_sedekah')) || 2.5;
+            let pctTabungan = parseFloat(localStorage.getItem('set_tabungan')) || 10;
+            
+            let shodaqoh = bersihMon > 0 ? bersihMon * (pctSedekah / 100) : 0;
+            let tabungan = bersihMon > 0 ? bersihMon * (pctTabungan / 100) : 0;
             document.getElementById('mon-shodaqoh').innerText = formatRp(shodaqoh);
             document.getElementById('mon-tabungan').innerText = formatRp(tabungan);
+
+            // Update Progress Bar Target Pendapatan
+            let targetPendapatan = parseFloat(localStorage.getItem('set_target')) || 0;
+            document.getElementById('target-setting-val').innerText = formatRp(targetPendapatan);
+            document.getElementById('target-bersih-val').innerText = formatRp(bersihDash);
+            
+            if (targetPendapatan > 0) {
+                let progressPercent = Math.max(0, Math.min(100, (bersihDash / targetPendapatan) * 100));
+                document.getElementById('target-progress-bar').style.width = progressPercent + "%";
+                document.getElementById('target-progress-text').innerText = Math.round(progressPercent) + "%";
+            } else {
+                document.getElementById('target-progress-bar').style.width = "0%";
+                document.getElementById('target-progress-text').innerText = "0%";
+            }
+
+            // Hitung Rata-rata per Trip Hari Ini
+            let totalTripHariIni = 0;
+            const now = new Date().toDateString();
+            allSheetRows.forEach(row => {
+                if (new Date(row['Timestamp']).toDateString() === now) {
+                    totalTripHariIni += parseFloat(row['Jumlah Trip']) || 0;
+                }
+            });
+            let liveTrip = parseFloat(document.getElementById('in_trip').value) || 0;
+            let combinedTrip = totalTripHariIni + liveTrip;
+            
+            document.getElementById('dash-total-trip').innerText = combinedTrip + " Trip";
+            if (combinedTrip > 0) {
+                let avgPerTrip = bersihDash / combinedTrip;
+                document.getElementById('dash-avg-trip').innerText = formatRp(avgPerTrip >= 0 ? avgPerTrip : 0);
+            } else {
+                document.getElementById('dash-avg-trip').innerText = "Rp 0";
+            }
+
+            // Jalankan fungsi cek berkala STNK & SIM
+            cekPajakKendaran();
+            
+            // Jalankan fungsi merender list riwayat harian
+            renderRiwayatList();
+        }
+
+        // --- Fungsi Pengaturan (Settings Pop-Up) ---
+        function openModalSettings() {
+            document.getElementById('set_target').value = localStorage.getItem('set_target') || '';
+            document.getElementById('set_sedekah').value = localStorage.getItem('set_sedekah') || '2.5';
+            document.getElementById('set_tabungan').value = localStorage.getItem('set_tabungan') || '10';
+            document.getElementById('set_stnk').value = localStorage.getItem('set_stnk') || '';
+            document.getElementById('set_sim').value = localStorage.getItem('set_sim') || '';
+            
+            const modal = document.getElementById('modal-settings');
+            const content = document.getElementById('modal-settings-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModalSettings() {
+            const modal = document.getElementById('modal-settings');
+            const content = document.getElementById('modal-settings-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function simpanSettings() {
+            localStorage.setItem('set_target', document.getElementById('set_target').value);
+            localStorage.setItem('set_sedekah', document.getElementById('set_sedekah').value);
+            localStorage.setItem('set_tabungan', document.getElementById('set_tabungan').value);
+            localStorage.setItem('set_stnk', document.getElementById('set_stnk').value);
+            localStorage.setItem('set_sim', document.getElementById('set_sim').value);
+            
+            closeModalSettings();
+            showToast("Pengaturan berhasil disimpan!");
+            renderRekap();
+        }
+
+        // --- Cek Masa Berlaku Pajak STNK / SIM ---
+        function cekPajakKendaran() {
+            let stnkVal = localStorage.getItem('set_stnk');
+            let simVal = localStorage.getItem('set_sim');
+            let alertBox = document.getElementById('alert-pajak');
+            let msgEl = document.getElementById('alert-pajak-msg');
+            
+            let warnings = [];
+            let today = new Date();
+            today.setHours(0,0,0,0);
+
+            if (stnkVal) {
+                let stnkDate = new Date(stnkVal);
+                stnkDate.setHours(0,0,0,0);
+                let diffTime = stnkDate - today;
+                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays <= 30) {
+                    if (diffDays < 0) warnings.push(`⚠️ Masa berlaku STNK lewat ${Math.abs(diffDays)} hari!`);
+                    else warnings.push(`🚨 STNK jatuh tempo dalam ${diffDays} hari lagi!`);
+                }
+            }
+
+            if (simVal) {
+                let simDate = new Date(simVal);
+                simDate.setHours(0,0,0,0);
+                let diffTime = simDate - today;
+                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays <= 30) {
+                    if (diffDays < 0) warnings.push(`⚠️ Masa berlaku SIM lewat ${Math.abs(diffDays)} hari!`);
+                    else warnings.push(`🚨 SIM jatuh tempo dalam ${diffDays} hari lagi!`);
+                }
+            }
+
+            if (warnings.length > 0) {
+                msgEl.innerHTML = warnings.join('<br>');
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+            }
+        }
+
+        // --- Render Isi Tab Riwayat ---
+        function renderRiwayatList() {
+            const container = document.getElementById('riwayat-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (allSheetRows.length === 0) {
+                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada riwayat data.</p>`;
+                return;
+            }
+
+            // Urutkan riwayat dari tanggal paling baru ke terlama
+            let sortedRows = [...allSheetRows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+
+            sortedRows.forEach(row => {
+                let tgl = new Date(row['Timestamp']).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                let bruto = row['Total Pemasukan'] || 0;
+                let netto = row['Pendapatan Bersih'] !== undefined ? row['Pendapatan Bersih'] : (bruto - (row['Total Pengeluaran'] || 0));
+                let trip = row['Jumlah Trip'] || 0;
+
+                container.innerHTML += `
+                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 animate-fade-in">
+                        <div class="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-white/5 pb-2">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300"><i class="fa-regular fa-calendar mr-1 text-brand"></i> ${tgl}</span>
+                            <span class="text-[10px] font-extrabold bg-brand/10 text-brand px-2 py-0.5 rounded-full">${trip} Trip</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Uang Masuk</span>
+                                <span class="font-bold text-slate-800 dark:text-white">${formatRp(bruto)}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Hasil Bersih</span>
+                                <span class="font-extrabold text-brand">${formatRp(netto)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
         function renderRincianPengeluaran(kategoriTotal, totalOut) {
@@ -1216,7 +1480,7 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_tips', 'out_makan', 'out_minum', 'out_kuota', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
             
             // Clear manual rows
@@ -1271,6 +1535,9 @@
                 in_tips: getVal('in_tips'),
                 in_lain: totalInLain,
                 in_lain_desc: listInDesc.join(', '),
+                in_trip: getVal('in_trip'),
+                pct_sedekah: localStorage.getItem('set_sedekah') || '2.5',
+                pct_tabungan: localStorage.getItem('set_tabungan') || '10',
                 
                 out_makan: getVal('out_makan'),
                 out_minum: getVal('out_minum'),
@@ -1321,7 +1588,9 @@
                     'Keluar Servis': data.out_servis,
                     'Keluar Oli': data.out_oli,
                     'Keluar Sparepart': data.out_sparepart,
-                    'Keluar Lain': data.out_lain
+                    'Keluar Lain': data.out_lain,
+                    'Jumlah Trip': data.in_trip,
+                    'Pendapatan Bersih': validationIn - validationOut
                 };
                 allSheetRows.push(tempRow);
                 renderRekap();
