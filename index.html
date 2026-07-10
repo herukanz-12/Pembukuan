@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="light">
+<html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,12 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Poppins -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#10b981">
+    <meta name="theme-color" content="#0B1120">
     
     <script>
         tailwind.config = {
@@ -21,19 +21,28 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
                     },
                     colors: {
-                        ojol: '#00aa13', // Gojek green
+                        bgDark: '#0B1120',
+                        cardDark: '#111827',
+                        cardLight: '#ffffff',
                         brand: {
                             light: '#34d399',
                             DEFAULT: '#10b981', // Emerald 500
                             dark: '#059669',
+                            neon: '#00dc82'
                         }
                     },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'mesh': 'radial-gradient(at 40% 20%, hsla(158,100%,74%,0.15) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(355,100%,93%,0) 0px, transparent 50%)',
+                        'digital-card': 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    },
                     boxShadow: {
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-                        'glow': '0 0 15px rgba(16, 185, 129, 0.5)',
+                        'neon': '0 0 20px rgba(16, 185, 129, 0.4)',
+                        'float': '0 10px 30px -10px rgba(0,0,0,0.5)',
+                        'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
                     }
                 }
             }
@@ -42,18 +51,29 @@
     <style>
         /* Hide scrollbar for clean app look */
         ::-webkit-scrollbar { display: none; }
-        body { -ms-overflow-style: none; scrollbar-width: none; -webkit-tap-highlight-color: transparent; }
+        body { 
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+            -webkit-tap-highlight-color: transparent; 
+        }
         
         /* Smooth transitions */
-        .tab-content { display: none; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .tab-content.active { display: block; }
-        
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(15px); } 
-            to { opacity: 1; transform: translateY(0); } 
+        .tab-content { 
+            display: none; 
+            opacity: 0;
+            transform: translateY(10px) scale(0.98);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        /* Input styling */
+        .tab-content.active { 
+            display: block; 
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* Input styling specifically for iOS to prevent zoom */
+        input[type="number"], input[type="text"] {
+            font-size: 16px !important; 
+        }
         input[type="number"] {
             -moz-appearance: textfield;
         }
@@ -62,307 +82,410 @@
             -webkit-appearance: none;
             margin: 0;
         }
+
+        /* Digital Background Pattern */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+        .light .bg-grid {
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        }
+
+        /* Animated Progress Bar */
+        .progress-bar-fill {
+            transition: width 1s ease-out;
+        }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans transition-colors duration-300 pb-24">
+<body class="bg-slate-50 dark:bg-bgDark text-slate-800 dark:text-slate-200 font-sans transition-colors duration-500 pb-28 min-h-screen relative bg-grid">
 
     <!-- Header (Glassmorphism) -->
-    <header class="fixed top-0 w-full z-50 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-800/50 px-5 py-4 flex justify-between items-center transition-colors shadow-sm">
+    <header class="fixed top-0 w-full z-50 backdrop-blur-xl bg-white/70 dark:bg-bgDark/70 border-b border-slate-200/50 dark:border-white/5 px-6 py-4 flex justify-between items-center transition-colors shadow-glass">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white shadow-glow">
-                <i class="fa-solid fa-motorcycle text-lg"></i>
+            <div class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-teal-400 flex items-center justify-center text-white shadow-neon transform rotate-3">
+                <i class="fa-solid fa-motorcycle text-lg -rotate-3"></i>
+                <div class="absolute -top-1 -right-1 w-3 h-3 bg-brand-neon rounded-full border-2 border-white dark:border-bgDark animate-pulse"></div>
             </div>
-            <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Buku Ojol</h1>
+            <div>
+                <h1 class="text-sm font-bold tracking-tight text-slate-900 dark:text-white leading-tight">OjolTracker</h1>
+                <p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Digital Logbook</p>
+            </div>
         </div>
-        <button onclick="toggleTheme()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
-            <i id="theme-icon" class="fa-solid fa-moon"></i>
+        <button onclick="toggleTheme()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-brand-neon hover:bg-slate-200 dark:hover:bg-white/10 transition border border-transparent dark:border-white/10 shadow-inner">
+            <i id="theme-icon" class="fa-solid fa-sun"></i>
         </button>
     </header>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-full shadow-lg z-50 hidden opacity-0 transition-opacity duration-300 flex items-center gap-2 text-sm font-medium">
-        <i class="fa-solid fa-circle-check text-brand"></i>
+    <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-slate-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-slate-900 px-6 py-3 rounded-2xl shadow-float z-50 hidden opacity-0 transition-all duration-300 flex items-center gap-3 text-sm font-bold border border-white/10">
+        <div class="w-6 h-6 rounded-full bg-brand flex items-center justify-center text-white">
+            <i class="fa-solid fa-check text-xs"></i>
+        </div>
         <span id="toast-msg">Pesan Notifikasi</span>
     </div>
 
-    <!-- MAIN CONTENT (Top padding to account for fixed header) -->
-    <main class="pt-24 px-5 max-w-md mx-auto">
+    <!-- MAIN CONTENT -->
+    <main class="pt-24 px-6 max-w-md mx-auto relative z-10">
 
+        <!-- ========================================== -->
         <!-- 1. DASHBOARD VIEW -->
+        <!-- ========================================== -->
         <section id="view-dashboard" class="tab-content active">
             
-            <!-- Main Balance Card -->
-            <div class="bg-gradient-to-br from-brand to-teal-500 rounded-3xl p-6 text-white shadow-lg mb-6 relative overflow-hidden">
-                <!-- Decorative circles -->
-                <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white opacity-10"></div>
-                <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 rounded-full bg-white opacity-10"></div>
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Halo, Pejuang Jalanan! 🛵</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Semoga harimu gacor hari ini.</p>
+            </div>
+
+            <!-- Digital Wallet Card -->
+            <div class="bg-digital-card rounded-[2rem] p-6 text-white shadow-neon mb-8 relative overflow-hidden group">
+                <!-- Abstract Design Elements -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 group-hover:opacity-10 transition-opacity duration-700"></div>
+                <div class="absolute bottom-0 left-0 w-40 h-40 bg-brand-neon opacity-20 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
                 
-                <p class="text-sm font-medium opacity-90 mb-1 z-10 relative">Pendapatan Bersih Hari Ini</p>
-                <h2 class="text-3xl font-bold tracking-tight z-10 relative" id="dash-bersih">Rp 0</h2>
-                
-                <div class="mt-6 flex justify-between items-center z-10 relative bg-white/20 rounded-2xl p-3 backdrop-blur-sm">
+                <div class="relative z-10 flex justify-between items-start mb-6">
                     <div>
-                        <p class="text-xs opacity-80">Masuk</p>
-                        <p class="text-sm font-semibold" id="dash-in-day">Rp 0</p>
+                        <p class="text-xs font-semibold text-white/80 uppercase tracking-widest mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-wallet text-brand-neon"></i> Pendapatan Bersih
+                        </p>
+                        <h2 class="text-4xl font-extrabold tracking-tight drop-shadow-md" id="dash-bersih">Rp 0</h2>
                     </div>
-                    <div class="w-px h-8 bg-white/30"></div>
-                    <div class="text-right">
-                        <p class="text-xs opacity-80">Keluar</p>
-                        <p class="text-sm font-semibold" id="dash-out-day">Rp 0</p>
+                    <div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+                        <i class="fa-solid fa-bolt text-brand-neon"></i>
+                    </div>
+                </div>
+                
+                <div class="mt-4 flex justify-between items-center z-10 relative bg-black/10 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-300 flex items-center justify-center"><i class="fa-solid fa-arrow-down text-xs"></i></div>
+                        <div>
+                            <p class="text-[10px] text-white/60 font-medium uppercase">Total Masuk</p>
+                            <p class="text-sm font-bold" id="dash-in-day">Rp 0</p>
+                        </div>
+                    </div>
+                    <div class="w-px h-8 bg-white/20"></div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <p class="text-[10px] text-white/60 font-medium uppercase">Total Keluar</p>
+                            <p class="text-sm font-bold" id="dash-out-day">Rp 0</p>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-300 flex items-center justify-center"><i class="fa-solid fa-arrow-up text-xs"></i></div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Rekap Bulan Ini</h3>
-                <span class="text-xs font-medium text-brand bg-brand/10 px-2 py-1 rounded-lg">Juli 2026</span>
-            </div>
-            
-            <!-- Grid Stats -->
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <!-- Pendapatan Bulan -->
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-800">
-                    <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500 flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-arrow-trend-up"></i>
-                    </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">Pendapatan</p>
-                    <p class="text-base font-bold text-slate-800 dark:text-white">Rp 4.5M</p>
+            <!-- Saldo Instan -->
+            <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-4 uppercase tracking-wider">Saldo Saat Ini</h3>
+            <div class="grid grid-cols-3 gap-3 mb-8">
+                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2"><i class="fa-solid fa-wallet"></i></div>
+                    <p class="text-xs text-slate-500 font-medium mb-1">Gopay</p>
+                    <p class="text-xs font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay">Rp 0</p>
                 </div>
-                <!-- Pengeluaran Bulan -->
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-800">
-                    <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-arrow-trend-down"></i>
-                    </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">Pengeluaran</p>
-                    <p class="text-base font-bold text-slate-800 dark:text-white">Rp 1.2M</p>
+                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400 flex items-center justify-center mb-2"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    <p class="text-xs text-slate-500 font-medium mb-1">Cash</p>
+                    <p class="text-xs font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-cash">Rp 0</p>
+                </div>
+                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2"><i class="fa-solid fa-building-columns"></i></div>
+                    <p class="text-xs text-slate-500 font-medium mb-1">BCA</p>
+                    <p class="text-xs font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-bca">Rp 0</p>
                 </div>
             </div>
 
-            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4">Aksi Cepat</h3>
-            <div class="space-y-3">
-                <button onclick="switchTab('input')" class="w-full bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-soft border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-brand transition">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center group-hover:text-brand transition">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </div>
-                        <div class="text-left">
-                            <h4 class="font-semibold text-sm text-slate-800 dark:text-white">Catat Transaksi Baru</h4>
-                            <p class="text-xs text-slate-500">Input pendapatan & pengeluaran</p>
-                        </div>
+            <!-- Action Button -->
+            <button onclick="switchTab('input')" class="w-full bg-white dark:bg-cardDark p-5 rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between group hover:border-brand transition-all relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-brand/0 via-brand/5 to-brand/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-brand/10 text-brand flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-pen-nib text-xl"></i>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-brand transition"></i>
-                </button>
-            </div>
+                    <div class="text-left">
+                        <h4 class="font-bold text-slate-800 dark:text-white">Catat Transaksi</h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Input orderan & pengeluaran</p>
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-brand transition-colors relative z-10">
+                    <i class="fa-solid fa-chevron-right text-sm"></i>
+                </div>
+            </button>
         </section>
 
+        <!-- ========================================== -->
         <!-- 2. FORM INPUT VIEW -->
+        <!-- ========================================== -->
         <section id="view-input" class="tab-content">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Input Data</h2>
-                <button onclick="resetForm()" class="text-sm font-medium text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-full hover:bg-red-100 transition flex items-center gap-1">
-                    <i class="fa-solid fa-rotate-right text-xs"></i> Reset
+            <div class="flex justify-between items-end mb-6 sticky top-20 bg-slate-50/90 dark:bg-bgDark/90 backdrop-blur-md py-4 z-20 -mx-6 px-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Data Entry</h2>
+                    <p class="text-xs text-slate-500 mt-1">Catat semua arus kas hari ini</p>
+                </div>
+                <button onclick="resetForm()" class="text-xs font-bold text-slate-500 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-rotate-right"></i> Reset
                 </button>
             </div>
 
             <form id="inputForm" oninput="calculateRealtime()" class="space-y-6">
                 
-                <!-- Saldo Awal -->
-                <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-800 p-5">
-                    <h3 class="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-wallet text-sm"></i></div>
+                <!-- Saldo Awal Group -->
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 text-slate-50 dark:text-white/5 text-8xl pointer-events-none">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2 relative z-10">
+                        <span class="w-2 h-6 rounded-full bg-blue-500 block"></span>
                         Saldo Awal
                     </h3>
-                    <div class="space-y-4">
-                        <div class="relative">
-                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider absolute -top-2 left-3 bg-white dark:bg-slate-900 px-1">Gopay</label>
-                            <input type="number" id="saldo_gopay" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 pt-4 text-slate-800 dark:text-white font-medium focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition" placeholder="0">
-                        </div>
-                        <div class="relative">
-                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider absolute -top-2 left-3 bg-white dark:bg-slate-900 px-1">Cash</label>
-                            <input type="number" id="saldo_cash" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 pt-4 text-slate-800 dark:text-white font-medium focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition" placeholder="0">
-                        </div>
-                        <div class="relative">
-                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider absolute -top-2 left-3 bg-white dark:bg-slate-900 px-1">BCA</label>
-                            <input type="number" id="saldo_bca" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 pt-4 text-slate-800 dark:text-white font-medium focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition" placeholder="0">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pemasukan -->
-                <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-800 p-5">
-                    <h3 class="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500 flex items-center justify-center"><i class="fa-solid fa-arrow-down text-sm"></i></div>
-                        Pemasukan
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-brand transition">
-                            <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center text-slate-400 shadow-sm"><i class="fa-solid fa-mobile-screen"></i></div>
+                    <div class="space-y-4 relative z-10">
+                        <!-- Input Component -->
+                        <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-2xl border border-slate-200 dark:border-white/10 p-2 focus-within:border-blue-500 dark:focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/20 transition-all">
+                            <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-blue-500 shadow-sm mr-3">
+                                <i class="fa-brands fa-google-pay"></i>
+                            </div>
                             <div class="flex-1">
-                                <p class="text-xs text-slate-500 font-medium">Terima Bid</p>
-                                <input type="number" id="in_bid" class="w-full bg-transparent border-none p-0 text-green-600 dark:text-green-400 font-bold focus:ring-0 outline-none text-lg" placeholder="0">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Gopay</label>
+                                <input type="number" id="saldo_gopay" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none" placeholder="0">
                             </div>
                         </div>
-                        <div class="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-brand transition">
-                            <div class="w-10 h-10 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center text-slate-400 shadow-sm"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <!-- Input Component -->
+                        <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-2xl border border-slate-200 dark:border-white/10 p-2 focus-within:border-green-500 dark:focus-within:border-green-500 focus-within:ring-4 focus-within:ring-green-500/20 transition-all">
+                            <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-green-500 shadow-sm mr-3">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                            </div>
                             <div class="flex-1">
-                                <p class="text-xs text-slate-500 font-medium">Tips (Customer)</p>
-                                <input type="number" id="in_tips" class="w-full bg-transparent border-none p-0 text-green-600 dark:text-green-400 font-bold focus:ring-0 outline-none text-lg" placeholder="0">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Cash</label>
+                                <input type="number" id="saldo_cash" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none" placeholder="0">
+                            </div>
+                        </div>
+                        <!-- Input Component -->
+                        <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-2xl border border-slate-200 dark:border-white/10 p-2 focus-within:border-purple-500 dark:focus-within:border-purple-500 focus-within:ring-4 focus-within:ring-purple-500/20 transition-all">
+                            <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-purple-500 shadow-sm mr-3">
+                                <i class="fa-solid fa-building-columns"></i>
+                            </div>
+                            <div class="flex-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">BCA</label>
+                                <input type="number" id="saldo_bca" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none" placeholder="0">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Pengeluaran -->
-                <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-800 p-5">
-                    <h3 class="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center"><i class="fa-solid fa-arrow-up text-sm"></i></div>
-                        Pengeluaran
-                    </h3>
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700">
-                            <p class="text-xs text-slate-500 font-medium mb-1"><i class="fa-solid fa-utensils mr-1"></i> Makan</p>
-                            <input type="number" id="out_makan" class="w-full bg-transparent border-none p-0 text-red-500 font-semibold focus:ring-0 outline-none" placeholder="0">
-                        </div>
-                        <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700">
-                            <p class="text-xs text-slate-500 font-medium mb-1"><i class="fa-solid fa-mug-hot mr-1"></i> Minum</p>
-                            <input type="number" id="out_minum" class="w-full bg-transparent border-none p-0 text-red-500 font-semibold focus:ring-0 outline-none" placeholder="0">
+                <!-- Arus Masuk & Keluar (Side by Side) -->
+                <div class="grid grid-cols-2 gap-4 items-start">
+                    
+                    <!-- Pemasukan (Kiri) -->
+                    <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-4 flex flex-col h-full">
+                        <h3 class="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 text-sm">
+                            <span class="w-1.5 h-5 rounded-full bg-brand block"></span>
+                            Masuk
+                        </h3>
+                        <div class="space-y-3 flex-1">
+                            <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20 transition-all">
+                                <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-mobile-screen"></i> Bid / Argon</label>
+                                <input type="number" id="in_bid" class="w-full bg-transparent border-none p-0 text-brand font-bold text-lg focus:ring-0 outline-none" placeholder="0">
+                            </div>
+                            <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20 transition-all">
+                                <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-hand-holding-dollar"></i> Tips</label>
+                                <input type="number" id="in_tips" class="w-full bg-transparent border-none p-0 text-brand font-bold text-lg focus:ring-0 outline-none" placeholder="0">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="space-y-3">
-                        <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                            <span class="text-sm font-medium text-slate-600 dark:text-slate-300 w-1/2">Servis Motor</span>
-                            <input type="number" id="out_servis" class="w-1/2 bg-transparent text-right border-none p-0 text-red-500 font-semibold focus:ring-0 outline-none" placeholder="Rp 0">
+                    <!-- Pengeluaran Harian (Kanan) -->
+                    <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-4 flex flex-col h-full">
+                        <h3 class="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 text-sm">
+                            <span class="w-1.5 h-5 rounded-full bg-red-500 block"></span>
+                            Keluar
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="bg-slate-50 dark:bg-bgDark p-2.5 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-burger text-red-400"></i> Makan</label>
+                                <input type="number" id="out_makan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-base focus:ring-0 outline-none" placeholder="0">
+                            </div>
+                            <div class="bg-slate-50 dark:bg-bgDark p-2.5 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-mug-hot text-red-400"></i> Minum</label>
+                                <input type="number" id="out_minum" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-base focus:ring-0 outline-none" placeholder="0">
+                            </div>
+                            <div class="bg-slate-50 dark:bg-bgDark p-2.5 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-wifi text-red-400"></i> Kuota</label>
+                                <input type="number" id="out_kuota" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-base focus:ring-0 outline-none" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Maintenance Motor (Pengeluaran Khusus) -->
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6">
+                    <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
+                        <span class="w-2 h-6 rounded-full bg-orange-500 block"></span>
+                        Maintenance Motor
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-slate-50 dark:bg-bgDark p-3 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between focus-within:border-orange-400 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm"><i class="fa-solid fa-wrench"></i></div>
+                                <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Servis Ringan</span>
+                            </div>
+                            <input type="number" id="out_servis" class="w-1/3 bg-transparent text-right border-none p-0 text-red-500 font-bold text-lg focus:ring-0 outline-none" placeholder="0">
                         </div>
                         
-                        <div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                            <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">
-                                <span class="text-sm font-medium text-slate-800 dark:text-white">Ganti Oli</span>
-                                <input type="number" id="out_oli" class="w-1/3 bg-transparent text-right border-none p-0 text-red-500 font-semibold focus:ring-0 outline-none" placeholder="Biaya (Rp)">
+                        <!-- Oli Panel -->
+                        <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
+                            <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-white/10 pb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm"><i class="fa-solid fa-oil-can"></i></div>
+                                    <span class="text-sm font-bold text-slate-800 dark:text-white">Ganti Oli</span>
+                                </div>
+                                <input type="number" id="out_oli" class="w-1/3 bg-slate-50 dark:bg-bgDark rounded-lg text-right border-none p-2 text-red-500 font-bold focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Biaya (Rp)">
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium text-slate-500">KM Saat Oli Diganti</span>
-                                <input type="number" id="km_oli" class="w-1/3 bg-white dark:bg-slate-700 rounded-lg text-right border-none p-1 text-sm font-medium focus:ring-1 focus:ring-brand outline-none" placeholder="KM...">
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                            <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">
-                                <span class="text-sm font-medium text-slate-800 dark:text-white">Sparepart</span>
-                                <input type="number" id="out_sparepart" class="w-1/3 bg-transparent text-right border-none p-0 text-red-500 font-semibold focus:ring-0 outline-none" placeholder="Biaya (Rp)">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium text-slate-500">KM Saat Diganti</span>
-                                <input type="number" id="km_sparepart" class="w-1/3 bg-white dark:bg-slate-700 rounded-lg text-right border-none p-1 text-sm font-medium focus:ring-1 focus:ring-brand outline-none" placeholder="KM...">
+                            <div class="flex items-center justify-between bg-white dark:bg-cardDark p-2.5 rounded-xl border border-slate-100 dark:border-white/5">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase px-2">KM Saat Ganti Oli</span>
+                                <input type="number" id="km_oli" class="w-24 bg-slate-50 dark:bg-bgDark rounded-lg text-center border-none p-1.5 text-sm font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-orange-400 outline-none" placeholder="15000">
                             </div>
                         </div>
 
-                        <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                            <span class="text-sm font-medium text-slate-600 dark:text-slate-300 w-1/2">Kuota Data / Pulsa</span>
-                            <input type="number" id="out_kuota" class="w-1/2 bg-transparent text-right border-none p-0 text-red-500 font-semibold focus:ring-0 outline-none" placeholder="Rp 0">
+                        <!-- Sparepart Panel -->
+                        <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
+                            <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-white/10 pb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm"><i class="fa-solid fa-gears"></i></div>
+                                    <span class="text-sm font-bold text-slate-800 dark:text-white">Sparepart</span>
+                                </div>
+                                <input type="number" id="out_sparepart" class="w-1/3 bg-slate-50 dark:bg-bgDark rounded-lg text-right border-none p-2 text-red-500 font-bold focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Biaya (Rp)">
+                            </div>
+                            <div class="flex items-center justify-between bg-white dark:bg-cardDark p-2.5 rounded-xl border border-slate-100 dark:border-white/5">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase px-2">KM Saat Diganti</span>
+                                <input type="number" id="km_sparepart" class="w-24 bg-slate-50 dark:bg-bgDark rounded-lg text-center border-none p-1.5 text-sm font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-orange-400 outline-none" placeholder="15000">
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <button type="button" onclick="simpanData()" class="w-full bg-gradient-to-r from-brand to-teal-500 hover:from-teal-500 hover:to-brand text-white font-bold text-lg py-4 px-4 rounded-2xl shadow-glow transition transform active:scale-95 flex items-center justify-center gap-2 mt-4">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Laporan
+                <button type="button" onclick="simpanData()" class="w-full relative overflow-hidden group bg-brand hover:bg-brand-dark text-white font-bold text-lg py-5 px-4 rounded-[2rem] shadow-neon transition-all transform active:scale-95 flex items-center justify-center gap-3 mt-8 border border-white/20">
+                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                    <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                    <span>Simpan Laporan</span>
                 </button>
             </form>
         </section>
 
+        <!-- ========================================== -->
         <!-- 3. MONITORING VIEW -->
+        <!-- ========================================== -->
         <section id="view-monitor" class="tab-content">
-            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-6">Monitoring</h2>
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Pusat Monitor</h2>
+            <p class="text-xs text-slate-500 mb-6">Analisis keuangan & kendaraan</p>
             
             <!-- A. Pendapatan Bersih -->
-            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-800 p-5 mb-5 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-20 h-full bg-brand/5 dark:bg-brand/10 skew-x-12 transform origin-top"></div>
+            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mb-5 relative overflow-hidden">
+                <!-- Decorative Tech Grid -->
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
                 
-                <h3 class="text-sm font-bold text-slate-500 mb-4 uppercase tracking-wider">Kalkulasi Hari Ini</h3>
+                <h3 class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-widest relative z-10 flex items-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Kalkulasi Hari Ini
+                </h3>
                 
-                <div class="space-y-3 mb-4">
-                    <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                        <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Total Masuk</span>
+                <div class="space-y-2 mb-6 relative z-10">
+                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                        <span class="text-xs font-bold text-slate-500">Total Masuk</span>
                         <span id="mon-in" class="font-bold text-green-500">Rp 0</span>
                     </div>
-                    <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl">
-                        <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Total Keluar</span>
+                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                        <span class="text-xs font-bold text-slate-500">Total Keluar</span>
                         <span id="mon-out" class="font-bold text-red-500">Rp 0</span>
                     </div>
                 </div>
                 
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-end">
-                    <span class="font-bold text-slate-800 dark:text-white">Bersih</span>
-                    <span id="mon-bersih" class="font-bold text-2xl text-brand">Rp 0</span>
+                <div class="pt-4 border-t border-slate-100 dark:border-white/10 flex justify-between items-end relative z-10">
+                    <span class="text-sm font-bold text-slate-800 dark:text-white">Hasil Bersih</span>
+                    <span id="mon-bersih" class="font-extrabold text-3xl text-brand drop-shadow-md">Rp 0</span>
                 </div>
             </div>
 
-            <!-- B. Shodaqoh & Tabungan -->
-            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-800 p-5 mb-5">
-                <h3 class="text-sm font-bold text-slate-500 mb-4 uppercase tracking-wider">Alokasi Otomatis</h3>
-                
+            <!-- B. Alokasi Dana -->
+            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Alokasi Otomatis (Smart Split)</h3>
+            <div class="grid grid-cols-1 gap-4 mb-6">
                 <!-- Shodaqoh -->
-                <div class="mb-5 bg-pink-50 dark:bg-pink-900/10 p-4 rounded-2xl border border-pink-100 dark:border-pink-900/30">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-semibold text-pink-600 dark:text-pink-400 flex items-center gap-2">
-                            <i class="fa-solid fa-hand-holding-heart"></i> Shodaqoh (2,5%)
-                        </span>
-                        <span id="mon-shodaqoh" class="font-bold text-pink-600 dark:text-pink-400">Rp 0</span>
+                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-pink-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-500/20 text-pink-500 flex items-center justify-center"><i class="fa-solid fa-hand-holding-heart text-[10px]"></i></div>
+                                Sedekah (2.5%)
+                            </span>
+                        </div>
+                        <span id="mon-shodaqoh" class="font-bold text-pink-500 text-lg">Rp 0</span>
                     </div>
-                    <select class="w-full text-sm bg-white dark:bg-slate-800 border-none rounded-xl p-2.5 font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-pink-300 outline-none shadow-sm">
-                        <option>Tujuan Transfer...</option>
-                        <option>Masuk ke Gopay</option>
-                        <option>Masuk ke Cash</option>
+                    <select class="w-full text-xs bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 font-bold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-pink-300 outline-none appearance-none">
+                        <option>Pilih Tujuan Transfer...</option>
+                        <option>Potong dari Gopay</option>
+                        <option>Sisihkan dari Cash</option>
                     </select>
                 </div>
 
                 <!-- Tabungan Servis -->
-                <div class="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/30">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                            <i class="fa-solid fa-piggy-bank"></i> Tabungan Servis (10%)
-                        </span>
-                        <span id="mon-tabungan" class="font-bold text-blue-600 dark:text-blue-400">Rp 0</span>
+                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-500/20 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-piggy-bank text-[10px]"></i></div>
+                                Tabungan Servis (10%)
+                            </span>
+                        </div>
+                        <span id="mon-tabungan" class="font-bold text-blue-500 text-lg">Rp 0</span>
                     </div>
-                    <select class="w-full text-sm bg-white dark:bg-slate-800 border-none rounded-xl p-2.5 font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-300 outline-none shadow-sm">
+                    <select class="w-full text-xs bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 font-bold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-300 outline-none appearance-none">
                         <option>Simpan di...</option>
                         <option>Gopay Simpanan</option>
-                        <option>Gopay (Reguler)</option>
-                        <option>Cash</option>
+                        <option>Celengan Cash</option>
                     </select>
                 </div>
             </div>
 
-            <!-- C. Monitoring Servis -->
-            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-800 p-5 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 text-slate-100 dark:text-slate-800 text-6xl opacity-50 pointer-events-none">
-                    <i class="fa-solid fa-motorcycle"></i>
-                </div>
+            <!-- C. Monitoring Servis (Gauge style) -->
+            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Status Kendaraan</h3>
+            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden mb-8">
                 
-                <h3 class="text-sm font-bold text-slate-500 mb-4 uppercase tracking-wider relative z-10">Kesehatan Motor</h3>
-                
-                <div class="relative z-10 mb-4">
-                    <label class="text-xs font-semibold text-slate-600 dark:text-slate-400 block mb-2">Update KM Speedometer Terkini</label>
-                    <div class="relative">
-                        <input type="number" id="km_sekarang" oninput="cekOli()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 pr-12 text-slate-800 dark:text-white font-medium focus:ring-2 focus:ring-orange-400 outline-none" placeholder="Contoh: 15400">
-                        <span class="absolute right-4 top-3 text-sm font-bold text-slate-400">KM</span>
+                <div class="relative z-10 mb-5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Update Speedometer (KM Saat Ini)</label>
+                    <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand transition-all">
+                        <input type="number" id="km_sekarang" oninput="cekOli()" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
+                        <span class="bg-white dark:bg-cardDark px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 shadow-sm mr-1">KM</span>
                     </div>
                 </div>
                 
-                <div id="alert-oli" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl text-sm mt-3 relative z-10 transition-all">
+                <!-- Progress Bar Oli -->
+                <div class="mb-2 flex justify-between text-[10px] font-bold">
+                    <span class="text-slate-500">Kesehatan Oli</span>
+                    <span id="oli-percentage-text" class="text-brand">100%</span>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-bgDark rounded-full h-3 mb-4 overflow-hidden border border-slate-200 dark:border-white/5 shadow-inner">
+                    <div id="oli-progress" class="bg-gradient-to-r from-brand to-brand-neon h-3 rounded-full progress-bar-fill" style="width: 100%"></div>
+                </div>
+
+                <div id="alert-oli" class="hidden p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-sm relative z-10 transition-all mt-2">
                     <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/50 text-red-500 flex items-center justify-center shrink-0">
+                        <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center shrink-0 animate-pulse">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
                         <div>
-                            <strong class="text-red-700 dark:text-red-400 block mb-1">Peringatan Servis!</strong>
-                            <p class="text-red-600 dark:text-red-300 text-xs leading-relaxed">Motor sudah mencapai / melewati 2.000 KM sejak ganti oli terakhir. Segera lakukan penggantian.</p>
+                            <strong class="text-red-500 block mb-1 text-sm">Waktunya Ganti Oli!</strong>
+                            <p class="text-red-500/80 text-[10px] leading-relaxed font-medium">Batas 2.000 KM telah tercapai atau terlewati. Segera jadwalkan servis.</p>
                         </div>
                     </div>
                 </div>
                 
-                <div id="status-oli" class="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 p-3 rounded-xl text-xs font-medium text-center mt-3 relative z-10 border border-slate-100 dark:border-slate-700">
-                    Belum ada data ganti oli / KM aman.
+                <div id="status-oli" class="bg-slate-50 dark:bg-bgDark text-slate-500 p-3 rounded-xl text-xs font-bold text-center relative z-10 border border-slate-100 dark:border-white/5 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-info text-brand"></i>
+                    <span>Belum ada data referensi oli.</span>
                 </div>
             </div>
 
@@ -370,33 +493,28 @@
 
     </main>
 
-    <!-- Bottom Navigation (Modern Floating Style) -->
-    <nav class="fixed bottom-0 w-full z-40 pb-safe">
-        <!-- Blur Background -->
-        <div class="absolute inset-0 backdrop-blur-lg bg-white/90 dark:bg-slate-900/90 border-t border-slate-200/50 dark:border-slate-800/50 shadow-[0_-10px_20px_rgba(0,0,0,0.03)]"></div>
-        
-        <div class="relative flex justify-around items-end px-2 pb-3 pt-2">
+    <!-- Bottom Navigation (Floating Glassmorphism) -->
+    <nav class="fixed bottom-6 w-full z-40 px-6">
+        <div class="backdrop-blur-xl bg-white/80 dark:bg-cardDark/80 border border-slate-200/50 dark:border-white/10 shadow-float rounded-[2rem] p-2 flex justify-between items-center relative overflow-hidden">
+            
+            <!-- Active Indicator Pill (Handled by JS via classes but here's base setup) -->
+            <div id="nav-indicator" class="absolute top-2 bottom-2 w-1/3 bg-slate-100 dark:bg-white/5 rounded-2xl transition-all duration-300 ease-in-out -z-10 left-0"></div>
+
             <!-- Dashboard Tab -->
-            <button onclick="switchTab('dashboard')" class="nav-btn group flex flex-col items-center w-20 py-2 active" data-target="view-dashboard">
-                <div class="icon-container w-10 h-8 rounded-full flex items-center justify-center mb-1 transition-all duration-300 bg-brand/10 text-brand group-[.active]:bg-brand/20">
-                    <i class="fa-solid fa-chart-pie text-lg group-[.active]:scale-110 transition-transform"></i>
-                </div>
+            <button onclick="switchTab('dashboard', 0)" class="nav-btn group flex flex-col items-center w-1/3 py-2 relative active" data-target="view-dashboard">
+                <i class="fa-solid fa-chart-pie text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Beranda</span>
             </button>
             
-            <!-- Input Tab (FAB Style) -->
-            <button onclick="switchTab('input')" class="nav-btn group flex flex-col items-center w-20 relative -top-4" data-target="view-input">
-                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand to-teal-400 text-white flex items-center justify-center shadow-glow border-4 border-white dark:border-slate-950 mb-1 transform group-hover:scale-105 group-[.active]:scale-105 transition-all">
-                    <i class="fa-solid fa-plus text-xl group-[.active]:rotate-45 transition-transform duration-300"></i>
-                </div>
+            <!-- Input Tab -->
+            <button onclick="switchTab('input', 1)" class="nav-btn group flex flex-col items-center w-1/3 py-2 relative" data-target="view-input">
+                <i class="fa-solid fa-circle-plus text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Input</span>
             </button>
             
             <!-- Monitor Tab -->
-            <button onclick="switchTab('monitor')" class="nav-btn group flex flex-col items-center w-20 py-2" data-target="view-monitor">
-                <div class="icon-container w-10 h-8 rounded-full flex items-center justify-center mb-1 transition-all duration-300 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-[.active]:bg-brand/10 group-[.active]:text-brand">
-                    <i class="fa-solid fa-calculator text-lg group-[.active]:scale-110 transition-transform"></i>
-                </div>
+            <button onclick="switchTab('monitor', 2)" class="nav-btn group flex flex-col items-center w-1/3 py-2 relative" data-target="view-monitor">
+                <i class="fa-solid fa-chart-line text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Monitor</span>
             </button>
         </div>
@@ -404,8 +522,7 @@
 
     <!-- JavaScript Logic -->
     <script>
-        // URL API DARI GOOGLE APPS SCRIPT (Ganti dengan URL Deploy Anda nanti)
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbyIFVD12GjcwYkZdQ3PLSjfL3pjvJgigP45n2O30BAG0bqAZNFUmVjQi1YA4K07AMuTqg/exec";
+        const GAS_URL = "URL_WEB_APP_GOOGLE_APPS_SCRIPT_ANDA_DISINI";
 
         // --- Theme Logic ---
         function toggleTheme() {
@@ -427,58 +544,62 @@
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             document.getElementById('theme-icon').classList.replace('fa-moon', 'fa-sun');
+        } else {
+            document.documentElement.classList.remove('dark');
         }
 
         // --- Tab Navigation ---
-        function switchTab(tabName) {
+        function switchTab(tabName, index) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
+            // Handle content visibility
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => {
-                el.classList.remove('active');
-                // Reset styles for inactive state
-                let iconCont = el.querySelector('.icon-container');
-                if(iconCont) {
-                    iconCont.classList.remove('bg-brand/10', 'text-brand');
-                    iconCont.classList.add('text-slate-400');
-                }
-            });
-            
             document.getElementById('view-' + tabName).classList.add('active');
             
+            // Handle buttons state
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             const activeBtn = document.querySelector(`.nav-btn[data-target="view-${tabName}"]`);
             activeBtn.classList.add('active');
-            
-            // Apply active styles
-            if(tabName !== 'input') {
-                let iconCont = activeBtn.querySelector('.icon-container');
-                iconCont.classList.remove('text-slate-400');
-                iconCont.classList.add('bg-brand/10', 'text-brand');
-            }
+
+            // Move the background pill
+            const indicator = document.getElementById('nav-indicator');
+            indicator.style.transform = `translateX(${index * 100}%)`;
         }
+        
+        // Initialize pill position
+        setTimeout(() => switchTab('dashboard', 0), 100);
 
         // --- Helper Function ---
         function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
         function formatRp(angka) {
             return 'Rp ' + angka.toLocaleString('id-ID');
         }
+        
         function showToast(message) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = message;
             toast.classList.remove('hidden');
-            setTimeout(() => { 
-                toast.classList.remove('opacity-0'); 
-                toast.style.transform = 'translate(-50%, 10px)'; 
-            }, 10);
+            
+            // Trigger reflow
+            void toast.offsetWidth; 
+            
+            toast.classList.remove('opacity-0'); 
+            toast.classList.add('translate-y-4');
+            
             setTimeout(() => { 
                 toast.classList.add('opacity-0'); 
-                toast.style.transform = 'translate(-50%, 0)'; 
+                toast.classList.remove('translate-y-4');
                 setTimeout(() => { toast.classList.add('hidden'); }, 300);
             }, 3000);
         }
 
         // --- Core Calculations ---
         function calculateRealtime() {
+            // Dashboard Saldo
+            document.getElementById('dash-saldo-gopay').innerText = formatRp(getVal('saldo_gopay'));
+            document.getElementById('dash-saldo-cash').innerText = formatRp(getVal('saldo_cash'));
+            document.getElementById('dash-saldo-bca').innerText = formatRp(getVal('saldo_bca'));
+
             let in_bid = getVal('in_bid');
             let in_tips = getVal('in_tips');
             let total_in = in_bid + in_tips;
@@ -504,7 +625,7 @@
             
             let elBersih = document.getElementById('mon-bersih');
             elBersih.innerText = formatRp(bersih);
-            elBersih.className = bersih >= 0 ? "font-bold text-2xl text-brand" : "font-bold text-2xl text-red-500";
+            elBersih.className = bersih >= 0 ? "font-extrabold text-3xl text-brand drop-shadow-md" : "font-extrabold text-3xl text-red-500 drop-shadow-md";
 
             // Hitung Potongan
             let shodaqoh = bersih > 0 ? bersih * 0.025 : 0;
@@ -521,32 +642,64 @@
             let kmSekarang = getVal('km_sekarang');
             let alertOli = document.getElementById('alert-oli');
             let statusOli = document.getElementById('status-oli');
+            let progressBar = document.getElementById('oli-progress');
+            let percentageText = document.getElementById('oli-percentage-text');
+
+            const BATAS_OLI = 2000;
 
             if(kmTerakhir > 0 && kmSekarang > 0) {
                 let selisih = kmSekarang - kmTerakhir;
-                if(selisih >= 2000) {
+                
+                // Kalkulasi persentase kesehatan oli (100% = baru, 0% = waktunya ganti)
+                let sisaKm = BATAS_OLI - selisih;
+                let persentase = Math.max(0, Math.min(100, (sisaKm / BATAS_OLI) * 100));
+                
+                progressBar.style.width = persentase + "%";
+                percentageText.innerText = Math.round(persentase) + "%";
+
+                // Ubah warna bar berdasarkan persentase
+                progressBar.className = "h-3 rounded-full progress-bar-fill transition-all duration-500 ";
+                if(persentase > 50) {
+                    progressBar.className += "bg-gradient-to-r from-brand to-brand-neon";
+                    percentageText.className = "text-brand";
+                } else if(persentase > 20) {
+                    progressBar.className += "bg-gradient-to-r from-yellow-400 to-orange-400";
+                    percentageText.className = "text-orange-500";
+                } else {
+                    progressBar.className += "bg-gradient-to-r from-red-500 to-red-400";
+                    percentageText.className = "text-red-500";
+                }
+
+                if(selisih >= BATAS_OLI) {
                     alertOli.classList.remove('hidden');
                     statusOli.classList.add('hidden');
                 } else if(selisih < 0) {
                     alertOli.classList.add('hidden');
                     statusOli.classList.remove('hidden');
-                    statusOli.innerHTML = "<span class='text-red-500'>Error: KM Sekarang lebih kecil.</span>";
+                    statusOli.innerHTML = "<span class='text-red-500 font-bold'>Error: KM Sekarang lebih kecil.</span>";
+                    progressBar.style.width = "0%";
+                    percentageText.innerText = "Error";
                 } else {
                     alertOli.classList.add('hidden');
                     statusOli.classList.remove('hidden');
-                    statusOli.innerHTML = `<span class='text-brand font-bold'>Sisa ${2000 - selisih} KM</span> lagi sebelum ganti oli.`;
+                    statusOli.innerHTML = `<span class='text-brand font-bold'>Sisa ${sisaKm.toLocaleString('id-ID')} KM</span> lagi.`;
                 }
             } else {
                 alertOli.classList.add('hidden');
                 statusOli.classList.remove('hidden');
-                statusOli.innerText = "Masukkan KM saat ganti oli & KM sekarang.";
+                statusOli.innerHTML = "<i class='fa-solid fa-circle-info text-brand'></i><span>Masukkan KM Oli & KM Saat Ini.</span>";
+                progressBar.style.width = "100%";
+                progressBar.className = "h-3 rounded-full progress-bar-fill bg-slate-300 dark:bg-slate-700";
+                percentageText.innerText = "--";
+                percentageText.className = "text-slate-400";
             }
         }
 
         function resetForm() {
             document.getElementById('inputForm').reset();
             calculateRealtime();
-            showToast("Form berhasil direset");
+            showToast("Data berhasil dibersihkan");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // --- Save to Google Sheets (GAS) ---
@@ -568,10 +721,10 @@
                 out_kuota: getVal('out_kuota')
             };
 
-            showToast("Menyimpan data...");
+            showToast("Memproses data...");
 
             if(GAS_URL === "URL_WEB_APP_GOOGLE_APPS_SCRIPT_ANDA_DISINI") {
-                showToast("Simpan Lokal (URL GAS belum diatur)");
+                setTimeout(() => showToast("Mode Lokal (Script GAS belum diatur)"), 1000);
                 return;
             }
 
@@ -581,9 +734,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             }).then(() => {
-                showToast("Data tersimpan ke Spreadsheet!");
+                showToast("Laporan Tersimpan!");
             }).catch(error => {
-                showToast("Gagal menyimpan data!");
+                showToast("Gagal menyambung ke server!");
                 console.error('Error:', error);
             });
         }
