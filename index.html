@@ -1448,6 +1448,7 @@
                     if (Array.isArray(json.dataHarian)) {
                         allSheetRows = json.dataHarian;
                         renderRekap();
+                        syncSaldoDariServer(); // Sinkronkan saldo terakhir dari Sheet ke semua HP
                     }
                     // Load Data Hutang dari Spreadsheet Server
                     if (Array.isArray(json.dataHutang)) {
@@ -1466,6 +1467,36 @@
             } catch (err) {
                 console.error('Gagal ambil data dari Sheet:', err);
             }
+        }
+
+        // --- Sinkronkan Saldo dari Google Sheet (agar sama di semua HP) ---
+        function syncSaldoDariServer() {
+            if (!Array.isArray(allSheetRows) || allSheetRows.length === 0) return;
+
+            // Ambil baris paling baru berdasarkan Timestamp
+            let sortedRows = [...allSheetRows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+            let terakhir = sortedRows[0];
+
+            // Mapping: id input di HTML -> nama kolom di Google Sheet
+            const mapping = {
+                saldo_gopay_driver: 'Saldo Gopay Driver',
+                saldo_gopay: 'Saldo Gopay',
+                saldo_cash: 'Saldo Cash',
+                saldo_bca: 'Saldo BCA'
+            };
+
+            Object.keys(mapping).forEach((inputId) => {
+                let kolom = mapping[inputId];
+                let nilai = terakhir[kolom];
+                if (nilai !== undefined && nilai !== '') {
+                    let el = document.getElementById(inputId);
+                    if (el) el.value = Number(nilai) || 0;
+                }
+            });
+
+            // Backup ke localStorage HP ini & refresh tampilan
+            simpanSaldoLocal();
+            calculateRealtime();
         }
 
         function simpanKmOliLocal() {
