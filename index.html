@@ -297,13 +297,18 @@
                                 <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-hand-holding-dollar"></i> Tips</label>
                                 <input type="number" id="in_tips" class="w-full bg-transparent border-none p-0 text-brand font-bold text-lg outline-none" placeholder="0">
                             </div>
-                            <!-- Tambahan Input Pemasukan Manual -->
-                            <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-3 focus-within:border-brand transition-all mt-2">
-                                <div class="flex items-center gap-2 border-b border-green-200 dark:border-green-500/20 pb-1 mb-1">
-                                    <i class="fa-solid fa-plus text-green-500 text-xs"></i>
-                                    <input type="text" id="in_lain_desc" class="w-full bg-transparent border-none p-0 text-[10px] font-bold text-green-600 dark:text-green-400 uppercase outline-none placeholder-green-400/50" placeholder="PEMASUKAN LAINNYA...">
+
+                            <!-- Dynamic Manual Income Entries -->
+                            <div class="border-t border-slate-100 dark:border-white/5 pt-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Manual Masuk</span>
+                                    <button type="button" onclick="addManualIncomeRow()" class="text-[10px] font-bold text-brand bg-brand/10 px-2 py-1 rounded-lg hover:bg-brand/20 transition flex items-center gap-1">
+                                        <i class="fa-solid fa-plus"></i> Tambah
+                                    </button>
                                 </div>
-                                <input type="number" id="in_lain" class="w-full bg-transparent border-none p-0 text-brand font-bold text-lg outline-none" placeholder="0">
+                                <div id="manual-income-list" class="space-y-2">
+                                    <!-- Dynamic rows append here -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -327,13 +332,18 @@
                                 <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-wifi text-red-400"></i> Kuota</label>
                                 <input type="number" id="out_kuota" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-base outline-none" placeholder="0">
                             </div>
-                            <!-- Tambahan Input Pengeluaran Manual -->
-                            <div class="bg-slate-50 dark:bg-bgDark p-2.5 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all mt-2">
-                                <div class="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-1 mb-1">
-                                    <i class="fa-solid fa-plus text-slate-400 text-xs"></i>
-                                    <input type="text" id="out_lain_desc" class="w-full bg-transparent border-none p-0 text-[10px] font-bold text-slate-500 uppercase outline-none placeholder-slate-400/50" placeholder="PENGELUARAN LAIN...">
+
+                            <!-- Dynamic Manual Expense Entries -->
+                            <div class="border-t border-slate-100 dark:border-white/5 pt-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Manual Keluar (Lain-lain)</span>
+                                    <button type="button" onclick="addManualExpenseRow()" class="text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-1 rounded-lg hover:bg-red-500/20 transition flex items-center gap-1">
+                                        <i class="fa-solid fa-plus"></i> Tambah
+                                    </button>
                                 </div>
-                                <input type="number" id="out_lain" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-base outline-none" placeholder="0">
+                                <div id="manual-expense-list" class="space-y-2">
+                                    <!-- Dynamic rows append here -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -427,7 +437,39 @@
                 </div>
             </div>
 
-            <!-- C. Monitoring Servis (Gauge style) -->
+            <!-- Alokasi Otomatis (Smart Split) -->
+            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Alokasi Otomatis (Smart Split)</h3>
+            <div class="grid grid-cols-1 gap-4 mb-6">
+                <!-- Shodaqoh -->
+                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-pink-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-500/20 text-pink-500 flex items-center justify-center"><i class="fa-solid fa-hand-holding-heart text-[10px]"></i></div>
+                                Sedekah (2.5%)
+                            </span>
+                        </div>
+                        <span id="mon-shodaqoh" class="font-bold text-pink-500 text-lg">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Tabungan Servis -->
+                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-500/20 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-piggy-bank text-[10px]"></i></div>
+                                Tabungan Servis (10%)
+                            </span>
+                        </div>
+                        <span id="mon-tabungan" class="font-bold text-blue-500 text-lg">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Servis -->
             <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Status Kendaraan</h3>
             <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden mb-8">
                 
@@ -468,7 +510,7 @@
         </section>
 
         <!-- ========================================== -->
-        <!-- 4. HUTANG / CICILAN VIEW (BARU) -->
+        <!-- 4. HUTANG / CICILAN VIEW -->
         <!-- ========================================== -->
         <section id="view-hutang" class="tab-content">
             <div class="flex justify-between items-end mb-6">
@@ -485,7 +527,6 @@
             <div id="hutang-list-container" class="space-y-4 mb-8">
                 <!-- Card Hutang di-render oleh JS -->
             </div>
-
         </section>
 
     </main>
@@ -548,12 +589,11 @@
         </div>
     </div>
 
-
     <!-- Bottom Navigation (Floating Glassmorphism) -->
     <nav class="fixed bottom-6 w-full z-40 px-6">
         <div class="backdrop-blur-xl bg-white/80 dark:bg-cardDark/80 border border-slate-200/50 dark:border-white/10 shadow-float rounded-[2rem] p-2 flex justify-between items-center relative overflow-hidden">
             
-            <!-- Active Indicator Pill -->
+            <!-- Active Indicator Pill (Now 1/4 layout width) -->
             <div id="nav-indicator" class="absolute top-2 bottom-2 w-1/4 bg-slate-100 dark:bg-white/5 rounded-2xl transition-all duration-300 ease-in-out -z-10 left-0"></div>
 
             <button onclick="switchTab('dashboard', 0)" class="nav-btn group flex flex-col items-center w-1/4 py-2 relative active" data-target="view-dashboard">
@@ -571,7 +611,6 @@
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Monitor</span>
             </button>
 
-            <!-- Tab Baru Hutang -->
             <button onclick="switchTab('hutang', 3)" class="nav-btn group flex flex-col items-center w-1/4 py-2 relative" data-target="view-hutang">
                 <i class="fa-solid fa-handshake-angle text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Cicilan</span>
@@ -581,7 +620,7 @@
 
     <!-- JavaScript Logic -->
     <script>
-        const GAS_URL = "URL_WEB_APP_GOOGLE_APPS_SCRIPT_ANDA_DISINI"; // Ganti jika ada backend asli
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyIFVD12GjcwYkZdQ3PLSjfL3pjvJgigP45n2O30BAG0bqAZNFUmVjQi1YA4K07AMuTqg/exec";
 
         // --- Theme Logic ---
         function toggleTheme() {
@@ -611,21 +650,18 @@
         function switchTab(tabName, index) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            // Handle content visibility
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + tabName).classList.add('active');
             
-            // Handle buttons state
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             const activeBtn = document.querySelector(`.nav-btn[data-target="view-${tabName}"]`);
             activeBtn.classList.add('active');
 
-            // Move the background pill (index * 100% dari lebar pill itu sendiri)
             const indicator = document.getElementById('nav-indicator');
             indicator.style.transform = `translateX(${index * 100}%)`;
         }
 
-        // --- Helper Function ---
+        // --- Helper Functions ---
         function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
         function getStr(id) { return document.getElementById(id).value.trim(); }
         function formatRp(angka) { return 'Rp ' + angka.toLocaleString('id-ID'); }
@@ -643,6 +679,45 @@
                 toast.classList.remove('translate-y-4');
                 setTimeout(() => { toast.classList.add('hidden'); }, 300);
             }, 3000);
+        }
+
+        // --- LOGIKA MANUAL / LAIN-LAIN INPUT DINAMIS ---
+        let manualIncomeCounter = 0;
+        let manualExpenseCounter = 0;
+
+        function addManualIncomeRow() {
+            manualIncomeCounter++;
+            const list = document.getElementById('manual-income-list');
+            const rowId = `manual-in-row-${manualIncomeCounter}`;
+            const div = document.createElement('div');
+            div.id = rowId;
+            div.className = "flex gap-2 items-center bg-green-50/30 dark:bg-green-500/5 p-2 rounded-xl border border-green-100 dark:border-green-500/10";
+            div.innerHTML = `
+                <input type="text" placeholder="Keterangan..." class="manual-in-desc flex-1 bg-transparent text-xs text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
+                <input type="number" placeholder="Rp 0" class="manual-in-val w-20 bg-transparent text-xs text-brand font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
+                <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+            `;
+            list.appendChild(div);
+        }
+
+        function addManualExpenseRow() {
+            manualExpenseCounter++;
+            const list = document.getElementById('manual-expense-list');
+            const rowId = `manual-out-row-${manualExpenseCounter}`;
+            const div = document.createElement('div');
+            div.id = rowId;
+            div.className = "flex gap-2 items-center bg-slate-50 dark:bg-white/5 p-2 rounded-xl border border-slate-200 dark:border-white/10";
+            div.innerHTML = `
+                <input type="text" placeholder="Keterangan..." class="manual-out-desc flex-1 bg-transparent text-xs text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
+                <input type="number" placeholder="Rp 0" class="manual-out-val w-20 bg-transparent text-xs text-red-500 font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
+                <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+            `;
+            list.appendChild(div);
+        }
+
+        function removeManualRow(id) {
+            document.getElementById(id).remove();
+            calculateRealtime();
         }
 
         // --- Core Calculations ---
@@ -734,7 +809,7 @@
             { key: 'Keluar Oli',       label: 'Ganti Oli',    icon: 'fa-oil-can',   color: 'orange' },
             { key: 'Keluar Sparepart', label: 'Sparepart',    icon: 'fa-gears',     color: 'orange' },
             { key: 'Keluar Kuota',     label: 'Kuota Internet', icon: 'fa-wifi',    color: 'blue'   },
-            { key: 'Keluar Lain',      label: 'Lain-lain',    icon: 'fa-receipt',   color: 'orange' } // Kategori baru
+            { key: 'Keluar Lain',      label: 'Lain-lain / Cicilan', icon: 'fa-receipt', color: 'orange' }
         ];
 
         function getWeekRange(d) {
@@ -868,7 +943,7 @@
         }
 
         async function fetchRekapData() {
-            if (GAS_URL.includes("URL_WEB_APP")) return; // Skip if URL not set
+            if (GAS_URL.includes("URL_WEB_APP") || GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) return;
             try {
                 const res = await fetch(GAS_URL);
                 const json = await res.json();
@@ -894,8 +969,16 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_tips', 'in_lain', 'in_lain_desc', 'out_makan', 'out_minum', 'out_kuota', 'out_lain', 'out_lain_desc', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_tips', 'out_makan', 'out_minum', 'out_kuota', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
+            
+            // Clear manual rows
+            document.getElementById('manual-income-list').innerHTML = '';
+            document.getElementById('manual-expense-list').innerHTML = '';
+            manualIncomeCounter = 0;
+            manualExpenseCounter = 0;
+            
+            calculateRealtime();
             showToast("Form berhasil di-reset");
         }
 
@@ -904,39 +987,58 @@
             const btnText = document.getElementById('text-simpan');
             const btnIcon = document.getElementById('icon-simpan');
             
-            // Siapkan payload data
+            // 1. Kumpulkan data manual (dinamis) & kalkulasikan totals
+            let totalInLain = 0;
+            let listInDesc = [];
+            document.querySelectorAll('#manual-income-list > div').forEach(row => {
+                let desc = row.querySelector('.manual-in-desc').value.trim();
+                let val = parseFloat(row.querySelector('.manual-in-val').value) || 0;
+                if (val > 0) {
+                    totalInLain += val;
+                    listInDesc.push(`${desc || 'Lainnya'} (${formatRp(val)})`);
+                }
+            });
+
+            let totalOutLain = 0;
+            let listOutDesc = [];
+            document.querySelectorAll('#manual-expense-list > div').forEach(row => {
+                let desc = row.querySelector('.manual-out-desc').value.trim();
+                let val = parseFloat(row.querySelector('.manual-out-val').value) || 0;
+                if (val > 0) {
+                    totalOutLain += val;
+                    listOutDesc.push(`${desc || 'Lainnya'} (${formatRp(val)})`);
+                }
+            });
+
             let data = {
-                'Saldo Gopay': getVal('saldo_gopay'),
-                'Saldo Cash': getVal('saldo_cash'),
-                'Saldo BCA': getVal('saldo_bca'),
+                tanggal: new Date().toISOString(),
+                saldo_gopay: getVal('saldo_gopay'),
+                saldo_cash: getVal('saldo_cash'),
+                saldo_bca: getVal('saldo_bca'),
                 
-                'Masuk Bid': getVal('in_bid'),
-                'Masuk Tips': getVal('in_tips'),
-                'Masuk Lain': getVal('in_lain'),
-                'Ket Masuk Lain': getStr('in_lain_desc'),
+                in_bid: getVal('in_bid'),
+                in_tips: getVal('in_tips'),
+                in_lain: totalInLain,
+                in_lain_desc: listInDesc.join(', '),
                 
-                'Keluar Makan': getVal('out_makan'),
-                'Keluar Minum': getVal('out_minum'),
-                'Keluar Kuota': getVal('out_kuota'),
-                'Keluar Lain': getVal('out_lain'),
-                'Ket Keluar Lain': getStr('out_lain_desc'),
+                out_makan: getVal('out_makan'),
+                out_minum: getVal('out_minum'),
+                out_kuota: getVal('out_kuota'),
+                out_lain: totalOutLain,
+                out_lain_desc: listOutDesc.join(', '),
                 
-                'Keluar Servis': getVal('out_servis'),
-                'Keluar Oli': getVal('out_oli'),
-                'Keluar Sparepart': getVal('out_sparepart'),
-                
-                'KM Oli': getVal('km_oli'),
-                'KM Sparepart': getVal('km_sparepart'),
-                'KM Sekarang': getVal('km_sekarang')
+                out_servis: getVal('out_servis'),
+                out_oli: getVal('out_oli'),
+                km_oli: getVal('km_oli'),
+                out_sparepart: getVal('out_sparepart'),
+                km_sparepart: getVal('km_sparepart'),
+                km_sekarang: getVal('km_sekarang')
             };
 
-            // Hitung total untuk disisipkan sebagai summary
-            data['Total Pemasukan'] = data['Masuk Bid'] + data['Masuk Tips'] + data['Masuk Lain'];
-            data['Total Pengeluaran'] = data['Keluar Makan'] + data['Keluar Minum'] + data['Keluar Kuota'] + 
-                                        data['Keluar Lain'] + data['Keluar Servis'] + data['Keluar Oli'] + data['Keluar Sparepart'];
-            
-            // Validasi: pastikan ada input yang diisi selain saldo
-            if(data['Total Pemasukan'] === 0 && data['Total Pengeluaran'] === 0) {
+            let validationIn = data.in_bid + data.in_tips + data.in_lain;
+            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
+
+            if(validationIn === 0 && validationOut === 0) {
                 showToast("Isi nominal pemasukan/pengeluaran dulu!");
                 return;
             }
@@ -945,30 +1047,39 @@
             btnIcon.className = "fa-solid fa-spinner fa-spin text-xl";
 
             try {
-                if (!GAS_URL.includes("URL_WEB_APP")) {
-                    // Simulasi Kirim jika URL belum diset
-                    const params = new URLSearchParams(data);
+                if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
                     await fetch(GAS_URL, {
                         method: 'POST',
-                        body: params
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
                     });
+                    showToast("Laporan berhasil disimpan!");
                 } else {
-                    // Jika URL belum diset, simulasikan delay
                     await new Promise(r => setTimeout(r, 1000));
+                    showToast("Simpan offline berhasil!");
                 }
-
-                showToast("Laporan berhasil disimpan!");
                 
-                // Tambahkan ke local cache sementara supaya dashboard langsung update tanpa fetch ulang
-                let tempRow = { 'Timestamp': new Date().toISOString(), ...data };
+                let tempRow = { 
+                    'Timestamp': data.tanggal,
+                    'Total Pemasukan': validationIn,
+                    'Total Pengeluaran': validationOut,
+                    'Keluar Makan': data.out_makan,
+                    'Keluar Minum': data.out_minum,
+                    'Keluar Kuota': data.out_kuota,
+                    'Keluar Servis': data.out_servis,
+                    'Keluar Oli': data.out_oli,
+                    'Keluar Sparepart': data.out_sparepart,
+                    'Keluar Lain': data.out_lain
+                };
                 allSheetRows.push(tempRow);
                 renderRekap();
 
-                resetForm(); // Kosongkan form input
-                switchTab('dashboard', 0); // Kembali ke beranda
+                resetForm(); 
+                switchTab('dashboard', 0); 
 
             } catch (error) {
-                showToast("Gagal menyimpan data!");
+                showToast("Gagal menyambung ke Spreadsheet!");
                 console.error(error);
             } finally {
                 btnText.innerText = "Simpan Laporan";
@@ -980,7 +1091,6 @@
         // LOGIKA HUTANG & CICILAN
         // ==========================================
 
-        // Data awal default jika localStorage kosong
         let hutangData = JSON.parse(localStorage.getItem('hutangData')) || [
             { 
                 id: '1', 
@@ -1000,7 +1110,7 @@
             container.innerHTML = '';
 
             if (hutangData.length === 0) {
-                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada catatan hutang.</p>`;
+                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada catatan cicilan.</p>`;
                 return;
             }
 
@@ -1053,7 +1163,6 @@
             });
         }
 
-        // --- Logika Modal Tambah Hutang ---
         function openModalTambahHutang() {
             const modal = document.getElementById('modal-tambah-hutang');
             const content = document.getElementById('modal-tambah-hutang-content');
@@ -1099,7 +1208,6 @@
             showToast(`Hutang ke ${nama} berhasil dicatat.`);
         }
 
-        // --- Logika Modal Bayar Hutang ---
         function openModalBayarHutang(id, nama) {
             document.getElementById('bayar_hutang_id').value = id;
             document.getElementById('label-bayar-nama').innerText = `Ke: ${nama}`;
@@ -1136,14 +1244,11 @@
                 return;
             }
 
-            // Validasi saldo cukup (opsional, tapi baik untuk UX)
             let saldoSaatIni = getVal('saldo_' + sumber);
             if (saldoSaatIni < nominal) {
                 showToast(`Saldo ${sumber} tidak cukup! Sisa: ${formatRp(saldoSaatIni)}`);
-                // Bebas mau di return atau dibiarkan minus. Di sini kita biarkan user tetap bisa input (bisa jadi lupa update saldo)
             }
 
-            // Cari data hutang
             let hutangIndex = hutangData.findIndex(h => h.id === id);
             if (hutangIndex === -1) return;
             
@@ -1152,18 +1257,42 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
 
             try {
-                // 1. Simpan ke Google Sheet (Anggap sebagai pengeluaran lain-lain)
+                // 1. Simpan ke Google Sheet sebagai Pengeluaran Manual (Keluar Lain)
                 let dataSheet = {
-                    'Keluar Lain': nominal,
-                    'Ket Keluar Lain': `Bayar Cicilan: ${namaKreditur}`,
-                    'Total Pengeluaran': nominal
+                    tanggal: new Date().toISOString(),
+                    saldo_gopay: getVal('saldo_gopay'),
+                    saldo_cash: getVal('saldo_cash'),
+                    saldo_bca: getVal('saldo_bca'),
+                    in_bid: 0,
+                    in_tips: 0,
+                    in_lain: 0,
+                    in_lain_desc: '',
+                    out_makan: 0,
+                    out_minum: 0,
+                    out_kuota: 0,
+                    out_servis: 0,
+                    out_oli: 0,
+                    km_oli: getVal('km_oli'),
+                    out_sparepart: 0,
+                    km_sparepart: 0,
+                    out_lain: nominal,
+                    out_lain_desc: `Bayar Cicilan: ${namaKreditur} (${sumber})`
                 };
 
-                if (!GAS_URL.includes("URL_WEB_APP")) {
-                    const params = new URLSearchParams(dataSheet);
-                    await fetch(GAS_URL, { method: 'POST', body: params });
+                // Potong wallet yang digunakan
+                if (sumber === 'cash') dataSheet.saldo_cash -= nominal;
+                if (sumber === 'gopay') dataSheet.saldo_gopay -= nominal;
+                if (sumber === 'bca') dataSheet.saldo_bca -= nominal;
+
+                if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
+                    await fetch(GAS_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dataSheet)
+                    });
                 } else {
-                    await new Promise(r => setTimeout(r, 800)); // Simulasi
+                    await new Promise(r => setTimeout(r, 800)); 
                 }
 
                 // 2. Update Data Lokal Hutang
@@ -1175,7 +1304,7 @@
                 });
                 simpanHutangLocal();
 
-                // 3. Potong saldo lokal
+                // 3. Potong saldo lokal di app UI
                 let inputSaldoSource = document.getElementById('saldo_' + sumber);
                 inputSaldoSource.value = saldoSaatIni - nominal;
                 simpanSaldoLocal();
@@ -1184,6 +1313,8 @@
                 showToast("Pembayaran berhasil dicatat!");
                 renderHutangList();
                 closeModalBayarHutang();
+                
+                setTimeout(fetchRekapData, 1500);
 
             } catch (e) {
                 showToast("Gagal menyimpan pembayaran ke server.");
@@ -1198,7 +1329,6 @@
             renderHutangList();
             setTimeout(() => switchTab('dashboard', 0), 100);
             
-            // Panggil data sheet untuk dashboard & monitor
             fetchRekapData();
         };
 
