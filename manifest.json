@@ -2,7 +2,7 @@
 "name": "Buku OjolKu - Modern Edition",
 "short_name": "OjolKu",
 "description": "Digital Logbook untuk Pejuang Jalanan, catat pendapatan dan pengeluaran harian.",
-"start_url": "./app_buku_ojol.html",
+"start_url": "./index.html",
 "display": "standalone",
 "background_color": "#0B1120",
 "theme_color": "#0B1120",
