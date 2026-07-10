@@ -1,6 +1,6 @@
 const CACHE_NAME = 'ojolku-cache-v1';
 const ASSETS_TO_CACHE = [
-  './app_buku_ojol.html',
+  './index.html',
   './manifest.json'
   // Anda bisa menambahkan aset gambar lokal di sini jika ada
 ];
