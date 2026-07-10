@@ -233,7 +233,7 @@
                 </button>
             </div>
 
-            <form id="inputForm" oninput="calculateRealtime()" class="space-y-6">
+            <form id="inputForm" oninput="calculateRealtime(); simpanSaldoLocal();" class="space-y-6">
                 
                 <!-- Saldo Awal Group -->
                 <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden">
@@ -598,46 +598,16 @@
         }
 
         // --- Core Calculations ---
+        // Catatan: Total Masuk/Keluar/Pendapatan Bersih di Dashboard & Monitor
+        // TIDAK dihitung dari form ini lagi, tapi dari rekap harian yang
+        // ditarik langsung dari Google Sheet (lihat fetchRekapHariIni()).
+        // Ini supaya totalnya akumulasi per hari, bukan cuma dari 1x input.
         function calculateRealtime() {
-            // Dashboard Saldo
+            // Dashboard Saldo (nilai ini yang persist / tidak direset)
             document.getElementById('dash-saldo-gopay').innerText = formatRp(getVal('saldo_gopay'));
             document.getElementById('dash-saldo-cash').innerText = formatRp(getVal('saldo_cash'));
             document.getElementById('dash-saldo-bca').innerText = formatRp(getVal('saldo_bca'));
 
-            let in_bid = getVal('in_bid');
-            let in_tips = getVal('in_tips');
-            let total_in = in_bid + in_tips;
-
-            let out_makan = getVal('out_makan');
-            let out_minum = getVal('out_minum');
-            let out_servis = getVal('out_servis');
-            let out_oli = getVal('out_oli');
-            let out_sparepart = getVal('out_sparepart');
-            let out_kuota = getVal('out_kuota');
-            let total_out = out_makan + out_minum + out_servis + out_oli + out_sparepart + out_kuota;
-
-            let bersih = total_in - total_out;
-
-            // Update Dashboard
-            document.getElementById('dash-in-day').innerText = formatRp(total_in);
-            document.getElementById('dash-out-day').innerText = formatRp(total_out);
-            document.getElementById('dash-bersih').innerText = formatRp(bersih);
-            
-            // Update Monitor
-            document.getElementById('mon-in').innerText = formatRp(total_in);
-            document.getElementById('mon-out').innerText = formatRp(total_out);
-            
-            let elBersih = document.getElementById('mon-bersih');
-            elBersih.innerText = formatRp(bersih);
-            elBersih.className = bersih >= 0 ? "font-extrabold text-3xl text-brand drop-shadow-md" : "font-extrabold text-3xl text-red-500 drop-shadow-md";
-
-            // Hitung Potongan
-            let shodaqoh = bersih > 0 ? bersih * 0.025 : 0;
-            let tabungan = bersih > 0 ? bersih * 0.1 : 0;
-
-            document.getElementById('mon-shodaqoh').innerText = formatRp(shodaqoh);
-            document.getElementById('mon-tabungan').innerText = formatRp(tabungan);
-            
             cekOli();
         }
 
@@ -699,6 +669,73 @@
             }
         }
 
+        // --- Simpan & muat Saldo secara lokal (biar TIDAK direset / hilang) ---
+        function simpanSaldoLocal() {
+            localStorage.setItem('saldo_gopay', getVal('saldo_gopay'));
+            localStorage.setItem('saldo_cash', getVal('saldo_cash'));
+            localStorage.setItem('saldo_bca', getVal('saldo_bca'));
+        }
+
+        function muatSaldoLocal() {
+            ['saldo_gopay', 'saldo_cash', 'saldo_bca'].forEach((id) => {
+                const saved = localStorage.getItem(id);
+                if (saved !== null && saved !== "0") {
+                    document.getElementById(id).value = saved;
+                }
+            });
+            calculateRealtime();
+        }
+
+        // --- Ambil rekap HARI INI dari Google Sheet ---
+        // Menjumlahkan semua baris yang tanggalnya = hari ini,
+        // lalu update kartu Dashboard & Monitor.
+        async function fetchRekapHariIni() {
+            if (GAS_URL === "URL_WEB_APP_GOOGLE_APPS_SCRIPT_ANDA_DISINI") return;
+
+            try {
+                const res = await fetch(GAS_URL);
+                const json = await res.json();
+                if (json.status !== 'success' || !Array.isArray(json.data)) return;
+
+                const todayStr = new Date().toDateString();
+                let totalIn = 0;
+                let totalOut = 0;
+
+                json.data.forEach((row) => {
+                    const ts = new Date(row['Timestamp']);
+                    if (ts.toDateString() === todayStr) {
+                        totalIn += Number(row['Total Pemasukan']) || 0;
+                        totalOut += Number(row['Total Pengeluaran']) || 0;
+                    }
+                });
+
+                const bersih = totalIn - totalOut;
+
+                // Dashboard
+                document.getElementById('dash-in-day').innerText = formatRp(totalIn);
+                document.getElementById('dash-out-day').innerText = formatRp(totalOut);
+                document.getElementById('dash-bersih').innerText = formatRp(bersih);
+
+                // Monitor
+                document.getElementById('mon-in').innerText = formatRp(totalIn);
+                document.getElementById('mon-out').innerText = formatRp(totalOut);
+
+                let elBersih = document.getElementById('mon-bersih');
+                elBersih.innerText = formatRp(bersih);
+                elBersih.className = bersih >= 0
+                    ? "font-extrabold text-3xl text-brand drop-shadow-md"
+                    : "font-extrabold text-3xl text-red-500 drop-shadow-md";
+
+                let shodaqoh = bersih > 0 ? bersih * 0.025 : 0;
+                let tabungan = bersih > 0 ? bersih * 0.1 : 0;
+                document.getElementById('mon-shodaqoh').innerText = formatRp(shodaqoh);
+                document.getElementById('mon-tabungan').innerText = formatRp(tabungan);
+
+            } catch (err) {
+                console.error('[Rekap Harian] Gagal ambil data dari Sheet:', err);
+            }
+        }
+
         // --- Simpan & muat data KM Oli secara lokal (biar tidak hilang saat app ditutup) ---
         function simpanKmOliLocal() {
             let kmOli = getVal('km_oli');
@@ -736,11 +773,21 @@
             }
         }
 
-        function resetForm() {
-            document.getElementById('inputForm').reset();
+        // Reset HANYA field transaksi (Masuk & Keluar).
+        // Saldo (Gopay/Cash/BCA) sengaja TIDAK ikut direset.
+        function resetForm(silent) {
+            const idsToReset = [
+                'in_bid', 'in_tips',
+                'out_makan', 'out_minum', 'out_servis',
+                'out_oli', 'out_sparepart', 'out_kuota'
+            ];
+            idsToReset.forEach((id) => { document.getElementById(id).value = ''; });
+
             calculateRealtime();
-            showToast("Data berhasil dibersihkan");
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (!silent) {
+                showToast("Data transaksi dibersihkan");
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         // --- Save to Google Sheets (GAS) ---
@@ -776,6 +823,10 @@
                 body: JSON.stringify(data)
             }).then(() => {
                 showToast("Laporan Tersimpan!");
+                // Bersihkan field transaksi saja (saldo tetap)
+                resetForm(true);
+                // Kasih jeda sedikit biar Sheet sempat ke-update, lalu tarik rekap terbaru
+                setTimeout(fetchRekapHariIni, 1500);
             }).catch(error => {
                 showToast("Gagal menyambung ke server!");
                 console.error('Error:', error);
@@ -784,7 +835,9 @@
         
         // Init calc on load
         calculateRealtime();
+        muatSaldoLocal();       // muat saldo tersimpan (tidak pernah reset ke 0)
         muatKmOliLocal();
+        fetchRekapHariIni();    // tarik & hitung total transaksi hari ini dari Sheet
         cekOliOtomatisSaatBuka();
 
         // --- Register Service Worker (agar PWA bisa jalan offline & bisa di-install) ---
