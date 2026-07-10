@@ -150,7 +150,7 @@
                 <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 group-hover:opacity-10 transition-opacity duration-700"></div>
                 <div class="absolute bottom-0 left-0 w-40 h-40 bg-brand-neon opacity-20 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
                 
-                <div class="relative z-10 flex justify-between items-start mb-6">
+                <div class="relative z-10 flex justify-between items-start mb-5">
                     <div>
                         <p class="text-xs font-semibold text-white/80 uppercase tracking-widest mb-1 flex items-center gap-2">
                             <i class="fa-solid fa-wallet text-brand-neon"></i> Pendapatan Bersih
@@ -160,6 +160,16 @@
                     <div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
                         <i class="fa-solid fa-bolt text-brand-neon"></i>
                     </div>
+                </div>
+
+                <!-- Filter Periode: Harian / Mingguan -->
+                <div class="relative z-10 flex bg-black/20 rounded-2xl p-1 mb-5 border border-white/10">
+                    <button type="button" onclick="setPeriode('day')" id="btn-periode-day" class="periode-btn flex-1 text-xs font-bold py-2 rounded-xl transition-all bg-white/25 text-white">
+                        Harian
+                    </button>
+                    <button type="button" onclick="setPeriode('week')" id="btn-periode-week" class="periode-btn flex-1 text-xs font-bold py-2 rounded-xl transition-all text-white/60">
+                        Mingguan
+                    </button>
                 </div>
                 
                 <div class="mt-4 flex justify-between items-center z-10 relative bg-black/10 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
@@ -178,6 +188,18 @@
                         </div>
                         <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-300 flex items-center justify-center"><i class="fa-solid fa-arrow-up text-xs"></i></div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Rincian Pengeluaran -->
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pengeluaran</h3>
+                <span id="rincian-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Harian</span>
+            </div>
+            <div id="rincian-pengeluaran-list" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 mb-8 space-y-5">
+                <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-receipt text-2xl text-slate-300 dark:text-white/10"></i>
+                    Belum ada pengeluaran tercatat.
                 </div>
             </div>
 
@@ -600,7 +622,7 @@
         // --- Core Calculations ---
         // Catatan: Total Masuk/Keluar/Pendapatan Bersih di Dashboard & Monitor
         // TIDAK dihitung dari form ini lagi, tapi dari rekap harian yang
-        // ditarik langsung dari Google Sheet (lihat fetchRekapHariIni()).
+        // ditarik langsung dari Google Sheet (lihat fetchRekapData()).
         // Ini supaya totalnya akumulasi per hari, bukan cuma dari 1x input.
         function calculateRealtime() {
             // Dashboard Saldo (nilai ini yang persist / tidak direset)
@@ -686,10 +708,162 @@
             calculateRealtime();
         }
 
-        // --- Ambil rekap HARI INI dari Google Sheet ---
-        // Menjumlahkan semua baris yang tanggalnya = hari ini,
-        // lalu update kartu Dashboard & Monitor.
-        async function fetchRekapHariIni() {
+        // --- Data & Filter Periode (Harian / Mingguan) untuk Dashboard ---
+        let allSheetRows = [];      // cache seluruh baris dari Google Sheet
+        let currentPeriode = 'day'; // 'day' = Harian, 'week' = Mingguan
+
+        // Daftar kategori pengeluaran, dipetakan ke nama kolom di Sheet
+        const KATEGORI_KELUAR = [
+            { key: 'Keluar Makan',     label: 'Makan',        icon: 'fa-utensils',  color: 'red'    },
+            { key: 'Keluar Minum',     label: 'Minum',        icon: 'fa-mug-hot',   color: 'red'    },
+            { key: 'Keluar Servis',    label: 'Servis Ringan',icon: 'fa-wrench',    color: 'orange' },
+            { key: 'Keluar Oli',       label: 'Ganti Oli',    icon: 'fa-oil-can',   color: 'orange' },
+            { key: 'Keluar Sparepart', label: 'Sparepart',    icon: 'fa-gears',     color: 'orange' },
+            { key: 'Keluar Kuota',     label: 'Kuota Internet', icon: 'fa-wifi',    color: 'blue'   }
+        ];
+
+        // Ambil rentang Senin - Minggu untuk minggu yang mengandung tanggal d
+        function getWeekRange(d) {
+            const date = new Date(d);
+            const day = date.getDay(); // 0 = Minggu ... 6 = Sabtu
+            const diffToMonday = (day === 0 ? -6 : 1) - day;
+            const senin = new Date(date);
+            senin.setDate(date.getDate() + diffToMonday);
+            senin.setHours(0, 0, 0, 0);
+            const minggu = new Date(senin);
+            minggu.setDate(senin.getDate() + 6);
+            minggu.setHours(23, 59, 59, 999);
+            return { start: senin, end: minggu };
+        }
+
+        // Jumlahkan total masuk, keluar, & per-kategori untuk periode tertentu ('day' / 'week')
+        function computeTotals(rows, periode) {
+            const now = new Date();
+            const todayStr = now.toDateString();
+            const { start, end } = getWeekRange(now);
+
+            let totalIn = 0;
+            let totalOut = 0;
+            let kategoriTotal = {};
+            KATEGORI_KELUAR.forEach(k => kategoriTotal[k.key] = 0);
+
+            rows.forEach((row) => {
+                const ts = new Date(row['Timestamp']);
+                const cocok = periode === 'day'
+                    ? ts.toDateString() === todayStr
+                    : (ts >= start && ts <= end);
+
+                if (cocok) {
+                    totalIn += Number(row['Total Pemasukan']) || 0;
+                    totalOut += Number(row['Total Pengeluaran']) || 0;
+                    KATEGORI_KELUAR.forEach(k => {
+                        kategoriTotal[k.key] += Number(row[k.key]) || 0;
+                    });
+                }
+            });
+
+            return { totalIn, totalOut, kategoriTotal };
+        }
+
+        // Ganti filter periode Dashboard (dipanggil dari tombol Harian / Mingguan)
+        function setPeriode(periode) {
+            currentPeriode = periode;
+
+            const btnDay = document.getElementById('btn-periode-day');
+            const btnWeek = document.getElementById('btn-periode-week');
+            const isDay = periode === 'day';
+
+            btnDay.classList.toggle('bg-white/25', isDay);
+            btnDay.classList.toggle('text-white', isDay);
+            btnDay.classList.toggle('text-white/60', !isDay);
+
+            btnWeek.classList.toggle('bg-white/25', !isDay);
+            btnWeek.classList.toggle('text-white', !isDay);
+            btnWeek.classList.toggle('text-white/60', isDay);
+
+            document.getElementById('rincian-periode-label').innerText = isDay ? 'Harian' : 'Mingguan';
+
+            renderRekap();
+        }
+
+        // Render ulang seluruh angka Dashboard & Monitor berdasarkan data yang sudah di-cache
+        function renderRekap() {
+            // Kartu Pendapatan Bersih & Rincian Pengeluaran di Dashboard -> ikut filter Harian/Mingguan
+            const dash = computeTotals(allSheetRows, currentPeriode);
+            const bersihDash = dash.totalIn - dash.totalOut;
+
+            document.getElementById('dash-in-day').innerText = formatRp(dash.totalIn);
+            document.getElementById('dash-out-day').innerText = formatRp(dash.totalOut);
+            document.getElementById('dash-bersih').innerText = formatRp(bersihDash);
+
+            renderRincianPengeluaran(dash.kategoriTotal, dash.totalOut);
+
+            // Kartu Monitor "Kalkulasi Hari Ini" -> selalu Harian, tidak ikut filter Dashboard
+            const mon = computeTotals(allSheetRows, 'day');
+            const bersihMon = mon.totalIn - mon.totalOut;
+
+            document.getElementById('mon-in').innerText = formatRp(mon.totalIn);
+            document.getElementById('mon-out').innerText = formatRp(mon.totalOut);
+
+            let elBersih = document.getElementById('mon-bersih');
+            elBersih.innerText = formatRp(bersihMon);
+            elBersih.className = bersihMon >= 0
+                ? "font-extrabold text-3xl text-brand drop-shadow-md"
+                : "font-extrabold text-3xl text-red-500 drop-shadow-md";
+
+            let shodaqoh = bersihMon > 0 ? bersihMon * 0.025 : 0;
+            let tabungan = bersihMon > 0 ? bersihMon * 0.1 : 0;
+            document.getElementById('mon-shodaqoh').innerText = formatRp(shodaqoh);
+            document.getElementById('mon-tabungan').innerText = formatRp(tabungan);
+        }
+
+        // Render daftar rincian pengeluaran per metode (mirip tampilan pemakaian baterai per-app)
+        function renderRincianPengeluaran(kategoriTotal, totalOut) {
+            const container = document.getElementById('rincian-pengeluaran-list');
+
+            const items = KATEGORI_KELUAR
+                .map(k => ({ ...k, amount: kategoriTotal[k.key] || 0 }))
+                .filter(k => k.amount > 0)
+                .sort((a, b) => b.amount - a.amount);
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-receipt text-2xl text-slate-300 dark:text-white/10"></i>
+                        Belum ada pengeluaran tercatat.
+                    </div>`;
+                return;
+            }
+
+            const colorMap = {
+                red:    { bg: 'bg-red-100 dark:bg-red-500/10',       text: 'text-red-500'    },
+                orange: { bg: 'bg-orange-100 dark:bg-orange-500/10', text: 'text-orange-500' },
+                blue:   { bg: 'bg-blue-100 dark:bg-blue-500/10',     text: 'text-blue-500'   }
+            };
+
+            container.innerHTML = items.map((item) => {
+                const persentase = totalOut > 0 ? (item.amount / totalOut) * 100 : 0;
+                const c = colorMap[item.color];
+                return `
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-11 h-11 rounded-xl ${c.bg} ${c.text} flex items-center justify-center shrink-0">
+                                <i class="fa-solid ${item.icon}"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-slate-800 dark:text-white truncate">${item.label}</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${formatRp(item.amount)} &nbsp;|&nbsp; ${persentase.toFixed(2)}%</p>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
+                            <div class="bg-gradient-to-r from-brand to-brand-neon h-2 rounded-full progress-bar-fill" style="width: ${persentase}%"></div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        // --- Ambil seluruh riwayat data dari Google Sheet, simpan ke cache, lalu render ---
+        async function fetchRekapData() {
             if (GAS_URL === "URL_WEB_APP_GOOGLE_APPS_SCRIPT_ANDA_DISINI") return;
 
             try {
@@ -697,42 +871,11 @@
                 const json = await res.json();
                 if (json.status !== 'success' || !Array.isArray(json.data)) return;
 
-                const todayStr = new Date().toDateString();
-                let totalIn = 0;
-                let totalOut = 0;
-
-                json.data.forEach((row) => {
-                    const ts = new Date(row['Timestamp']);
-                    if (ts.toDateString() === todayStr) {
-                        totalIn += Number(row['Total Pemasukan']) || 0;
-                        totalOut += Number(row['Total Pengeluaran']) || 0;
-                    }
-                });
-
-                const bersih = totalIn - totalOut;
-
-                // Dashboard
-                document.getElementById('dash-in-day').innerText = formatRp(totalIn);
-                document.getElementById('dash-out-day').innerText = formatRp(totalOut);
-                document.getElementById('dash-bersih').innerText = formatRp(bersih);
-
-                // Monitor
-                document.getElementById('mon-in').innerText = formatRp(totalIn);
-                document.getElementById('mon-out').innerText = formatRp(totalOut);
-
-                let elBersih = document.getElementById('mon-bersih');
-                elBersih.innerText = formatRp(bersih);
-                elBersih.className = bersih >= 0
-                    ? "font-extrabold text-3xl text-brand drop-shadow-md"
-                    : "font-extrabold text-3xl text-red-500 drop-shadow-md";
-
-                let shodaqoh = bersih > 0 ? bersih * 0.025 : 0;
-                let tabungan = bersih > 0 ? bersih * 0.1 : 0;
-                document.getElementById('mon-shodaqoh').innerText = formatRp(shodaqoh);
-                document.getElementById('mon-tabungan').innerText = formatRp(tabungan);
+                allSheetRows = json.data;
+                renderRekap();
 
             } catch (err) {
-                console.error('[Rekap Harian] Gagal ambil data dari Sheet:', err);
+                console.error('[Rekap] Gagal ambil data dari Sheet:', err);
             }
         }
 
@@ -826,7 +969,7 @@
                 // Bersihkan field transaksi saja (saldo tetap)
                 resetForm(true);
                 // Kasih jeda sedikit biar Sheet sempat ke-update, lalu tarik rekap terbaru
-                setTimeout(fetchRekapHariIni, 1500);
+                setTimeout(fetchRekapData, 1500);
             }).catch(error => {
                 showToast("Gagal menyambung ke server!");
                 console.error('Error:', error);
@@ -837,7 +980,7 @@
         calculateRealtime();
         muatSaldoLocal();       // muat saldo tersimpan (tidak pernah reset ke 0)
         muatKmOliLocal();
-        fetchRekapHariIni();    // tarik & hitung total transaksi hari ini dari Sheet
+        fetchRekapData();       // tarik seluruh riwayat dari Sheet & render sesuai filter periode
         cekOliOtomatisSaatBuka();
 
         // --- Register Service Worker (agar PWA bisa jalan offline & bisa di-install) ---
