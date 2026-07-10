@@ -201,21 +201,26 @@
 
             <!-- Saldo Instan -->
             <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-4 uppercase tracking-wider">Saldo Saat Ini</h3>
-            <div class="grid grid-cols-3 gap-3 mb-8">
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2"><i class="fa-solid fa-motorcycle"></i></div>
+                    <p class="text-xs text-slate-500 font-medium mb-1">Gopay Driver</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay-driver">Rp 0</p>
+                </div>
                 <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
                     <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2"><i class="fa-solid fa-wallet"></i></div>
                     <p class="text-xs text-slate-500 font-medium mb-1">Gopay</p>
-                    <p class="text-xs font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay">Rp 0</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay">Rp 0</p>
                 </div>
                 <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
                     <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400 flex items-center justify-center mb-2"><i class="fa-solid fa-money-bill-wave"></i></div>
                     <p class="text-xs text-slate-500 font-medium mb-1">Cash</p>
-                    <p class="text-xs font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-cash">Rp 0</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-cash">Rp 0</p>
                 </div>
                 <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
                     <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2"><i class="fa-solid fa-building-columns"></i></div>
                     <p class="text-xs text-slate-500 font-medium mb-1">BCA</p>
-                    <p class="text-xs font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-bca">Rp 0</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-bca">Rp 0</p>
                 </div>
             </div>
 
@@ -253,36 +258,70 @@
                     <div class="absolute -right-6 -top-6 text-slate-50 dark:text-white/5 text-8xl pointer-events-none">
                         <i class="fa-solid fa-wallet"></i>
                     </div>
-                    <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2 relative z-10">
+                    <h3 class="font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2 relative z-10">
                         <span class="w-2 h-6 rounded-full bg-blue-500 block"></span>
-                        Saldo Awal
+                        Dompet (Auto Kalkulasi)
                     </h3>
-                    <div class="space-y-4 relative z-10">
-                        <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-2xl border border-slate-200 dark:border-white/10 p-2 focus-within:border-blue-500 transition-all">
-                            <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-blue-500 shadow-sm mr-3">
-                                <i class="fa-brands fa-google-pay"></i>
+                    <p class="text-[10px] text-slate-500 mb-4 relative z-10">Isi Saldo Awal. Saldo Akhir akan dihitung otomatis saat ada transaksi.</p>
+                    
+                    <div class="space-y-3 relative z-10">
+                        <!-- Gopay Driver -->
+                        <div class="bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-bold text-emerald-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-motorcycle"></i> Gopay Driver</label>
+                                <div class="text-right">
+                                    <span class="text-[9px] text-slate-400 block uppercase">Saldo Akhir</span>
+                                    <span id="akhir_gopay_driver" class="font-bold text-emerald-500 text-sm">Rp 0</span>
+                                </div>
                             </div>
-                            <div class="flex-1">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase">Gopay</label>
-                                <input type="number" id="saldo_gopay" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-lg outline-none" placeholder="0">
-                            </div>
-                        </div>
-                        <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-2xl border border-slate-200 dark:border-white/10 p-2 focus-within:border-green-500 transition-all">
-                            <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-green-500 shadow-sm mr-3">
-                                <i class="fa-solid fa-money-bill-wave"></i>
-                            </div>
-                            <div class="flex-1">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase">Cash</label>
-                                <input type="number" id="saldo_cash" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-lg outline-none" placeholder="0">
+                            <div class="flex items-center gap-2 border-t border-slate-200 dark:border-white/5 pt-2">
+                                <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
+                                <input type="number" id="saldo_gopay_driver" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
                             </div>
                         </div>
-                        <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-2xl border border-slate-200 dark:border-white/10 p-2 focus-within:border-purple-500 transition-all">
-                            <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-purple-500 shadow-sm mr-3">
-                                <i class="fa-solid fa-building-columns"></i>
+
+                        <!-- Gopay -->
+                        <div class="bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-bold text-blue-500 uppercase flex items-center gap-1.5"><i class="fa-brands fa-google-pay"></i> Gopay</label>
+                                <div class="text-right">
+                                    <span class="text-[9px] text-slate-400 block uppercase">Saldo Akhir</span>
+                                    <span id="akhir_gopay" class="font-bold text-blue-500 text-sm">Rp 0</span>
+                                </div>
                             </div>
-                            <div class="flex-1">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase">BCA</label>
-                                <input type="number" id="saldo_bca" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-lg outline-none" placeholder="0">
+                            <div class="flex items-center gap-2 border-t border-slate-200 dark:border-white/5 pt-2">
+                                <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
+                                <input type="number" id="saldo_gopay" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
+                            </div>
+                        </div>
+                        
+                        <!-- Cash -->
+                        <div class="bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-bold text-green-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-money-bill-wave"></i> Cash</label>
+                                <div class="text-right">
+                                    <span class="text-[9px] text-slate-400 block uppercase">Saldo Akhir</span>
+                                    <span id="akhir_cash" class="font-bold text-green-500 text-sm">Rp 0</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 border-t border-slate-200 dark:border-white/5 pt-2">
+                                <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
+                                <input type="number" id="saldo_cash" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
+                            </div>
+                        </div>
+
+                        <!-- BCA -->
+                        <div class="bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-bold text-purple-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-building-columns"></i> BCA</label>
+                                <div class="text-right">
+                                    <span class="text-[9px] text-slate-400 block uppercase">Saldo Akhir</span>
+                                    <span id="akhir_bca" class="font-bold text-purple-500 text-sm">Rp 0</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 border-t border-slate-200 dark:border-white/5 pt-2">
+                                <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
+                                <input type="number" id="saldo_bca" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
                             </div>
                         </div>
                     </div>
@@ -312,11 +351,27 @@
                             </h3>
                             <div class="space-y-4 flex-1">
                                 <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
-                                    <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-mobile-screen"></i> Bid / Argon</label>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen"></i> Bid / Argon</label>
+                                        <select id="dompet_in_bid" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
                                     <input type="number" id="in_bid" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
                                 </div>
                                 <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
-                                    <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-hand-holding-dollar"></i> Tips</label>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-hand-holding-dollar"></i> Tips</label>
+                                        <select id="dompet_in_tips" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="cash">Cash</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
                                     <input type="number" id="in_tips" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
                                 </div>
 
@@ -345,15 +400,39 @@
                             </h3>
                             <div class="space-y-4">
                                 <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-burger text-red-400"></i> Makan</label>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-burger text-red-400"></i> Makan</label>
+                                        <select id="dompet_out_makan" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="cash">Cash</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
                                     <input type="number" id="out_makan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
                                 </div>
                                 <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-mug-hot text-red-400"></i> Minum</label>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-mug-hot text-red-400"></i> Minum</label>
+                                        <select id="dompet_out_minum" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="cash">Cash</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
                                     <input type="number" id="out_minum" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
                                 </div>
                                 <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-wifi text-red-400"></i> Kuota</label>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-wifi text-red-400"></i> Kuota</label>
+                                        <select id="dompet_out_kuota" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="gopay">Gopay</option>
+                                            <option value="bca">BCA</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                        </select>
+                                    </div>
                                     <input type="number" id="out_kuota" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
                                 </div>
 
@@ -383,22 +462,38 @@
                     </h3>
                     
                     <div class="space-y-4">
-                        <div class="bg-slate-50 dark:bg-bgDark p-3 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between focus-within:border-orange-400 transition-all">
+                        <div class="bg-slate-50 dark:bg-bgDark p-3 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between focus-within:border-orange-400 transition-all gap-2">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm"><i class="fa-solid fa-wrench"></i></div>
-                                <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Servis Ringan</span>
+                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-wrench"></i></div>
+                                <div>
+                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Servis Ringan</span>
+                                    <select id="dompet_out_servis" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
+                                        <option value="cash">Cash</option>
+                                        <option value="bca">BCA</option>
+                                        <option value="gopay">Gopay</option>
+                                        <option value="gopay_driver">Gopay Driver</option>
+                                    </select>
+                                </div>
                             </div>
-                            <input type="number" id="out_servis" class="w-1/3 bg-transparent text-right border-none p-0 text-red-500 font-bold text-lg outline-none" placeholder="0">
+                            <input type="number" id="out_servis" class="w-24 bg-transparent text-right border-none p-0 text-red-500 font-bold text-lg outline-none" placeholder="0">
                         </div>
                         
                         <!-- Oli Panel -->
                         <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
-                            <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-white/10 pb-3">
+                            <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-white/10 pb-3 gap-2">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm"><i class="fa-solid fa-oil-can"></i></div>
-                                    <span class="text-sm font-bold text-slate-800 dark:text-white">Ganti Oli</span>
+                                    <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-oil-can"></i></div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Ganti Oli</span>
+                                        <select id="dompet_out_oli" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
+                                            <option value="cash">Cash</option>
+                                            <option value="bca">BCA</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <input type="number" id="out_oli" class="w-1/3 bg-slate-50 dark:bg-bgDark rounded-lg text-right border-none p-2 text-red-500 font-bold focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Biaya (Rp)">
+                                <input type="number" id="out_oli" class="w-24 bg-slate-50 dark:bg-bgDark rounded-lg text-right border-none p-2 text-red-500 font-bold focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Biaya (Rp)">
                             </div>
                             <div class="flex items-center justify-between bg-white dark:bg-cardDark p-2.5 rounded-xl border border-slate-100 dark:border-white/5">
                                 <span class="text-[10px] font-bold text-slate-500 uppercase px-2">KM Saat Ganti Oli</span>
@@ -408,12 +503,20 @@
 
                         <!-- Sparepart Panel -->
                         <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
-                            <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-white/10 pb-3">
+                            <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-white/10 pb-3 gap-2">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm"><i class="fa-solid fa-gears"></i></div>
-                                    <span class="text-sm font-bold text-slate-800 dark:text-white">Sparepart</span>
+                                    <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-gears"></i></div>
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Sparepart</span>
+                                        <select id="dompet_out_sparepart" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
+                                            <option value="cash">Cash</option>
+                                            <option value="bca">BCA</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <input type="number" id="out_sparepart" class="w-1/3 bg-slate-50 dark:bg-bgDark rounded-lg text-right border-none p-2 text-red-500 font-bold focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Biaya (Rp)">
+                                <input type="number" id="out_sparepart" class="w-24 bg-slate-50 dark:bg-bgDark rounded-lg text-right border-none p-2 text-red-500 font-bold focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Biaya (Rp)">
                             </div>
                             <div class="flex items-center justify-between bg-white dark:bg-cardDark p-2.5 rounded-xl border border-slate-100 dark:border-white/5">
                                 <span class="text-[10px] font-bold text-slate-500 uppercase px-2">KM Saat Diganti</span>
@@ -579,8 +682,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal Bayar Cicilan -->
+            <!-- Modal Bayar Cicilan -->
     <div id="modal-bayar-hutang" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-6 opacity-0 transition-opacity">
         <div class="bg-white dark:bg-cardDark rounded-[2rem] w-full max-w-sm p-6 shadow-float transform scale-95 transition-transform duration-300" id="modal-bayar-hutang-content">
             <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-1">Bayar Cicilan</h3>
@@ -601,6 +703,7 @@
                     <select id="input_bayar_sumber" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-brand">
                         <option value="cash">Cash (Tunai)</option>
                         <option value="gopay">Gopay</option>
+                        <option value="gopay_driver">Gopay Driver</option>
                         <option value="bca">BCA</option>
                     </select>
                 </div>
@@ -618,7 +721,7 @@
     <nav class="fixed bottom-6 w-full z-40 px-6">
         <div class="backdrop-blur-xl bg-white/80 dark:bg-cardDark/80 border border-slate-200/50 dark:border-white/10 shadow-float rounded-[2rem] p-2 flex justify-between items-center relative overflow-hidden">
             
-            <!-- Active Indicator Pill (Now 1/4 layout width) -->
+            <!-- Active Indicator Pill -->
             <div id="nav-indicator" class="absolute top-2 bottom-2 w-1/4 bg-slate-100 dark:bg-white/5 rounded-2xl transition-all duration-300 ease-in-out -z-10 left-0"></div>
 
             <button onclick="switchTab('dashboard', 0)" class="nav-btn group flex flex-col items-center w-1/4 py-2 relative active" data-target="view-dashboard">
@@ -743,11 +846,19 @@
             const rowId = `manual-in-row-${manualIncomeCounter}`;
             const div = document.createElement('div');
             div.id = rowId;
-            div.className = "flex gap-3 items-center bg-green-50/30 dark:bg-green-500/5 p-3 rounded-xl border border-green-100 dark:border-green-500/10";
+            div.className = "flex gap-3 items-center bg-green-50/30 dark:bg-green-500/5 p-3 rounded-xl border border-green-100 dark:border-green-500/10 flex-wrap";
             div.innerHTML = `
-                <input type="text" placeholder="Keterangan..." class="manual-in-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
-                <input type="number" placeholder="Rp 0" class="manual-in-val w-24 bg-transparent text-sm text-brand font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
-                <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                <div class="w-full flex justify-between gap-2 mb-1">
+                    <input type="text" placeholder="Keterangan..." class="manual-in-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
+                    <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                </div>
+                <select class="manual-in-dompet text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none" onchange="calculateRealtime()">
+                    <option value="cash">Cash</option>
+                    <option value="gopay">Gopay</option>
+                    <option value="gopay_driver">Gopay Driver</option>
+                    <option value="bca">BCA</option>
+                </select>
+                <input type="number" placeholder="Rp 0" class="manual-in-val flex-1 bg-transparent text-sm text-brand font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
             `;
             list.appendChild(div);
         }
@@ -758,11 +869,19 @@
             const rowId = `manual-out-row-${manualExpenseCounter}`;
             const div = document.createElement('div');
             div.id = rowId;
-            div.className = "flex gap-3 items-center bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10";
+            div.className = "flex gap-3 items-center bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10 flex-wrap";
             div.innerHTML = `
-                <input type="text" placeholder="Keterangan..." class="manual-out-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
-                <input type="number" placeholder="Rp 0" class="manual-out-val w-24 bg-transparent text-sm text-red-500 font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
-                <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                <div class="w-full flex justify-between gap-2 mb-1">
+                    <input type="text" placeholder="Keterangan..." class="manual-out-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
+                    <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                </div>
+                <select class="manual-out-dompet text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none" onchange="calculateRealtime()">
+                    <option value="cash">Cash</option>
+                    <option value="gopay">Gopay</option>
+                    <option value="gopay_driver">Gopay Driver</option>
+                    <option value="bca">BCA</option>
+                </select>
+                <input type="number" placeholder="Rp 0" class="manual-out-val flex-1 bg-transparent text-sm text-red-500 font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
             `;
             list.appendChild(div);
         }
@@ -774,9 +893,67 @@
 
         // --- Core Calculations ---
         function calculateRealtime() {
-            document.getElementById('dash-saldo-gopay').innerText = formatRp(getVal('saldo_gopay'));
-            document.getElementById('dash-saldo-cash').innerText = formatRp(getVal('saldo_cash'));
-            document.getElementById('dash-saldo-bca').innerText = formatRp(getVal('saldo_bca'));
+            // 1. Ambil Nilai Saldo Awal (Base)
+            let base = {
+                gopay_driver: getVal('saldo_gopay_driver'),
+                gopay: getVal('saldo_gopay'),
+                cash: getVal('saldo_cash'),
+                bca: getVal('saldo_bca')
+            };
+
+            let deltas = { gopay_driver: 0, gopay: 0, cash: 0, bca: 0 };
+
+            // Helpers 
+            const addIncome = (inputId, selectId) => { deltas[getStr(selectId)] += getVal(inputId); };
+            const subExpense = (inputId, selectId) => { deltas[getStr(selectId)] -= getVal(inputId); };
+
+            // 2. Tambah Semua Pemasukan
+            addIncome('in_bid', 'dompet_in_bid');
+            addIncome('in_tips', 'dompet_in_tips');
+            
+            document.querySelectorAll('#manual-income-list > div').forEach(row => {
+                let val = parseFloat(row.querySelector('.manual-in-val').value) || 0;
+                let dompet = row.querySelector('.manual-in-dompet').value;
+                if (dompet) deltas[dompet] += val;
+            });
+
+            // 3. Kurangi Semua Pengeluaran
+            subExpense('out_makan', 'dompet_out_makan');
+            subExpense('out_minum', 'dompet_out_minum');
+            subExpense('out_kuota', 'dompet_out_kuota');
+            subExpense('out_servis', 'dompet_out_servis');
+            subExpense('out_oli', 'dompet_out_oli');
+            subExpense('out_sparepart', 'dompet_out_sparepart');
+
+            document.querySelectorAll('#manual-expense-list > div').forEach(row => {
+                let val = parseFloat(row.querySelector('.manual-out-val').value) || 0;
+                let dompet = row.querySelector('.manual-out-dompet').value;
+                if (dompet) deltas[dompet] -= val;
+            });
+
+            // 4. Kalkulasi Saldo Akhir
+            let finalSaldo = {
+                gopay_driver: base.gopay_driver + deltas.gopay_driver,
+                gopay: base.gopay + deltas.gopay,
+                cash: base.cash + deltas.cash,
+                bca: base.bca + deltas.bca
+            };
+
+            // 5. Update Teks Saldo Akhir di Form Input
+            document.getElementById('akhir_gopay_driver').innerText = formatRp(finalSaldo.gopay_driver);
+            document.getElementById('akhir_gopay').innerText = formatRp(finalSaldo.gopay);
+            document.getElementById('akhir_cash').innerText = formatRp(finalSaldo.cash);
+            document.getElementById('akhir_bca').innerText = formatRp(finalSaldo.bca);
+
+            // 6. Update Dashboard
+            document.getElementById('dash-saldo-gopay-driver').innerText = formatRp(finalSaldo.gopay_driver);
+            document.getElementById('dash-saldo-gopay').innerText = formatRp(finalSaldo.gopay);
+            document.getElementById('dash-saldo-cash').innerText = formatRp(finalSaldo.cash);
+            document.getElementById('dash-saldo-bca').innerText = formatRp(finalSaldo.bca);
+
+            // Simpan state secara global agar saat disave, nilai akhir yang terkirim
+            window.currentFinalSaldo = finalSaldo;
+
             cekOli();
         }
 
@@ -835,18 +1012,20 @@
         }
 
         function simpanSaldoLocal() {
+            localStorage.setItem('saldo_gopay_driver', getVal('saldo_gopay_driver'));
             localStorage.setItem('saldo_gopay', getVal('saldo_gopay'));
             localStorage.setItem('saldo_cash', getVal('saldo_cash'));
             localStorage.setItem('saldo_bca', getVal('saldo_bca'));
         }
 
         function muatSaldoLocal() {
-            ['saldo_gopay', 'saldo_cash', 'saldo_bca'].forEach((id) => {
+            ['saldo_gopay_driver', 'saldo_gopay', 'saldo_cash', 'saldo_bca'].forEach((id) => {
                 const saved = localStorage.getItem(id);
                 if (saved !== null && saved !== "0") {
                     document.getElementById(id).value = saved;
                 }
             });
+            // Pastikan global state ada dengan hitung ulang
             calculateRealtime();
         }
 
@@ -1012,7 +1191,8 @@
                             nama: row['Nama Kreditur'],
                             totalAwal: Number(row['Total Hutang']),
                             terbayar: Number(row['Terbayar']),
-                            history: row['History JSON'] ? JSON.parse(row['History JSON']) : []
+                            history: row['History JSON'] ? JSON.parse(row['History JSON']) : [],
+                            tanggal: row['Tanggal'] || '' // MENERIMA TANGGAL DARI SERVER
                         }));
                         simpanHutangLocal(); // Backup lokal agar instan waktu load
                         renderHutangList();
@@ -1060,9 +1240,10 @@
             document.querySelectorAll('#manual-income-list > div').forEach(row => {
                 let desc = row.querySelector('.manual-in-desc').value.trim();
                 let val = parseFloat(row.querySelector('.manual-in-val').value) || 0;
+                let dmp = row.querySelector('.manual-in-dompet').value;
                 if (val > 0) {
                     totalInLain += val;
-                    listInDesc.push(`${desc || 'Lainnya'} (${formatRp(val)})`);
+                    listInDesc.push(`${desc || 'Lainnya'} (${formatRp(val)} via ${dmp})`);
                 }
             });
 
@@ -1071,17 +1252,20 @@
             document.querySelectorAll('#manual-expense-list > div').forEach(row => {
                 let desc = row.querySelector('.manual-out-desc').value.trim();
                 let val = parseFloat(row.querySelector('.manual-out-val').value) || 0;
+                let dmp = row.querySelector('.manual-out-dompet').value;
                 if (val > 0) {
                     totalOutLain += val;
-                    listOutDesc.push(`${desc || 'Lainnya'} (${formatRp(val)})`);
+                    listOutDesc.push(`${desc || 'Lainnya'} (${formatRp(val)} via ${dmp})`);
                 }
             });
 
+            // MENGIRIM SALDO AKHIR (YANG SUDAH DIKALKULASI OTOMATIS)
             let data = {
                 tanggal: new Date().toISOString(),
-                saldo_gopay: getVal('saldo_gopay'),
-                saldo_cash: getVal('saldo_cash'),
-                saldo_bca: getVal('saldo_bca'),
+                saldo_gopay_driver: window.currentFinalSaldo.gopay_driver,
+                saldo_gopay: window.currentFinalSaldo.gopay,
+                saldo_cash: window.currentFinalSaldo.cash,
+                saldo_bca: window.currentFinalSaldo.bca,
                 
                 in_bid: getVal('in_bid'),
                 in_tips: getVal('in_tips'),
@@ -1158,15 +1342,7 @@
         // LOGIKA HUTANG & CICILAN
         // ==========================================
 
-        let hutangData = JSON.parse(localStorage.getItem('hutangData')) || [
-            { 
-                id: '1', 
-                nama: 'Bang Sahmani', 
-                totalAwal: 500000, 
-                terbayar: 0, 
-                history: [] 
-            }
-        ];
+        let hutangData = JSON.parse(localStorage.getItem('hutangData')) || [];
 
         function simpanHutangLocal() {
             localStorage.setItem('hutangData', JSON.stringify(hutangData));
@@ -1198,12 +1374,16 @@
                         ${isLunas ? `<div class="absolute top-0 right-0 bg-brand text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10">LUNAS</div>` : ''}
                         
                         <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-slate-800 dark:text-white text-lg flex items-center gap-2">
-                                <i class="fa-solid fa-user-tag text-slate-400 text-sm"></i> ${item.nama}
-                            </h3>
+                            <div>
+                                <h3 class="font-bold text-slate-800 dark:text-white text-lg flex items-center gap-2">
+                                    <i class="fa-solid fa-user-tag text-slate-400 text-sm"></i> ${item.nama}
+                                </h3>
+                                <!-- MENAMPILKAN TANGGAL DI BAWAH NAMA -->
+                                <p class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar text-slate-300"></i> ${item.tanggal || 'Tanggal tidak tersedia'}</p>
+                            </div>
                         </div>
                         
-                        <div class="flex justify-between items-end mb-3">
+                        <div class="flex justify-between items-end mb-3 mt-2">
                             <div>
                                 <p class="text-[10px] text-slate-500 uppercase font-bold">Sisa Hutang</p>
                                 <p class="text-2xl font-extrabold ${isLunas ? 'text-brand' : 'text-red-500'} tracking-tight">${formatRp(Math.max(0, sisa))}</p>
@@ -1262,9 +1442,12 @@
             }
 
             let newId = Date.now().toString();
+            // GENERATE TANGGAL SAAT INI
+            let todayDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
             hutangData.push({
                 id: newId,
+                tanggal: todayDate, // SIMPAN TANGGAL LOKAL
                 nama: nama,
                 totalAwal: total,
                 terbayar: 0,
@@ -1276,7 +1459,7 @@
             closeModalTambahHutang();
             showToast(`Hutang ke ${nama} berhasil dicatat.`);
 
-            // Kirim Tambah Hutang ke Google Sheet
+            // Kirim Tambah Hutang ke Google Sheet (Termasuk Tanggal)
             if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
                 fetch(GAS_URL, {
                     method: 'POST',
@@ -1285,6 +1468,7 @@
                     body: JSON.stringify({ 
                         action: 'tambah_hutang', 
                         id: newId, 
+                        tanggal: todayDate, // KIRIM TANGGAL KE SERVER
                         nama: nama, 
                         totalAwal: total 
                     })
@@ -1320,7 +1504,7 @@
         async function prosesBayarHutang() {
             let id = document.getElementById('bayar_hutang_id').value;
             let nominal = getVal('input_bayar_nominal');
-            let sumber = document.getElementById('input_bayar_sumber').value;
+            let sumber = document.getElementById('input_bayar_sumber').value; // cash, gopay, gopay_driver, bca
             let btn = document.getElementById('btn-proses-bayar');
             
             if (nominal <= 0) {
@@ -1328,9 +1512,12 @@
                 return;
             }
 
-            let saldoSaatIni = getVal('saldo_' + sumber);
+            // Ambil dari global final state, karena itu saldo ter-update
+            let saldoSaatIni = window.currentFinalSaldo ? window.currentFinalSaldo[sumber] : getVal('saldo_' + sumber);
+            
             if (saldoSaatIni < nominal) {
                 showToast(`Saldo ${sumber} tidak cukup! Sisa: ${formatRp(saldoSaatIni)}`);
+                // tidak direturn untuk tetap bisa maksa bayar walau minus, sesuaikan kebutuhan
             }
 
             let hutangIndex = hutangData.findIndex(h => h.id === id);
@@ -1344,9 +1531,10 @@
                 // 1. Simpan ke Google Sheet sebagai Pengeluaran Manual (Keluar Lain)
                 let dataSheet = {
                     tanggal: new Date().toISOString(),
-                    saldo_gopay: getVal('saldo_gopay'),
-                    saldo_cash: getVal('saldo_cash'),
-                    saldo_bca: getVal('saldo_bca'),
+                    saldo_gopay_driver: window.currentFinalSaldo.gopay_driver,
+                    saldo_gopay: window.currentFinalSaldo.gopay,
+                    saldo_cash: window.currentFinalSaldo.cash,
+                    saldo_bca: window.currentFinalSaldo.bca,
                     in_bid: 0,
                     in_tips: 0,
                     in_lain: 0,
@@ -1363,9 +1551,10 @@
                     out_lain_desc: `Bayar Cicilan: ${namaKreditur} (${sumber})`
                 };
 
-                // Potong wallet yang digunakan
+                // Potong wallet yang digunakan untuk disave di sheet
                 if (sumber === 'cash') dataSheet.saldo_cash -= nominal;
                 if (sumber === 'gopay') dataSheet.saldo_gopay -= nominal;
+                if (sumber === 'gopay_driver') dataSheet.saldo_gopay_driver -= nominal;
                 if (sumber === 'bca') dataSheet.saldo_bca -= nominal;
 
                 let todayDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -1396,11 +1585,13 @@
                 });
                 simpanHutangLocal();
 
-                // 3. Potong saldo lokal di app UI
+                // 3. Potong saldo lokal base UI
                 let inputSaldoSource = document.getElementById('saldo_' + sumber);
-                inputSaldoSource.value = saldoSaatIni - nominal;
+                let currentBase = parseFloat(inputSaldoSource.value) || 0;
+                inputSaldoSource.value = currentBase - nominal;
+                
                 simpanSaldoLocal();
-                calculateRealtime();
+                calculateRealtime(); // Kalkulasi ulang semua UI text
 
                 showToast("Pembayaran berhasil dicatat!");
                 renderHutangList();
