@@ -102,6 +102,15 @@
         .progress-bar-fill {
             transition: width 1s ease-out;
         }
+
+        /* Animations */
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeInSlide 0.3s ease-out forwards;
+        }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-bgDark text-slate-800 dark:text-slate-200 font-sans transition-colors duration-500 pb-28 min-h-screen relative bg-grid">
@@ -279,70 +288,86 @@
                     </div>
                 </div>
 
-                <!-- Arus Masuk & Keluar (Side by Side) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <!-- Toggle Arus Masuk / Keluar -->
+                <div class="relative grid grid-cols-2 bg-slate-200/50 dark:bg-white/5 rounded-full p-1 mb-2 border border-slate-200 dark:border-white/10 shadow-inner">
+                    <div id="input-toggle-indicator" class="absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] bg-white dark:bg-cardDark rounded-full shadow-sm border border-slate-200 dark:border-white/5 transition-transform duration-300"></div>
                     
-                    <!-- Pemasukan -->
-                    <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-4 flex flex-col h-full">
-                        <h3 class="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 text-sm">
-                            <span class="w-1.5 h-5 rounded-full bg-brand block"></span>
-                            Masuk
-                        </h3>
-                        <div class="space-y-3 flex-1">
-                            <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-3 focus-within:border-brand transition-all">
-                                <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-mobile-screen"></i> Bid / Argon</label>
-                                <input type="number" id="in_bid" class="w-full bg-transparent border-none p-0 text-brand font-bold text-lg outline-none" placeholder="0">
-                            </div>
-                            <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-3 focus-within:border-brand transition-all">
-                                <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-hand-holding-dollar"></i> Tips</label>
-                                <input type="number" id="in_tips" class="w-full bg-transparent border-none p-0 text-brand font-bold text-lg outline-none" placeholder="0">
-                            </div>
+                    <button type="button" onclick="switchInputTab('masuk')" id="btn-input-masuk" class="relative z-10 text-[10px] sm:text-xs font-extrabold py-3 rounded-full transition-colors text-brand tracking-widest uppercase">
+                        Masuk
+                    </button>
+                    <button type="button" onclick="switchInputTab('keluar')" id="btn-input-keluar" class="relative z-10 text-[10px] sm:text-xs font-extrabold py-3 rounded-full transition-colors text-slate-400 dark:text-slate-500 tracking-widest uppercase">
+                        Keluar
+                    </button>
+                </div>
 
-                            <!-- Dynamic Manual Income Entries -->
-                            <div class="border-t border-slate-100 dark:border-white/5 pt-3">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Manual Masuk</span>
-                                    <button type="button" onclick="addManualIncomeRow()" class="text-[10px] font-bold text-brand bg-brand/10 px-2 py-1 rounded-lg hover:bg-brand/20 transition flex items-center gap-1">
-                                        <i class="fa-solid fa-plus"></i> Tambah
-                                    </button>
+                <!-- Container Tab Masuk & Keluar -->
+                <div class="relative">
+                    
+                    <!-- SECTION: MASUK -->
+                    <div id="section-input-masuk" class="block animate-fade-in">
+                        <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 flex flex-col h-full">
+                            <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2 text-sm">
+                                <span class="w-1.5 h-5 rounded-full bg-brand block"></span>
+                                Arus Masuk (Pendapatan)
+                            </h3>
+                            <div class="space-y-4 flex-1">
+                                <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
+                                    <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-mobile-screen"></i> Bid / Argon</label>
+                                    <input type="number" id="in_bid" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
                                 </div>
-                                <div id="manual-income-list" class="space-y-2">
-                                    <!-- Dynamic rows append here -->
+                                <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
+                                    <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-hand-holding-dollar"></i> Tips</label>
+                                    <input type="number" id="in_tips" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+
+                                <!-- Dynamic Manual Income Entries -->
+                                <div class="border-t border-slate-100 dark:border-white/5 pt-4 mt-2">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Pendapatan Lainnya</span>
+                                        <button type="button" onclick="addManualIncomeRow()" class="text-[10px] font-bold text-brand bg-brand/10 px-3 py-1.5 rounded-lg hover:bg-brand/20 transition flex items-center gap-1">
+                                            <i class="fa-solid fa-plus"></i> Tambah
+                                        </button>
+                                    </div>
+                                    <div id="manual-income-list" class="space-y-3">
+                                        <!-- Dynamic rows append here -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Pengeluaran -->
-                    <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-4 flex flex-col h-full mt-4 md:mt-0">
-                        <h3 class="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 text-sm">
-                            <span class="w-1.5 h-5 rounded-full bg-red-500 block"></span>
-                            Keluar
-                        </h3>
-                        <div class="space-y-3">
-                            <div class="bg-slate-50 dark:bg-bgDark p-2.5 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-burger text-red-400"></i> Makan</label>
-                                <input type="number" id="out_makan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-base outline-none" placeholder="0">
-                            </div>
-                            <div class="bg-slate-50 dark:bg-bgDark p-2.5 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-mug-hot text-red-400"></i> Minum</label>
-                                <input type="number" id="out_minum" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-base outline-none" placeholder="0">
-                            </div>
-                            <div class="bg-slate-50 dark:bg-bgDark p-2.5 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-1"><i class="fa-solid fa-wifi text-red-400"></i> Kuota</label>
-                                <input type="number" id="out_kuota" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-base outline-none" placeholder="0">
-                            </div>
-
-                            <!-- Dynamic Manual Expense Entries -->
-                            <div class="border-t border-slate-100 dark:border-white/5 pt-3">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Manual Keluar (Lain-lain)</span>
-                                    <button type="button" onclick="addManualExpenseRow()" class="text-[10px] font-bold text-red-500 bg-red-500/10 px-2 py-1 rounded-lg hover:bg-red-500/20 transition flex items-center gap-1">
-                                        <i class="fa-solid fa-plus"></i> Tambah
-                                    </button>
+                    <!-- SECTION: KELUAR -->
+                    <div id="section-input-keluar" class="hidden animate-fade-in">
+                        <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 flex flex-col h-full">
+                            <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2 text-sm">
+                                <span class="w-1.5 h-5 rounded-full bg-red-500 block"></span>
+                                Arus Keluar (Pengeluaran)
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-burger text-red-400"></i> Makan</label>
+                                    <input type="number" id="out_makan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
                                 </div>
-                                <div id="manual-expense-list" class="space-y-2">
-                                    <!-- Dynamic rows append here -->
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-mug-hot text-red-400"></i> Minum</label>
+                                    <input type="number" id="out_minum" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mb-2"><i class="fa-solid fa-wifi text-red-400"></i> Kuota</label>
+                                    <input type="number" id="out_kuota" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+
+                                <!-- Dynamic Manual Expense Entries -->
+                                <div class="border-t border-slate-100 dark:border-white/5 pt-4 mt-2">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Pengeluaran Lainnya</span>
+                                        <button type="button" onclick="addManualExpenseRow()" class="text-[10px] font-bold text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg hover:bg-red-500/20 transition flex items-center gap-1">
+                                            <i class="fa-solid fa-plus"></i> Tambah
+                                        </button>
+                                    </div>
+                                    <div id="manual-expense-list" class="space-y-3">
+                                        <!-- Dynamic rows append here -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -661,6 +686,33 @@
             indicator.style.transform = `translateX(${index * 100}%)`;
         }
 
+        // --- Toggle Input (Masuk/Keluar) ---
+        function switchInputTab(tab) {
+            const indicator = document.getElementById('input-toggle-indicator');
+            const secMasuk = document.getElementById('section-input-masuk');
+            const secKeluar = document.getElementById('section-input-keluar');
+            const btnMasuk = document.getElementById('btn-input-masuk');
+            const btnKeluar = document.getElementById('btn-input-keluar');
+
+            if (tab === 'masuk') {
+                indicator.style.transform = 'translateX(0)';
+                
+                btnMasuk.className = "relative z-10 text-[10px] sm:text-xs font-extrabold py-3 rounded-full transition-colors text-brand tracking-widest uppercase";
+                btnKeluar.className = "relative z-10 text-[10px] sm:text-xs font-extrabold py-3 rounded-full transition-colors text-slate-400 dark:text-slate-500 tracking-widest uppercase";
+
+                secKeluar.classList.add('hidden');
+                secMasuk.classList.remove('hidden');
+            } else {
+                indicator.style.transform = 'translateX(100%)';
+                
+                btnKeluar.className = "relative z-10 text-[10px] sm:text-xs font-extrabold py-3 rounded-full transition-colors text-red-500 tracking-widest uppercase";
+                btnMasuk.className = "relative z-10 text-[10px] sm:text-xs font-extrabold py-3 rounded-full transition-colors text-slate-400 dark:text-slate-500 tracking-widest uppercase";
+
+                secMasuk.classList.add('hidden');
+                secKeluar.classList.remove('hidden');
+            }
+        }
+
         // --- Helper Functions ---
         function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
         function getStr(id) { return document.getElementById(id).value.trim(); }
@@ -691,11 +743,11 @@
             const rowId = `manual-in-row-${manualIncomeCounter}`;
             const div = document.createElement('div');
             div.id = rowId;
-            div.className = "flex gap-2 items-center bg-green-50/30 dark:bg-green-500/5 p-2 rounded-xl border border-green-100 dark:border-green-500/10";
+            div.className = "flex gap-3 items-center bg-green-50/30 dark:bg-green-500/5 p-3 rounded-xl border border-green-100 dark:border-green-500/10";
             div.innerHTML = `
-                <input type="text" placeholder="Keterangan..." class="manual-in-desc flex-1 bg-transparent text-xs text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
-                <input type="number" placeholder="Rp 0" class="manual-in-val w-20 bg-transparent text-xs text-brand font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
-                <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                <input type="text" placeholder="Keterangan..." class="manual-in-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
+                <input type="number" placeholder="Rp 0" class="manual-in-val w-24 bg-transparent text-sm text-brand font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
+                <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
             `;
             list.appendChild(div);
         }
@@ -706,11 +758,11 @@
             const rowId = `manual-out-row-${manualExpenseCounter}`;
             const div = document.createElement('div');
             div.id = rowId;
-            div.className = "flex gap-2 items-center bg-slate-50 dark:bg-white/5 p-2 rounded-xl border border-slate-200 dark:border-white/10";
+            div.className = "flex gap-3 items-center bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10";
             div.innerHTML = `
-                <input type="text" placeholder="Keterangan..." class="manual-out-desc flex-1 bg-transparent text-xs text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
-                <input type="number" placeholder="Rp 0" class="manual-out-val w-20 bg-transparent text-xs text-red-500 font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
-                <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                <input type="text" placeholder="Keterangan..." class="manual-out-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
+                <input type="number" placeholder="Rp 0" class="manual-out-val w-24 bg-transparent text-sm text-red-500 font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
+                <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
             `;
             list.appendChild(div);
         }
@@ -947,9 +999,24 @@
             try {
                 const res = await fetch(GAS_URL);
                 const json = await res.json();
-                if (json.status === 'success' && Array.isArray(json.data)) {
-                    allSheetRows = json.data;
-                    renderRekap();
+                if (json.status === 'success') {
+                    // Load Data Harian
+                    if (Array.isArray(json.dataHarian)) {
+                        allSheetRows = json.dataHarian;
+                        renderRekap();
+                    }
+                    // Load Data Hutang dari Spreadsheet Server
+                    if (Array.isArray(json.dataHutang)) {
+                        hutangData = json.dataHutang.map(row => ({
+                            id: row['ID'].toString(),
+                            nama: row['Nama Kreditur'],
+                            totalAwal: Number(row['Total Hutang']),
+                            terbayar: Number(row['Terbayar']),
+                            history: row['History JSON'] ? JSON.parse(row['History JSON']) : []
+                        }));
+                        simpanHutangLocal(); // Backup lokal agar instan waktu load
+                        renderHutangList();
+                    }
                 }
             } catch (err) {
                 console.error('Gagal ambil data dari Sheet:', err);
@@ -1052,7 +1119,7 @@
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
+                        body: JSON.stringify({ action: 'simpan_harian', data: data })
                     });
                     showToast("Laporan berhasil disimpan!");
                 } else {
@@ -1194,8 +1261,10 @@
                 return;
             }
 
+            let newId = Date.now().toString();
+
             hutangData.push({
-                id: Date.now().toString(),
+                id: newId,
                 nama: nama,
                 totalAwal: total,
                 terbayar: 0,
@@ -1206,6 +1275,21 @@
             renderHutangList();
             closeModalTambahHutang();
             showToast(`Hutang ke ${nama} berhasil dicatat.`);
+
+            // Kirim Tambah Hutang ke Google Sheet
+            if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
+                fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'tambah_hutang', 
+                        id: newId, 
+                        nama: nama, 
+                        totalAwal: total 
+                    })
+                });
+            }
         }
 
         function openModalBayarHutang(id, nama) {
@@ -1284,22 +1368,30 @@
                 if (sumber === 'gopay') dataSheet.saldo_gopay -= nominal;
                 if (sumber === 'bca') dataSheet.saldo_bca -= nominal;
 
+                let todayDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                // Payload Kombinasi: Simpan Pengeluaran & Update Hutang sekaligus
+                let payload = {
+                    action: 'bayar_cicilan',
+                    dataHarian: dataSheet,
+                    dataHutang: { id: id, nominal: nominal, tanggal: todayDate }
+                };
+
                 if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
                     await fetch(GAS_URL, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(dataSheet)
+                        body: JSON.stringify(payload)
                     });
                 } else {
                     await new Promise(r => setTimeout(r, 800)); 
                 }
 
                 // 2. Update Data Lokal Hutang
-                let today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                 hutangData[hutangIndex].terbayar += nominal;
                 hutangData[hutangIndex].history.push({
-                    tanggal: today,
+                    tanggal: todayDate,
                     nominal: nominal
                 });
                 simpanHutangLocal();
