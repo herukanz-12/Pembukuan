@@ -258,8 +258,22 @@
 
             <!-- Saldo Instan -->
             <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-1 uppercase tracking-wider">Saldo Saat Ini</h3>
-            <p class="text-[10px] text-slate-400 mb-4">Hasil kalkulasi otomatis dari Saldo Akhir di tab Input. Mau update? Isi transaksi/saldo awal di tab Input.</p>
-            <div class="grid grid-cols-2 gap-3 mb-8">
+            <p class="text-[10px] text-slate-400 mb-4">Hasil kalkulasi otomatis dari Saldo Akhir di tab Input. Ketuk kartu di bawah untuk lihat rincian per dompet.</p>
+
+            <!-- Kartu Total Saldo (klik untuk expand/collapse rincian) -->
+            <button type="button" onclick="toggleSaldoDetail()" id="btn-saldo-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center"><i class="fa-solid fa-wallet"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-500 font-medium uppercase">Total Saldo</p>
+                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="dash-saldo-total">Rp 0</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-saldo-total"></i>
+            </button>
+
+            <!-- Rincian 4 Saldo (tersembunyi sampai kartu Total Saldo diklik) -->
+            <div class="grid grid-cols-2 gap-3 mb-8 hidden" id="saldo-detail-grid">
                 <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
                     <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2"><i class="fa-solid fa-motorcycle"></i></div>
                     <p class="text-xs text-slate-500 font-medium mb-1">Gopay Driver</p>
@@ -1365,6 +1379,10 @@
             document.getElementById('dash-saldo-cash').innerText = formatRp(finalSaldo.cash);
             document.getElementById('dash-saldo-bca').innerText = formatRp(finalSaldo.bca);
 
+            let totalSaldoSemua = finalSaldo.gopay_driver + finalSaldo.gopay + finalSaldo.cash + finalSaldo.bca;
+            let elTotalSaldo = document.getElementById('dash-saldo-total');
+            if (elTotalSaldo) elTotalSaldo.innerText = formatRp(totalSaldoSemua);
+
             // Simpan state secara global agar saat disave, nilai akhir yang terkirim
             window.currentFinalSaldo = finalSaldo;
 
@@ -2132,6 +2150,14 @@
         // Saldo sekarang datang langsung dari sheet SaldoTerkini (state berdiri
         // sendiri di backend) -- BUKAN discan mundur dari riwayat DataHarian lagi.
         // Efeknya: hapus/bersihkan riwayat DataHarian tidak lagi ikut menghapus saldo.
+        function toggleSaldoDetail() {
+            const grid = document.getElementById('saldo-detail-grid');
+            const icon = document.getElementById('icon-saldo-total');
+            if (!grid) return;
+            grid.classList.toggle('hidden');
+            if (icon) icon.classList.toggle('rotate-180');
+        }
+
         function syncSaldoDariServer(saldoServer) {
             if (!saldoServer || typeof saldoServer !== 'object') {
                 // Fallback kalau backend lama belum punya dataSaldo (belum di-deploy ulang):
