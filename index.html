@@ -299,7 +299,7 @@
             <!-- Rincian Pendapatan -->
             <div class="flex items-center justify-between mb-4 mt-8">
                 <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pendapatan</h3>
-                <span id="rincian-pendapatan-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Harian</span>
+                <span id="rincian-pendapatan-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
             </div>
             <div id="rincian-pendapatan-list" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 space-y-5">
                 <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
@@ -311,7 +311,7 @@
             <!-- Rincian Pengeluaran -->
             <div class="flex items-center justify-between mb-4 mt-8">
                 <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pengeluaran</h3>
-                <span id="rincian-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Harian</span>
+                <span id="rincian-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
             </div>
             <div id="rincian-pengeluaran-list" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 space-y-5">
                 <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
@@ -1726,6 +1726,8 @@
         function computeTotals(rows, periode) {
             const now = new Date();
             const todayStr = now.toDateString();
+            const bulanSekarang = now.getMonth();
+            const tahunSekarang = now.getFullYear();
             const { start, end } = getWeekRange(now);
 
             let totalIn = 0;
@@ -1735,9 +1737,11 @@
 
             rows.forEach((row) => {
                 const ts = new Date(row['Timestamp']);
-                const cocok = periode === 'day'
-                    ? ts.toDateString() === todayStr
-                    : (ts >= start && ts <= end);
+                const cocok = periode === 'month'
+                    ? (ts.getMonth() === bulanSekarang && ts.getFullYear() === tahunSekarang)
+                    : periode === 'day'
+                        ? ts.toDateString() === todayStr
+                        : (ts >= start && ts <= end);
 
                 if (cocok) {
                     totalIn += Number(row['Total Pemasukan']) || 0;
@@ -1760,15 +1764,19 @@
         function computeKategoriPengeluaran(periode) {
             const now = new Date();
             const todayStr = now.toDateString();
+            const bulanSekarang = now.getMonth();
+            const tahunSekarang = now.getFullYear();
             const { start, end } = getWeekRange(now);
             let kategoriTotal = {};
 
             (allDetailTransaksi || []).forEach((item) => {
                 if (item['Tipe'] !== 'Keluar') return;
                 const ts = new Date(item['Timestamp']);
-                const cocok = periode === 'day'
-                    ? ts.toDateString() === todayStr
-                    : (ts >= start && ts <= end);
+                const cocok = periode === 'month'
+                    ? (ts.getMonth() === bulanSekarang && ts.getFullYear() === tahunSekarang)
+                    : periode === 'day'
+                        ? ts.toDateString() === todayStr
+                        : (ts >= start && ts <= end);
                 if (!cocok) return;
 
                 let kat = (item['Kategori'] || '').toString().trim() || 'Lainnya';
@@ -1783,15 +1791,19 @@
         function computeKategoriPendapatan(periode) {
             const now = new Date();
             const todayStr = now.toDateString();
+            const bulanSekarang = now.getMonth();
+            const tahunSekarang = now.getFullYear();
             const { start, end } = getWeekRange(now);
             let kategoriTotal = {};
 
             (allDetailTransaksi || []).forEach((item) => {
                 if (item['Tipe'] !== 'Masuk') return;
                 const ts = new Date(item['Timestamp']);
-                const cocok = periode === 'day'
-                    ? ts.toDateString() === todayStr
-                    : (ts >= start && ts <= end);
+                const cocok = periode === 'month'
+                    ? (ts.getMonth() === bulanSekarang && ts.getFullYear() === tahunSekarang)
+                    : periode === 'day'
+                        ? ts.toDateString() === todayStr
+                        : (ts >= start && ts <= end);
                 if (!cocok) return;
 
                 let kat = (item['Kategori'] || '').toString().trim() || 'Lainnya';
@@ -1815,8 +1827,9 @@
             btnWeek.classList.toggle('text-white', !isDay);
             btnWeek.classList.toggle('text-white/60', isDay);
 
-            document.getElementById('rincian-periode-label').innerText = isDay ? 'Harian' : 'Mingguan';
-            document.getElementById('rincian-pendapatan-periode-label').innerText = isDay ? 'Harian' : 'Mingguan';
+            // Label 'rincian-periode-label' & 'rincian-pendapatan-periode-label' TIDAK
+            // diubah di sini lagi -- Rincian Pendapatan/Pengeluaran sekarang tetap
+            // Bulanan terus, gak ikut toggle Harian/Mingguan ini.
             renderRekap();
         }
 
@@ -1837,8 +1850,12 @@
                 ? "text-4xl font-extrabold tracking-tight drop-shadow-md text-brand-neon"
                 : "text-4xl font-extrabold tracking-tight drop-shadow-md text-red-400";
 
-            renderRincianPendapatan(computeKategoriPendapatan(currentPeriode), dash.totalIn);
-            renderRincianPengeluaran(computeKategoriPengeluaran(currentPeriode), dash.totalOut);
+            // Rincian Pendapatan & Rincian Pengeluaran SENGAJA dikunci Bulanan,
+            // gak ikut toggle Harian/Mingguan di atas (currentPeriode) -- biar
+            // gak reset tiap ganti hari.
+            const bulanIni = computeTotals(allSheetRows, 'month');
+            renderRincianPendapatan(computeKategoriPendapatan('month'), bulanIni.totalIn);
+            renderRincianPengeluaran(computeKategoriPengeluaran('month'), bulanIni.totalOut);
 
             const mon = computeTotals(allSheetRows, 'day');
             const bersihMon = mon.totalIn - mon.totalOut;
