@@ -1535,7 +1535,10 @@
                 saldo_gopay_driver: 'Saldo Gopay Driver',
                 saldo_gopay: 'Saldo Gopay',
                 saldo_cash: 'Saldo Cash',
-                saldo_bca: 'Saldo BCA'
+                saldo_bca: 'Saldo BCA',
+                km_oli: 'KM Oli',
+                km_sparepart: 'KM Sparepart',
+                km_sekarang: 'KM Sekarang'
             };
 
             Object.keys(mapping).forEach((inputId) => {
@@ -1549,7 +1552,9 @@
 
             // Backup ke localStorage HP ini & refresh tampilan
             simpanSaldoLocal();
+            simpanKmOliLocal();
             calculateRealtime();
+            cekOli();
         }
 
         function simpanKmOliLocal() {
