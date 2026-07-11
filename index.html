@@ -727,11 +727,31 @@
         <!-- 5. TAB RIWAYAT VIEW -->
         <!-- ========================================== -->
         <section id="view-riwayat" class="tab-content">
-            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Riwayat Laporan</h2>
-            <p class="text-xs text-slate-500 mb-6">Ringkasan pendapatan dari hari-hari sebelumnya</p>
-            
-            <div id="riwayat-list-container" class="space-y-4 mb-8">
-                <!-- Rendered dynamically via JS -->
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Riwayat</h2>
+            <p class="text-xs text-slate-500 mb-6">Ringkasan laporan & log transaksi granular</p>
+
+            <!-- Sub-tab: Riwayat Laporan vs Log Transaksi -->
+            <div class="flex bg-slate-100 dark:bg-white/5 rounded-2xl p-1 mb-6 border border-slate-200 dark:border-white/10">
+                <button type="button" onclick="setRiwayatSubTab('laporan')" id="btn-riwayat-laporan" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">
+                    <i class="fa-solid fa-file-lines mr-1"></i> Riwayat Laporan
+                </button>
+                <button type="button" onclick="setRiwayatSubTab('log')" id="btn-riwayat-log" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">
+                    <i class="fa-solid fa-list-ul mr-1"></i> Log Transaksi
+                </button>
+            </div>
+
+            <!-- Panel: Riwayat Laporan (total per simpan, dari sheet DataHarian) -->
+            <div id="riwayat-laporan-panel">
+                <div id="riwayat-list-container" class="space-y-4 mb-8">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Panel: Log Transaksi (per-item granular, dari sheet DetailTransaksi) -->
+            <div id="riwayat-log-panel" class="hidden">
+                <div id="log-transaksi-list-container" class="space-y-4 mb-8">
+                    <!-- Rendered dynamically via JS -->
+                </div>
             </div>
         </section>
 
@@ -1201,6 +1221,7 @@
 
         // --- Data & Filter Periode ---
         let allSheetRows = [];      
+        let allDetailTransaksi = [];
         let currentPeriode = 'day'; 
 
         const KATEGORI_KELUAR = [
@@ -1503,6 +1524,98 @@
             });
         }
 
+        // --- Toggle Sub-tab Riwayat: "Riwayat Laporan" (total per simpan) vs
+        // "Log Transaksi" (per-item granular dari sheet DetailTransaksi) ---
+        let currentRiwayatSubTab = 'laporan';
+
+        function setRiwayatSubTab(tab) {
+            currentRiwayatSubTab = tab;
+            const btnLaporan = document.getElementById('btn-riwayat-laporan');
+            const btnLog = document.getElementById('btn-riwayat-log');
+            const panelLaporan = document.getElementById('riwayat-laporan-panel');
+            const panelLog = document.getElementById('riwayat-log-panel');
+            const isLaporan = tab === 'laporan';
+
+            [
+                [btnLaporan, isLaporan],
+                [btnLog, !isLaporan]
+            ].forEach(([btn, aktif]) => {
+                btn.classList.toggle('bg-white', aktif);
+                btn.classList.toggle('dark:bg-cardDark', aktif);
+                btn.classList.toggle('text-brand', aktif);
+                btn.classList.toggle('shadow-sm', aktif);
+                btn.classList.toggle('text-slate-500', !aktif);
+                btn.classList.toggle('dark:text-slate-400', !aktif);
+            });
+
+            panelLaporan.classList.toggle('hidden', !isLaporan);
+            panelLog.classList.toggle('hidden', isLaporan);
+
+            if (!isLaporan) {
+                renderLogTransaksiList();
+            }
+        }
+
+        // --- Render Isi Tab Log Transaksi (granular, dari sheet DetailTransaksi) ---
+        function renderLogTransaksiList() {
+            const container = document.getElementById('log-transaksi-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!Array.isArray(allDetailTransaksi) || allDetailTransaksi.length === 0) {
+                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada log transaksi.</p>`;
+                return;
+            }
+
+            const dompetLabelMap = { cash: 'Cash', gopay: 'Gopay', gopay_driver: 'Gopay Driver', bca: 'BCA' };
+
+            // Urutkan dari yang paling baru
+            let sorted = [...allDetailTransaksi].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+
+            // Kelompokkan per tanggal biar nggak berulang-ulang nampilin tanggal yang sama
+            let grouped = {};
+            let urutanTanggal = [];
+            sorted.forEach(item => {
+                let tglKey = new Date(item['Timestamp']).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                if (!grouped[tglKey]) {
+                    grouped[tglKey] = [];
+                    urutanTanggal.push(tglKey);
+                }
+                grouped[tglKey].push(item);
+            });
+
+            urutanTanggal.forEach(tglKey => {
+                let itemsHtml = grouped[tglKey].map(item => {
+                    let isMasuk = item['Tipe'] === 'Masuk';
+                    let jam = new Date(item['Timestamp']).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    let dompetLabel = dompetLabelMap[item['Dompet']] || item['Dompet'] || '-';
+                    let keterangan = item['Keterangan'] ? ` <span class="font-normal text-slate-400">- ${item['Keterangan']}</span>` : '';
+
+                    return `
+                        <div class="flex items-center justify-between py-2.5 border-b border-slate-100 dark:border-white/5 last:border-0">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 rounded-xl ${isMasuk ? 'bg-brand/10 text-brand' : 'bg-red-100 dark:bg-red-500/10 text-red-500'} flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${isMasuk ? 'fa-arrow-down' : 'fa-arrow-up'} text-xs"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-bold text-slate-800 dark:text-white truncate">${item['Kategori']}${keterangan}</p>
+                                    <p class="text-[10px] text-slate-400">${jam} &middot; ${dompetLabel}</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-extrabold ${isMasuk ? 'text-brand' : 'text-red-500'} shrink-0 ml-2">${isMasuk ? '+' : '-'} ${formatRp(Number(item['Nominal']) || 0)}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML += `
+                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 animate-fade-in">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2"><i class="fa-regular fa-calendar text-brand"></i> ${tglKey}</p>
+                        ${itemsHtml}
+                    </div>
+                `;
+            });
+        }
+
         function renderRincianPengeluaran(kategoriTotal, totalOut) {
             const container = document.getElementById('rincian-pengeluaran-list');
             const items = KATEGORI_KELUAR
@@ -1585,6 +1698,13 @@
                         }));
                         simpanHutangLocal(); // Backup lokal agar instan waktu load
                         renderHutangList();
+                    }
+
+                    // Load Log Transaksi granular (sheet DetailTransaksi) -- ditampilkan
+                    // terpisah dari Riwayat Laporan di tab Riwayat.
+                    if (Array.isArray(json.dataDetailTransaksi)) {
+                        allDetailTransaksi = json.dataDetailTransaksi;
+                        if (currentRiwayatSubTab === 'log') renderLogTransaksiList();
                     }
                     return true;
                 } else {
@@ -2191,6 +2311,7 @@
             muatSaldoLocal();
             muatKmOliLocal();
             renderHutangList();
+            setRiwayatSubTab('laporan');
             setTimeout(() => switchTab('dashboard', 0), 100);
             
             fetchRekapData();
