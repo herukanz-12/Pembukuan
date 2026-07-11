@@ -2294,7 +2294,7 @@
         async function fetchRekapData() {
             if (!isServerAktif()) return false;
             try {
-                const res = await fetch(GAS_URL);
+                const res = await fetch(GAS_URL, { cache: 'no-store' });
                 const json = await res.json();
                 if (json.status === 'success') {
                     // Load Data Pengaturan LEBIH DULU, supaya waktu renderRekap()/cekPajakKendaran()
