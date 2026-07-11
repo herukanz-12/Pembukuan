@@ -309,17 +309,38 @@
                 </button>
             </div>
 
+            <!-- ========================================== -->
+            <!-- MENU 3 TOMBOL (accordion, biar tidak penuh) -->
+            <!-- ========================================== -->
+            <div class="grid grid-cols-3 gap-3 mb-6" id="input-menu">
+                <button type="button" onclick="showInputPanel('trip')" data-panel="trip" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-4 transition-all active:scale-95">
+                    <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500 flex items-center justify-center text-lg"><i class="fa-solid fa-route"></i></div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Total Trip<br>Diselesaikan</span>
+                </button>
+                <button type="button" onclick="showInputPanel('dompet')" data-panel="dompet" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-4 transition-all active:scale-95">
+                    <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg"><i class="fa-solid fa-wallet"></i></div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Dompet<br>(Auto Kalkulasi)</span>
+                </button>
+                <button type="button" onclick="showInputPanel('inout')" data-panel="inout" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-4 transition-all active:scale-95">
+                    <div class="w-11 h-11 rounded-xl bg-brand/10 text-brand flex items-center justify-center text-lg"><i class="fa-solid fa-right-left"></i></div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Input<br>(Masuk &amp; Keluar)</span>
+                </button>
+            </div>
+
             <form id="inputForm" oninput="calculateRealtime(); simpanSaldoLocal();" class="space-y-6">
                 
                 <!-- Kotak Jumlah Trip (Netral/Aktivitas) -->
+                <div id="input-panel-trip" class="input-panel hidden space-y-6">
                 <div class="bg-blue-50/50 dark:bg-blue-500/5 rounded-2xl border border-blue-100 dark:border-blue-500/20 p-4 focus-within:border-blue-500 transition-all">
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Total Trip Diselesaikan</label>
                     </div>
                     <input type="number" id="in_trip" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-2xl outline-none" placeholder="0">
                 </div>
+                </div>
                 
                 <!-- Saldo Awal Group -->
+                <div id="input-panel-dompet" class="input-panel hidden space-y-6">
                 <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden">
                     <div class="absolute -right-6 -top-6 text-slate-50 dark:text-white/5 text-8xl pointer-events-none">
                         <i class="fa-solid fa-wallet"></i>
@@ -392,8 +413,10 @@
                         </div>
                     </div>
                 </div>
+                </div>
 
                 <!-- Toggle Arus Masuk / Keluar -->
+                <div id="input-panel-inout" class="input-panel hidden space-y-6">
                 <div class="relative grid grid-cols-2 bg-slate-200/50 dark:bg-white/5 rounded-full p-1 mb-2 border border-slate-200 dark:border-white/10 shadow-inner">
                     <div id="input-toggle-indicator" class="absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] bg-white dark:bg-cardDark rounded-full shadow-sm border border-slate-200 dark:border-white/5 transition-transform duration-300"></div>
                     
@@ -604,69 +627,73 @@
                     </div>
                 </div>
 
+                <!-- ========================================== -->
+                <!-- CATAT MAINTENANCE MOTOR (Ganti Oli, Ban, dll) -->
+                <!-- Digabung ke sini (dalam panel Input) supaya menu utama cukup 3 tombol -->
+                <!-- ========================================== -->
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mt-4">
+                    <h3 class="font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+                        <span class="w-2 h-6 rounded-full bg-orange-500 block"></span>
+                        Catat Maintenance Motor
+                    </h3>
+                    <p class="text-[10px] text-slate-500 mb-4">Catat servis (Ganti Oli, Ban, Kampas Rem, dll) beserta KM Awal &amp; KM Akhir. Khusus Ganti Oli, kamu akan diperingatkan otomatis kalau sudah mencapai 2.000 km.</p>
+
+                    <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Jenis Servis</label>
+                            <select id="maintenance_jenis" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand">
+                                <option value="Ganti Oli">Ganti Oli</option>
+                                <option value="Ganti Oli Gardan">Ganti Oli Gardan</option>
+                                <option value="Ganti Ban">Ganti Ban</option>
+                                <option value="Ganti Kampas Rem">Ganti Kampas Rem</option>
+                                <option value="Ganti Fan Belt (Vanbelt)">Ganti Fan Belt (Vanbelt)</option>
+                                <option value="Ganti Roller">Ganti Roller</option>
+                                <option value="Servis Rutin">Servis Rutin</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Awal</label>
+                                <input type="number" id="maintenance_km_awal" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="12000">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Akhir</label>
+                                <input type="number" id="maintenance_km_akhir" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="12000">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Biaya (Rp)</label>
+                                <input type="number" id="maintenance_biaya" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Tanggal</label>
+                                <input type="date" id="maintenance_tanggal" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Keterangan (opsional)</label>
+                            <input type="text" id="maintenance_keterangan" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="mis. bengkel Pak Budi">
+                        </div>
+
+                        <button type="button" onclick="simpanMaintenance()" class="w-full bg-slate-800 dark:bg-white/10 hover:bg-slate-900 dark:hover:bg-white/20 text-white font-bold text-sm py-4 rounded-2xl transition-all transform active:scale-95 flex items-center justify-center gap-2 border border-white/10">
+                            <i class="fa-solid fa-floppy-disk" id="icon-simpan-maintenance"></i>
+                            <span id="text-simpan-maintenance">Simpan Servis</span>
+                        </button>
+                    </div>
+                </div>
+
                 <button type="button" onclick="simpanData()" class="w-full relative overflow-hidden group bg-brand hover:bg-brand-dark text-white font-bold text-lg py-5 px-4 rounded-[2rem] shadow-neon transition-all transform active:scale-95 flex items-center justify-center gap-3 mt-8 border border-white/20">
                     <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                     <i class="fa-solid fa-cloud-arrow-up text-xl" id="icon-simpan"></i>
                     <span id="text-simpan">Simpan Laporan</span>
                 </button>
+                </div>
             </form>
 
-            <!-- ========================================== -->
-            <!-- CATAT MAINTENANCE MOTOR (Ganti Oli, Ban, dll) -->
-            <!-- ========================================== -->
-            <div class="mt-8 pt-6 border-t border-dashed border-slate-200 dark:border-white/10">
-                <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
-                    <i class="fa-solid fa-screwdriver-wrench text-brand"></i> Catat Maintenance Motor
-                </h3>
-                <p class="text-[10px] text-slate-500 mb-4">Catat servis (Ganti Oli, Ban, Kampas Rem, dll) beserta KM Awal &amp; KM Akhir. Khusus Ganti Oli, kamu akan diperingatkan otomatis kalau sudah mencapai 2.000 km.</p>
-
-                <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Jenis Servis</label>
-                        <select id="maintenance_jenis" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand">
-                            <option value="Ganti Oli">Ganti Oli</option>
-                            <option value="Ganti Oli Gardan">Ganti Oli Gardan</option>
-                            <option value="Ganti Ban">Ganti Ban</option>
-                            <option value="Ganti Kampas Rem">Ganti Kampas Rem</option>
-                            <option value="Ganti Fan Belt (Vanbelt)">Ganti Fan Belt (Vanbelt)</option>
-                            <option value="Ganti Roller">Ganti Roller</option>
-                            <option value="Servis Rutin">Servis Rutin</option>
-                        </select>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Awal</label>
-                            <input type="number" id="maintenance_km_awal" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="12000">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Akhir</label>
-                            <input type="number" id="maintenance_km_akhir" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="12000">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Biaya (Rp)</label>
-                            <input type="number" id="maintenance_biaya" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Tanggal</label>
-                            <input type="date" id="maintenance_tanggal" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Keterangan (opsional)</label>
-                        <input type="text" id="maintenance_keterangan" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="mis. bengkel Pak Budi">
-                    </div>
-
-                    <button type="button" onclick="simpanMaintenance()" class="w-full bg-slate-800 dark:bg-white/10 hover:bg-slate-900 dark:hover:bg-white/20 text-white font-bold text-sm py-4 rounded-2xl transition-all transform active:scale-95 flex items-center justify-center gap-2 border border-white/10">
-                        <i class="fa-solid fa-floppy-disk" id="icon-simpan-maintenance"></i>
-                        <span id="text-simpan-maintenance">Simpan Servis</span>
-                    </button>
-                </div>
-            </div>
         </section>
 
         <!-- ========================================== -->
@@ -1060,6 +1087,26 @@
             const indicator = document.getElementById('nav-indicator');
             indicator.style.transform = `translateX(${index * 100}%)`;
             indicator.style.opacity = (tabName === 'input') ? '0' : '1';
+        }
+
+        // --- Menu 3 Tombol di Tab Input (accordion, biar halaman tidak penuh) ---
+        // Klik tombol -> panel terkait terbuka & yang lain tertutup.
+        // Klik tombol yang sama lagi saat sudah terbuka -> panel ditutup (collapse).
+        function showInputPanel(name) {
+            let target = document.getElementById('input-panel-' + name);
+            let sedangTerbuka = target && !target.classList.contains('hidden');
+
+            document.querySelectorAll('.input-panel').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.input-menu-btn').forEach(el => {
+                el.classList.remove('border-brand', 'ring-2', 'ring-brand/30');
+            });
+
+            if (!sedangTerbuka && target) {
+                target.classList.remove('hidden');
+                let btn = document.querySelector('.input-menu-btn[data-panel="' + name + '"]');
+                if (btn) btn.classList.add('border-brand', 'ring-2', 'ring-brand/30');
+                setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+            }
         }
 
         // --- Toggle Input (Masuk/Keluar) ---
