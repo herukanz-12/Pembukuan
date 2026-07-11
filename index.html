@@ -220,7 +220,7 @@
                         <p class="text-xs font-semibold text-white/80 uppercase tracking-widest mb-1 flex items-center gap-2">
                             <i class="fa-solid fa-wallet text-brand-neon"></i> Pendapatan Bersih
                         </p>
-                        <h2 class="text-4xl font-extrabold tracking-tight drop-shadow-md" id="dash-bersih">Rp 0</h2>
+                        <h2 class="text-4xl font-extrabold tracking-tight drop-shadow-md text-brand-neon" id="dash-bersih">Rp 0</h2>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
                         <i class="fa-solid fa-bolt text-brand-neon"></i>
@@ -1299,7 +1299,16 @@
 
             document.getElementById('dash-in-day').innerText = formatRp(dash.totalIn);
             document.getElementById('dash-out-day').innerText = formatRp(dash.totalOut);
-            document.getElementById('dash-bersih').innerText = formatRp(bersihDash);
+
+            let elDashBersih = document.getElementById('dash-bersih');
+            elDashBersih.innerText = formatRp(bersihDash);
+            // Kartu digital wallet-nya sendiri background hijau gelap, jadi angkanya
+            // pakai text-brand-neon (hijau terang) waktu positif biar tetap kebaca &
+            // "nyala", dan text-red-400 (merah lebih terang) waktu minus biar kontras
+            // di background gelap -- bukan text-red-500 biasa yang dipakai di kartu putih.
+            elDashBersih.className = bersihDash >= 0
+                ? "text-4xl font-extrabold tracking-tight drop-shadow-md text-brand-neon"
+                : "text-4xl font-extrabold tracking-tight drop-shadow-md text-red-400";
 
             renderRincianPengeluaran(dash.kategoriTotal, dash.totalOut);
 
