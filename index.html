@@ -172,8 +172,13 @@
                     <span class="text-slate-500 dark:text-slate-400 uppercase tracking-wider">Progres Target Pendapatan</span>
                     <span id="target-progress-text" class="text-brand">0%</span>
                 </div>
-                <div class="w-full bg-slate-100 dark:bg-bgDark rounded-full h-3 overflow-hidden shadow-inner border border-slate-200 dark:border-white/5">
-                    <div id="target-progress-bar" class="bg-gradient-to-r from-brand to-brand-neon h-3 rounded-full progress-bar-fill" style="width: 0%"></div>
+                <div class="relative w-full pt-5 mb-1">
+                    <div id="motor-progress-wrapper" class="absolute top-0 -ml-3 transition-all duration-1000 ease-out z-10" style="left: 0%;">
+                        <i class="fa-solid fa-motorcycle text-brand text-xl drop-shadow-md"></i>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-bgDark rounded-full h-3 overflow-hidden shadow-inner border border-slate-200 dark:border-white/5 relative z-0">
+                        <div id="target-progress-bar" class="bg-gradient-to-r from-brand to-brand-neon h-3 rounded-full progress-bar-fill" style="width: 0%"></div>
+                    </div>
                 </div>
                 <div class="flex justify-between items-center text-[10px] font-medium text-slate-400 mt-1">
                     <span>Bersih: <span id="target-bersih-val">Rp 0</span></span>
@@ -1297,9 +1302,11 @@
                 let progressPercent = Math.max(0, Math.min(100, (bersihDash / targetPendapatan) * 100));
                 document.getElementById('target-progress-bar').style.width = progressPercent + "%";
                 document.getElementById('target-progress-text').innerText = Math.round(progressPercent) + "%";
+                document.getElementById('motor-progress-wrapper').style.left = progressPercent + "%";
             } else {
                 document.getElementById('target-progress-bar').style.width = "0%";
                 document.getElementById('target-progress-text').innerText = "0%";
+                document.getElementById('motor-progress-wrapper').style.left = "0%";
             }
 
             // Hitung Rata-rata per Trip Hari Ini
