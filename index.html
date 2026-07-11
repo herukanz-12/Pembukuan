@@ -1522,7 +1522,7 @@
         }
 
         async function fetchRekapData() {
-            if (!isServerAktif()) return;
+            if (!isServerAktif()) return false;
             try {
                 const res = await fetch(GAS_URL);
                 const json = await res.json();
@@ -1559,12 +1559,15 @@
                         simpanHutangLocal(); // Backup lokal agar instan waktu load
                         renderHutangList();
                     }
+                    return true;
                 } else {
                     showToast("Gagal memuat riwayat: " + json.message);
+                    return false;
                 }
             } catch (err) {
                 console.error('Gagal ambil data dari Sheet:', err);
                 showToast("Data kosong? Pastikan sudah 'Deploy' versi terbaru di Google Apps Script!");
+                return false;
             }
         }
 
@@ -2041,8 +2044,12 @@
         // --- Fungsi Tombol Refresh ---
         async function muatUlangData() {
             showToast("Memuat ulang data dari server...");
-            await fetchRekapData();
-            showToast("Data berhasil diperbarui!");
+            const berhasil = await fetchRekapData();
+            if (berhasil) {
+                showToast("Data berhasil diperbarui!");
+            }
+            // Kalau gagal, biarkan toast error asli dari fetchRekapData() yang tampil
+            // (jangan ditimpa pesan "berhasil" palsu).
         }
 
         // --- Inisialisasi Saat Aplikasi Dimuat ---
