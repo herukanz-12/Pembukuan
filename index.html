@@ -1544,7 +1544,9 @@
                     if (Array.isArray(json.dataHarian)) {
                         allSheetRows = json.dataHarian;
                         renderRekap();
-                        syncSaldoDariServer(); // Sinkronkan saldo terakhir dari Sheet ke semua HP
+                        // Sinkronkan saldo dari sheet SaldoTerkini (state berdiri sendiri di
+                        // backend) ke semua HP -- bukan discan dari riwayat DataHarian lagi.
+                        syncSaldoDariServer(json.dataSaldo);
                     }
                     // Load Data Hutang dari Spreadsheet Server
                     if (Array.isArray(json.dataHutang)) {
@@ -1573,63 +1575,114 @@
         }
 
         // --- Sinkronkan Saldo dari Google Sheet (agar sama di semua HP) ---
-        function syncSaldoDariServer() {
-            // Hanya berhenti kalau responsnya beneran bukan array (respons aneh/gagal parse).
-            // Array kosong ([]) itu VALID -- artinya sheet DataHarian memang kosong
-            // (misal baru dihapus manual), bukan tanda gagal fetch.
-            if (!Array.isArray(allSheetRows)) return;
-
-            // Mapping: id input di HTML -> nama kolom di Google Sheet
-            const mapping = {
-                saldo_gopay_driver: 'Saldo Gopay Driver',
-                saldo_gopay: 'Saldo Gopay',
-                saldo_cash: 'Saldo Cash',
-                saldo_bca: 'Saldo BCA',
-                km_oli: 'KM Oli',
-                km_sparepart: 'KM Sparepart',
-                km_sekarang: 'KM Sekarang'
-            };
-
-            if (allSheetRows.length === 0) {
-                // Sheet DataHarian memang kosong -> reset semua saldo & KM ke 0,
-                // jangan biarkan app nampilin angka basi dari cache HP ini.
+        // Saldo sekarang datang langsung dari sheet SaldoTerkini (state berdiri
+        // sendiri di backend) -- BUKAN discan mundur dari riwayat DataHarian lagi.
+        // Efeknya: hapus/bersihkan riwayat DataHarian tidak lagi ikut menghapus saldo.
+        function syncSaldoDariServer(saldoServer) {
+            if (!saldoServer || typeof saldoServer !== 'object') {
+                // Fallback kalau backend lama belum punya dataSaldo (belum di-deploy ulang):
+                // pakai cara lama (scan mundur riwayat) supaya app tetap jalan.
+                syncSaldoDariServerLegacyScan();
+            } else {
+                const mapping = {
+                    saldo_gopay_driver: 'gopay_driver',
+                    saldo_gopay: 'gopay',
+                    saldo_cash: 'cash',
+                    saldo_bca: 'bca'
+                };
                 Object.keys(mapping).forEach((inputId) => {
                     let el = document.getElementById(inputId);
-                    if (el) el.value = 0;
-                });
-            } else {
-                // Ambil baris paling baru berdasarkan Timestamp (urutkan dari terbaru ke terlama)
-                let sortedRows = [...allSheetRows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
-
-                Object.keys(mapping).forEach((inputId) => {
-                    let kolom = mapping[inputId];
-                    let ketemu = false;
-
-                    // Cari angka yang valid dari baris terbaru mundur ke belakang
-                    for (let i = 0; i < sortedRows.length; i++) {
-                        let nilai = sortedRows[i][kolom];
-                        // Pastikan selnya tidak kosong dan benar-benar ada nilainya
-                        if (nilai !== undefined && nilai !== '' && nilai !== null) {
-                            let el = document.getElementById(inputId);
-                            if (el) el.value = Number(nilai) || 0;
-                            ketemu = true;
-                            break; // Stop mencari jika sudah ketemu angka di baris yang paling baru
-                        }
-                    }
-                    // Kalau semua baris yang ada memang tidak punya nilai untuk kolom ini,
-                    // reset ke 0 juga -- jangan biarkan cache lama nyangkut selamanya.
-                    if (!ketemu) {
-                        let el = document.getElementById(inputId);
-                        if (el) el.value = 0;
-                    }
+                    if (el) el.value = Number(saldoServer[mapping[inputId]]) || 0;
                 });
             }
+
+            // KM Oli/Sparepart/Sekarang belum dipindah ke sheet state (bukan saldo
+            // dompet), jadi masih perlu discan dari riwayat DataHarian seperti biasa.
+            syncKmDariServer();
 
             // Backup ke localStorage HP ini & refresh tampilan
             simpanSaldoLocal();
             if(typeof simpanKmOliLocal === "function") simpanKmOliLocal();
             calculateRealtime();
             if(typeof cekOli === "function") cekOli();
+        }
+
+        // Cara lama (sebelum ada sheet SaldoTerkini): scan mundur riwayat DataHarian
+        // cari baris terbaru yang ada isinya per kolom saldo. Disimpan sebagai
+        // fallback saja kalau-kalau backend belum di-deploy ulang dengan dataSaldo.
+        function syncSaldoDariServerLegacyScan() {
+            if (!Array.isArray(allSheetRows)) return;
+            const mapping = {
+                saldo_gopay_driver: 'Saldo Gopay Driver',
+                saldo_gopay: 'Saldo Gopay',
+                saldo_cash: 'Saldo Cash',
+                saldo_bca: 'Saldo BCA'
+            };
+
+            if (allSheetRows.length === 0) {
+                Object.keys(mapping).forEach((inputId) => {
+                    let el = document.getElementById(inputId);
+                    if (el) el.value = 0;
+                });
+                return;
+            }
+
+            let sortedRows = [...allSheetRows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+            Object.keys(mapping).forEach((inputId) => {
+                let kolom = mapping[inputId];
+                let ketemu = false;
+                for (let i = 0; i < sortedRows.length; i++) {
+                    let nilai = sortedRows[i][kolom];
+                    if (nilai !== undefined && nilai !== '' && nilai !== null) {
+                        let el = document.getElementById(inputId);
+                        if (el) el.value = Number(nilai) || 0;
+                        ketemu = true;
+                        break;
+                    }
+                }
+                if (!ketemu) {
+                    let el = document.getElementById(inputId);
+                    if (el) el.value = 0;
+                }
+            });
+        }
+
+        // KM Oli/Sparepart/Sekarang: masih discan mundur dari riwayat DataHarian
+        // (belum bagian dari saldo dompet, jadi belum dipindah ke SaldoTerkini).
+        function syncKmDariServer() {
+            if (!Array.isArray(allSheetRows)) return;
+            const mappingKm = {
+                km_oli: 'KM Oli',
+                km_sparepart: 'KM Sparepart',
+                km_sekarang: 'KM Sekarang'
+            };
+
+            if (allSheetRows.length === 0) {
+                Object.keys(mappingKm).forEach((inputId) => {
+                    let el = document.getElementById(inputId);
+                    if (el) el.value = 0;
+                });
+                return;
+            }
+
+            let sortedRows = [...allSheetRows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+            Object.keys(mappingKm).forEach((inputId) => {
+                let kolom = mappingKm[inputId];
+                let ketemu = false;
+                for (let i = 0; i < sortedRows.length; i++) {
+                    let nilai = sortedRows[i][kolom];
+                    if (nilai !== undefined && nilai !== '' && nilai !== null) {
+                        let el = document.getElementById(inputId);
+                        if (el) el.value = Number(nilai) || 0;
+                        ketemu = true;
+                        break;
+                    }
+                }
+                if (!ketemu) {
+                    let el = document.getElementById(inputId);
+                    if (el) el.value = 0;
+                }
+            });
         }
 
         function simpanKmOliLocal() {
