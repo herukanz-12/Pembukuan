@@ -738,6 +738,10 @@
                         <input type="number" id="input_total_hutang" class="w-full bg-transparent border-none p-2 text-slate-800 dark:text-white font-bold text-lg outline-none" placeholder="0">
                     </div>
                 </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Keterangan (Opsional)</label>
+                    <textarea id="input_keterangan_hutang" rows="2" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-brand resize-none" placeholder="Contoh: Pinjaman untuk servis motor..."></textarea>
+                </div>
                 <div class="flex gap-3 mt-6">
                     <button onclick="closeModalTambahHutang()" class="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-sm">Batal</button>
                     <button onclick="simpanHutangBaru()" class="flex-1 py-3 rounded-xl bg-brand text-white font-bold text-sm shadow-neon">Simpan</button>
@@ -755,11 +759,19 @@
             
             <div class="space-y-4">
                 <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Tanggal</label>
+                    <input type="date" id="input_bayar_tanggal" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-brand">
+                </div>
+                <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Nominal Bayar Hari Ini</label>
                     <div class="flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand">
                         <span class="pl-3 text-slate-400 text-sm font-bold">Rp</span>
                         <input type="number" id="input_bayar_nominal" class="w-full bg-transparent border-none p-2 text-brand font-bold text-2xl outline-none" placeholder="0">
                     </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Keterangan (Opsional)</label>
+                    <textarea id="input_bayar_keterangan" rows="2" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-brand resize-none" placeholder="Contoh: Bayar cicilan minggu ke-2..."></textarea>
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Potong Saldo Dari</label>
@@ -1458,7 +1470,8 @@
                             totalAwal: Number(row['Total Hutang']),
                             terbayar: Number(row['Terbayar']),
                             history: row['History JSON'] ? JSON.parse(row['History JSON']) : [],
-                            tanggal: row['Tanggal'] || '' // MENERIMA TANGGAL DARI SERVER
+                            tanggal: row['Tanggal'] || '', // MENERIMA TANGGAL DARI SERVER
+                            keterangan: row['Keterangan'] || '' // MENERIMA KETERANGAN DARI SERVER
                         }));
                         simpanHutangLocal(); // Backup lokal agar instan waktu load
                         renderHutangList();
@@ -1665,7 +1678,7 @@
 
                 let historyHtml = item.history.slice(-3).map(h => 
                     `<div class="flex justify-between items-center text-[10px] text-slate-500 border-t border-slate-100 dark:border-white/5 pt-1 mt-1">
-                        <span>${h.tanggal}</span>
+                        <span>${h.tanggal}${h.keterangan ? ` <span class="italic">- ${h.keterangan}</span>` : ''}</span>
                         <span class="font-bold text-brand">+ ${formatRp(h.nominal)}</span>
                     </div>`
                 ).join('');
@@ -1683,6 +1696,8 @@
                                 <p class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar text-slate-300"></i> ${item.tanggal || 'Tanggal tidak tersedia'}</p>
                             </div>
                         </div>
+
+                        ${item.keterangan ? `<p class="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/5 rounded-xl p-2 mb-3 flex items-start gap-2"><i class="fa-solid fa-note-sticky text-slate-400 mt-0.5"></i> <span>${item.keterangan}</span></p>` : ''}
                         
                         <div class="flex justify-between items-end mb-3 mt-2">
                             <div>
@@ -1730,12 +1745,14 @@
                 modal.classList.add('hidden');
                 document.getElementById('input_nama_hutang').value = '';
                 document.getElementById('input_total_hutang').value = '';
+                document.getElementById('input_keterangan_hutang').value = '';
             }, 300);
         }
 
         function simpanHutangBaru() {
             let nama = getStr('input_nama_hutang');
             let total = getVal('input_total_hutang');
+            let keterangan = getStr('input_keterangan_hutang');
             
             if (!nama || total <= 0) {
                 showToast("Nama dan nominal harus diisi dengan benar!");
@@ -1752,7 +1769,8 @@
                 nama: nama,
                 totalAwal: total,
                 terbayar: 0,
-                history: []
+                history: [],
+                keterangan: keterangan // SIMPAN KETERANGAN LOKAL
             });
 
             simpanHutangLocal();
@@ -1760,7 +1778,7 @@
             closeModalTambahHutang();
             showToast(`Hutang ke ${nama} berhasil dicatat.`);
 
-            // Kirim Tambah Hutang ke Google Sheet (Termasuk Tanggal)
+            // Kirim Tambah Hutang ke Google Sheet (Termasuk Tanggal & Keterangan)
             if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
                 fetch(GAS_URL, {
                     method: 'POST',
@@ -1771,7 +1789,8 @@
                         id: newId, 
                         tanggal: todayDate, // KIRIM TANGGAL KE SERVER
                         nama: nama, 
-                        totalAwal: total 
+                        totalAwal: total,
+                        keterangan: keterangan // KIRIM KETERANGAN KE SERVER
                     })
                 });
             }
@@ -1780,6 +1799,13 @@
         function openModalBayarHutang(id, nama) {
             document.getElementById('bayar_hutang_id').value = id;
             document.getElementById('label-bayar-nama').innerText = `Ke: ${nama}`;
+            
+            // Set default tanggal ke hari ini (format yyyy-mm-dd untuk input type=date)
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            document.getElementById('input_bayar_tanggal').value = `${yyyy}-${mm}-${dd}`;
             
             const modal = document.getElementById('modal-bayar-hutang');
             const content = document.getElementById('modal-bayar-hutang-content');
@@ -1798,6 +1824,8 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 document.getElementById('input_bayar_nominal').value = '';
+                document.getElementById('input_bayar_tanggal').value = '';
+                document.getElementById('input_bayar_keterangan').value = '';
                 document.getElementById('btn-proses-bayar').innerHTML = '<span>Bayar Sekarang</span>';
             }, 300);
         }
@@ -1805,6 +1833,8 @@
         async function prosesBayarHutang() {
             let id = document.getElementById('bayar_hutang_id').value;
             let nominal = getVal('input_bayar_nominal');
+            let tanggalInput = document.getElementById('input_bayar_tanggal').value; // yyyy-mm-dd
+            let keterangan = getStr('input_bayar_keterangan');
             let sumber = document.getElementById('input_bayar_sumber').value; // cash, gopay, gopay_driver, bca
             let btn = document.getElementById('btn-proses-bayar');
             
@@ -1812,6 +1842,14 @@
                 showToast("Nominal bayar harus lebih dari 0");
                 return;
             }
+
+            if (!tanggalInput) {
+                showToast("Tanggal harus diisi");
+                return;
+            }
+
+            // Konversi tanggal input (yyyy-mm-dd) menjadi Date object & format tampilan id-ID
+            let tanggalPilihan = new Date(tanggalInput + 'T00:00:00');
 
             // Ambil dari global final state, karena itu saldo ter-update
             let saldoSaatIni = window.currentFinalSaldo ? window.currentFinalSaldo[sumber] : getVal('saldo_' + sumber);
@@ -1830,8 +1868,9 @@
 
             try {
                 // 1. Simpan ke Google Sheet sebagai Pengeluaran Manual (Keluar Lain)
+                let deskripsiKeluar = `Bayar Cicilan: ${namaKreditur} (${sumber})${keterangan ? ' - ' + keterangan : ''}`;
                 let dataSheet = {
-                    tanggal: new Date().toISOString(),
+                    tanggal: tanggalPilihan.toISOString(),
                     saldo_gopay_driver: window.currentFinalSaldo.gopay_driver,
                     saldo_gopay: window.currentFinalSaldo.gopay,
                     saldo_cash: window.currentFinalSaldo.cash,
@@ -1849,7 +1888,7 @@
                     out_sparepart: 0,
                     km_sparepart: 0,
                     out_lain: nominal,
-                    out_lain_desc: `Bayar Cicilan: ${namaKreditur} (${sumber})`
+                    out_lain_desc: deskripsiKeluar
                 };
 
                 // Potong wallet yang digunakan untuk disave di sheet
@@ -1858,13 +1897,13 @@
                 if (sumber === 'gopay_driver') dataSheet.saldo_gopay_driver -= nominal;
                 if (sumber === 'bca') dataSheet.saldo_bca -= nominal;
 
-                let todayDate = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                let todayDate = tanggalPilihan.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
                 // Payload Kombinasi: Simpan Pengeluaran & Update Hutang sekaligus
                 let payload = {
                     action: 'bayar_cicilan',
                     dataHarian: dataSheet,
-                    dataHutang: { id: id, nominal: nominal, tanggal: todayDate }
+                    dataHutang: { id: id, nominal: nominal, tanggal: todayDate, keterangan: keterangan }
                 };
 
                 if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
@@ -1882,7 +1921,8 @@
                 hutangData[hutangIndex].terbayar += nominal;
                 hutangData[hutangIndex].history.push({
                     tanggal: todayDate,
-                    nominal: nominal
+                    nominal: nominal,
+                    keterangan: keterangan
                 });
                 simpanHutangLocal();
 
