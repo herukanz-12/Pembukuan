@@ -1574,10 +1574,10 @@
 
         // --- Sinkronkan Saldo dari Google Sheet (agar sama di semua HP) ---
         function syncSaldoDariServer() {
-            if (!Array.isArray(allSheetRows) || allSheetRows.length === 0) return;
-
-            // Ambil baris paling baru berdasarkan Timestamp (urutkan dari terbaru ke terlama)
-            let sortedRows = [...allSheetRows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+            // Hanya berhenti kalau responsnya beneran bukan array (respons aneh/gagal parse).
+            // Array kosong ([]) itu VALID -- artinya sheet DataHarian memang kosong
+            // (misal baru dihapus manual), bukan tanda gagal fetch.
+            if (!Array.isArray(allSheetRows)) return;
 
             // Mapping: id input di HTML -> nama kolom di Google Sheet
             const mapping = {
@@ -1590,20 +1590,40 @@
                 km_sekarang: 'KM Sekarang'
             };
 
-            Object.keys(mapping).forEach((inputId) => {
-                let kolom = mapping[inputId];
-                
-                // Cari angka yang valid dari baris terbaru mundur ke belakang
-                for (let i = 0; i < sortedRows.length; i++) {
-                    let nilai = sortedRows[i][kolom];
-                    // Pastikan selnya tidak kosong dan benar-benar ada nilainya
-                    if (nilai !== undefined && nilai !== '' && nilai !== null) {
-                        let el = document.getElementById(inputId);
-                        if (el) el.value = Number(nilai) || 0;
-                        break; // Stop mencari jika sudah ketemu angka di baris yang paling baru
+            if (allSheetRows.length === 0) {
+                // Sheet DataHarian memang kosong -> reset semua saldo & KM ke 0,
+                // jangan biarkan app nampilin angka basi dari cache HP ini.
+                Object.keys(mapping).forEach((inputId) => {
+                    let el = document.getElementById(inputId);
+                    if (el) el.value = 0;
+                });
+            } else {
+                // Ambil baris paling baru berdasarkan Timestamp (urutkan dari terbaru ke terlama)
+                let sortedRows = [...allSheetRows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+
+                Object.keys(mapping).forEach((inputId) => {
+                    let kolom = mapping[inputId];
+                    let ketemu = false;
+
+                    // Cari angka yang valid dari baris terbaru mundur ke belakang
+                    for (let i = 0; i < sortedRows.length; i++) {
+                        let nilai = sortedRows[i][kolom];
+                        // Pastikan selnya tidak kosong dan benar-benar ada nilainya
+                        if (nilai !== undefined && nilai !== '' && nilai !== null) {
+                            let el = document.getElementById(inputId);
+                            if (el) el.value = Number(nilai) || 0;
+                            ketemu = true;
+                            break; // Stop mencari jika sudah ketemu angka di baris yang paling baru
+                        }
                     }
-                }
-            });
+                    // Kalau semua baris yang ada memang tidak punya nilai untuk kolom ini,
+                    // reset ke 0 juga -- jangan biarkan cache lama nyangkut selamanya.
+                    if (!ketemu) {
+                        let el = document.getElementById(inputId);
+                        if (el) el.value = 0;
+                    }
+                });
+            }
 
             // Backup ke localStorage HP ini & refresh tampilan
             simpanSaldoLocal();
