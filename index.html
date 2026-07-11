@@ -1765,6 +1765,39 @@
                 }
             });
 
+            // 1b. Kumpulkan detail transaksi granular (buat sheet DetailTransaksi).
+            // Beda dari `data` di bawah yang cuma nyimpen TOTAL per kategori, di sini
+            // tiap item non-nol (Bid, Tips, Makan, dst + baris manual) jadi 1 entri
+            // sendiri lengkap dengan keterangan & dompet yang dipakai.
+            let detailTransaksi = [];
+            const tambahDetail = (tipe, kategori, keterangan, nominal, dompet) => {
+                if (nominal > 0) {
+                    detailTransaksi.push({ tipe, kategori, keterangan, nominal, dompet });
+                }
+            };
+
+            tambahDetail('Masuk', 'Bid', '', getVal('in_bid'), getStr('dompet_in_bid'));
+            tambahDetail('Masuk', 'Tips', '', getVal('in_tips'), getStr('dompet_in_tips'));
+            document.querySelectorAll('#manual-income-list > div').forEach(row => {
+                let desc = row.querySelector('.manual-in-desc').value.trim();
+                let val = parseFloat(row.querySelector('.manual-in-val').value) || 0;
+                let dmp = row.querySelector('.manual-in-dompet').value;
+                tambahDetail('Masuk', 'Lainnya', desc || 'Lainnya', val, dmp);
+            });
+
+            tambahDetail('Keluar', 'Makan', '', getVal('out_makan'), getStr('dompet_out_makan'));
+            tambahDetail('Keluar', 'Minum', '', getVal('out_minum'), getStr('dompet_out_minum'));
+            tambahDetail('Keluar', 'Kuota', '', getVal('out_kuota'), getStr('dompet_out_kuota'));
+            tambahDetail('Keluar', 'Servis', '', getVal('out_servis'), getStr('dompet_out_servis'));
+            tambahDetail('Keluar', 'Oli', '', getVal('out_oli'), getStr('dompet_out_oli'));
+            tambahDetail('Keluar', 'Sparepart', '', getVal('out_sparepart'), getStr('dompet_out_sparepart'));
+            document.querySelectorAll('#manual-expense-list > div').forEach(row => {
+                let desc = row.querySelector('.manual-out-desc').value.trim();
+                let val = parseFloat(row.querySelector('.manual-out-val').value) || 0;
+                let dmp = row.querySelector('.manual-out-dompet').value;
+                tambahDetail('Keluar', 'Lainnya', desc || 'Lainnya', val, dmp);
+            });
+
             // MENGIRIM SALDO AKHIR (YANG SUDAH DIKALKULASI OTOMATIS)
             let data = {
                 tanggal: new Date().toISOString(),
@@ -1792,7 +1825,9 @@
                 km_oli: getVal('km_oli'),
                 out_sparepart: getVal('out_sparepart'),
                 km_sparepart: getVal('km_sparepart'),
-                km_sekarang: getVal('km_sekarang')
+                km_sekarang: getVal('km_sekarang'),
+
+                detail: detailTransaksi
             };
 
             let validationIn = data.in_bid + data.in_tips + data.in_lain;
@@ -2084,7 +2119,8 @@
                     out_sparepart: 0,
                     km_sparepart: 0,
                     out_lain: nominal,
-                    out_lain_desc: deskripsiKeluar
+                    out_lain_desc: deskripsiKeluar,
+                    detail: [{ tipe: 'Keluar', kategori: 'Cicilan Hutang', keterangan: deskripsiKeluar, nominal: nominal, dompet: sumber }]
                 };
 
                 // Potong wallet yang digunakan untuk disave di sheet
