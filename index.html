@@ -1627,10 +1627,28 @@
 
         function renderRincianPengeluaran(kategoriTotal, totalOut) {
             const container = document.getElementById('rincian-pengeluaran-list');
-            const items = KATEGORI_KELUAR
+            let items = KATEGORI_KELUAR
                 .map(k => ({ ...k, amount: kategoriTotal[k.key] || 0 }))
                 .filter(k => k.amount > 0)
                 .sort((a, b) => b.amount - a.amount);
+
+            // Jaring pengaman: kalau ada selisih antara Total Pengeluaran (yang
+            // datang langsung dari sheet, selalu akurat) dengan jumlah semua
+            // kategori di atas (bisa kurang kalau ada baris lama di sheet yang
+            // kolom kategorinya -- misal "Keluar Lain" -- belum lengkap/hilang),
+            // tampilkan sisanya sebagai 1 baris "Belum Terkategori" supaya angka
+            // di Rincian selalu match dengan Total Keluar, bukan tiba-tiba kosong.
+            const sumKategori = items.reduce((s, k) => s + k.amount, 0);
+            const selisih = totalOut - sumKategori;
+            if (selisih > 0.5) {
+                items.push({
+                    key: '__uncategorized__',
+                    label: 'Belum Terkategori',
+                    icon: 'fa-circle-question',
+                    color: 'blue',
+                    amount: selisih
+                });
+            }
 
             if (items.length === 0) {
                 container.innerHTML = `
