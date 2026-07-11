@@ -501,6 +501,18 @@
                                     </div>
                                     <input type="number" id="out_kuota" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
                                 </div>
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-smoking text-red-400"></i> Rokok</label>
+                                        <select id="dompet_out_rokok" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="cash">Cash</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
+                                    <input type="number" id="out_rokok" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                </div>
 
                                 <!-- Dynamic Manual Expense Entries -->
                                 <div class="border-t border-slate-100 dark:border-white/5 pt-4 mt-2">
@@ -1111,6 +1123,7 @@
             subExpense('out_makan', 'dompet_out_makan');
             subExpense('out_minum', 'dompet_out_minum');
             subExpense('out_kuota', 'dompet_out_kuota');
+            subExpense('out_rokok', 'dompet_out_rokok');
             subExpense('out_servis', 'dompet_out_servis');
             subExpense('out_oli', 'dompet_out_oli');
             subExpense('out_sparepart', 'dompet_out_sparepart');
@@ -1231,6 +1244,7 @@
             { key: 'Keluar Oli',       label: 'Ganti Oli',    icon: 'fa-oil-can',   color: 'orange' },
             { key: 'Keluar Sparepart', label: 'Sparepart',    icon: 'fa-gears',     color: 'orange' },
             { key: 'Keluar Kuota',     label: 'Kuota Internet', icon: 'fa-wifi',    color: 'blue'   },
+            { key: 'Keluar Rokok',     label: 'Rokok',        icon: 'fa-smoking',   color: 'red'    },
             { key: 'Keluar Lain',      label: 'Lain-lain / Cicilan', icon: 'fa-receipt', color: 'orange' }
         ];
 
@@ -1869,7 +1883,7 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
             
             // Clear manual rows
@@ -1935,6 +1949,7 @@
             tambahDetail('Keluar', 'Makan', '', getVal('out_makan'), getStr('dompet_out_makan'));
             tambahDetail('Keluar', 'Minum', '', getVal('out_minum'), getStr('dompet_out_minum'));
             tambahDetail('Keluar', 'Kuota', '', getVal('out_kuota'), getStr('dompet_out_kuota'));
+            tambahDetail('Keluar', 'Rokok', '', getVal('out_rokok'), getStr('dompet_out_rokok'));
             tambahDetail('Keluar', 'Servis', '', getVal('out_servis'), getStr('dompet_out_servis'));
             tambahDetail('Keluar', 'Oli', '', getVal('out_oli'), getStr('dompet_out_oli'));
             tambahDetail('Keluar', 'Sparepart', '', getVal('out_sparepart'), getStr('dompet_out_sparepart'));
@@ -1964,6 +1979,7 @@
                 out_makan: getVal('out_makan'),
                 out_minum: getVal('out_minum'),
                 out_kuota: getVal('out_kuota'),
+                out_rokok: getVal('out_rokok'),
                 out_lain: totalOutLain,
                 out_lain_desc: listOutDesc.join('\n'),
                 
@@ -1978,7 +1994,7 @@
             };
 
             let validationIn = data.in_bid + data.in_tips + data.in_lain;
-            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
+            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
 
             if(validationIn === 0 && validationOut === 0) {
                 showToast("Isi nominal pemasukan/pengeluaran dulu!");
@@ -2004,6 +2020,7 @@
                     'Keluar Makan': data.out_makan,
                     'Keluar Minum': data.out_minum,
                     'Keluar Kuota': data.out_kuota,
+                    'Keluar Rokok': data.out_rokok,
                     'Keluar Servis': data.out_servis,
                     'Keluar Oli': data.out_oli,
                     'Keluar Sparepart': data.out_sparepart,
