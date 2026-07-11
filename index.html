@@ -1363,16 +1363,37 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        function simpanSettings() {
-            localStorage.setItem('set_target', document.getElementById('set_target').value);
-            localStorage.setItem('set_sedekah', document.getElementById('set_sedekah').value);
-            localStorage.setItem('set_tabungan', document.getElementById('set_tabungan').value);
-            localStorage.setItem('set_stnk', document.getElementById('set_stnk').value);
-            localStorage.setItem('set_sim', document.getElementById('set_sim').value);
-            
+        async function simpanSettings() {
+            let dataSettings = {
+                target: document.getElementById('set_target').value,
+                sedekah: document.getElementById('set_sedekah').value,
+                tabungan: document.getElementById('set_tabungan').value,
+                stnk: document.getElementById('set_stnk').value,
+                sim: document.getElementById('set_sim').value
+            };
+
+            // Simpan lokal dulu (instan, tetap jalan walau offline)
+            localStorage.setItem('set_target', dataSettings.target);
+            localStorage.setItem('set_sedekah', dataSettings.sedekah);
+            localStorage.setItem('set_tabungan', dataSettings.tabungan);
+            localStorage.setItem('set_stnk', dataSettings.stnk);
+            localStorage.setItem('set_sim', dataSettings.sim);
+
             closeModalSettings();
-            showToast("Pengaturan berhasil disimpan!");
             renderRekap();
+
+            // Sinkronkan ke sheet 'Pengaturan' supaya tidak hilang kalau ganti HP / clear cache
+            if (isServerAktif()) {
+                try {
+                    await kirimKeServer({ action: 'simpan_settings', data: dataSettings });
+                    showToast("Pengaturan berhasil disimpan & tersinkron!");
+                } catch (err) {
+                    showToast(`Tersimpan di HP, tapi gagal sinkron ke server: ${err.message}`);
+                    console.error(err);
+                }
+            } else {
+                showToast("Pengaturan berhasil disimpan (mode offline).");
+            }
         }
 
         // --- Cek Masa Berlaku Pajak STNK / SIM ---
@@ -1506,6 +1527,18 @@
                 const res = await fetch(GAS_URL);
                 const json = await res.json();
                 if (json.status === 'success') {
+                    // Load Data Pengaturan LEBIH DULU, supaya waktu renderRekap()/cekPajakKendaran()
+                    // jalan (dipanggil dari blok dataHarian di bawah), nilainya sudah yang terbaru
+                    // dari server -- bukan cache lama di localStorage HP ini.
+                    if (json.dataSettings && typeof json.dataSettings === 'object') {
+                        const s = json.dataSettings;
+                        if (s.target !== undefined) localStorage.setItem('set_target', s.target);
+                        if (s.sedekah !== undefined) localStorage.setItem('set_sedekah', s.sedekah);
+                        if (s.tabungan !== undefined) localStorage.setItem('set_tabungan', s.tabungan);
+                        if (s.stnk !== undefined) localStorage.setItem('set_stnk', s.stnk);
+                        if (s.sim !== undefined) localStorage.setItem('set_sim', s.sim);
+                    }
+
                     // Load Data Harian
                     if (Array.isArray(json.dataHarian)) {
                         allSheetRows = json.dataHarian;
