@@ -1519,16 +1519,19 @@
                             nama: row['Nama Kreditur'],
                             totalAwal: Number(row['Total Hutang']),
                             terbayar: Number(row['Terbayar']),
-                            history: row['History JSON'] ? JSON.parse(row['History JSON']) : [],
+                            history: Array.isArray(row['HistoryList']) ? row['HistoryList'] : [],
                             tanggal: row['Tanggal'] || '', // MENERIMA TANGGAL DARI SERVER
                             keterangan: row['Keterangan'] || '' // MENERIMA KETERANGAN DARI SERVER
                         }));
                         simpanHutangLocal(); // Backup lokal agar instan waktu load
                         renderHutangList();
                     }
+                } else {
+                    showToast("Gagal memuat riwayat: " + json.message);
                 }
             } catch (err) {
                 console.error('Gagal ambil data dari Sheet:', err);
+                showToast("Data kosong? Pastikan sudah 'Deploy' versi terbaru di Google Apps Script!");
             }
         }
 
