@@ -610,6 +610,63 @@
                     <span id="text-simpan">Simpan Laporan</span>
                 </button>
             </form>
+
+            <!-- ========================================== -->
+            <!-- CATAT MAINTENANCE MOTOR (Ganti Oli, Ban, dll) -->
+            <!-- ========================================== -->
+            <div class="mt-8 pt-6 border-t border-dashed border-slate-200 dark:border-white/10">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench text-brand"></i> Catat Maintenance Motor
+                </h3>
+                <p class="text-[10px] text-slate-500 mb-4">Catat servis (Ganti Oli, Ban, Kampas Rem, dll) beserta KM Awal &amp; KM Akhir. Khusus Ganti Oli, kamu akan diperingatkan otomatis kalau sudah mencapai 2.000 km.</p>
+
+                <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Jenis Servis</label>
+                        <select id="maintenance_jenis" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand">
+                            <option value="Ganti Oli">Ganti Oli</option>
+                            <option value="Ganti Oli Gardan">Ganti Oli Gardan</option>
+                            <option value="Ganti Ban">Ganti Ban</option>
+                            <option value="Ganti Kampas Rem">Ganti Kampas Rem</option>
+                            <option value="Ganti Fan Belt (Vanbelt)">Ganti Fan Belt (Vanbelt)</option>
+                            <option value="Ganti Roller">Ganti Roller</option>
+                            <option value="Servis Rutin">Servis Rutin</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Awal</label>
+                            <input type="number" id="maintenance_km_awal" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="12000">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Akhir</label>
+                            <input type="number" id="maintenance_km_akhir" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="12000">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Biaya (Rp)</label>
+                            <input type="number" id="maintenance_biaya" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Tanggal</label>
+                            <input type="date" id="maintenance_tanggal" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Keterangan (opsional)</label>
+                        <input type="text" id="maintenance_keterangan" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="mis. bengkel Pak Budi">
+                    </div>
+
+                    <button type="button" onclick="simpanMaintenance()" class="w-full bg-slate-800 dark:bg-white/10 hover:bg-slate-900 dark:hover:bg-white/20 text-white font-bold text-sm py-4 rounded-2xl transition-all transform active:scale-95 flex items-center justify-center gap-2 border border-white/10">
+                        <i class="fa-solid fa-floppy-disk" id="icon-simpan-maintenance"></i>
+                        <span id="text-simpan-maintenance">Simpan Servis</span>
+                    </button>
+                </div>
+            </div>
         </section>
 
         <!-- ========================================== -->
@@ -682,7 +739,7 @@
                 <div class="relative z-10 mb-5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Update Speedometer (KM Saat Ini)</label>
                     <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand transition-all">
-                        <input type="number" id="km_sekarang" oninput="cekOli(); simpanKmOliLocal();" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
+                        <input type="number" id="km_sekarang" oninput="cekOli(); simpanKmOliLocal(); renderMaintenanceList();" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
                         <span class="bg-white dark:bg-cardDark px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 shadow-sm mr-1">KM</span>
                     </div>
                 </div>
@@ -711,6 +768,17 @@
                 <div id="status-oli" class="bg-slate-50 dark:bg-bgDark text-slate-500 p-3 rounded-xl text-xs font-bold text-center relative z-10 border border-slate-100 dark:border-white/5 flex items-center justify-center gap-2">
                     <i class="fa-solid fa-circle-info text-brand"></i>
                     <span>Belum ada data referensi oli.</span>
+                </div>
+            </div>
+
+            <!-- Maintenance Motor (semua jenis servis) -->
+            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Maintenance Motor</h3>
+            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden mb-8">
+                <p class="text-[10px] text-slate-500 mb-4 relative z-10">Status dihitung dari selisih <strong>KM Sekarang</strong> (di atas) dengan KM Akhir servis terakhir per jenis. Khusus Ganti Oli, peringatan otomatis muncul di batas 2.000 km.</p>
+                <div id="maintenance-list" class="space-y-2.5 relative z-10">
+                    <div class="bg-slate-50 dark:bg-bgDark text-slate-500 p-3 rounded-xl text-xs font-bold text-center border border-slate-100 dark:border-white/5">
+                        <i class="fa-solid fa-circle-info text-brand"></i> Belum ada data maintenance.
+                    </div>
                 </div>
             </div>
         </section>
@@ -886,14 +954,16 @@
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Beranda</span>
             </button>
             
-            <button onclick="switchTab('input', 1)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-input">
-                <i class="fa-solid fa-circle-plus text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
-                <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Input</span>
-            </button>
-            
-            <button onclick="switchTab('monitor', 2)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-monitor">
+            <button onclick="switchTab('monitor', 1)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-monitor">
                 <i class="fa-solid fa-chart-line text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Monitor</span>
+            </button>
+
+            <button onclick="switchTab('input', 2)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative -mt-8" data-target="view-input">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white shadow-neon border-4 border-white dark:border-bgDark mb-1 transition-transform duration-300 group-[.active]:scale-110">
+                    <i class="fa-solid fa-circle-plus text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Input</span>
             </button>
 
             <button onclick="switchTab('hutang', 3)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-hutang">
@@ -989,6 +1059,7 @@
 
             const indicator = document.getElementById('nav-indicator');
             indicator.style.transform = `translateX(${index * 100}%)`;
+            indicator.style.opacity = (tabName === 'input') ? '0' : '1';
         }
 
         // --- Toggle Input (Masuk/Keluar) ---
@@ -1214,6 +1285,137 @@
             }
         }
 
+        // --- MAINTENANCE MOTOR (Ganti Oli, Ganti Oli Gardan, Ganti Ban, Ganti
+        // Kampas Rem, Ganti Fan Belt/Vanbelt, Ganti Roller, Servis Rutin) ---
+
+        // Render daftar status per jenis servis di tab Monitor. Dipanggil tiap
+        // kali data maintenance dari server berubah ATAU KM Sekarang diubah user.
+        function renderMaintenanceList() {
+            let container = document.getElementById('maintenance-list');
+            if (!container) return;
+
+            let kmSekarang = getVal('km_sekarang');
+
+            if (Object.keys(maintenanceTerakhir).length === 0) {
+                container.innerHTML = `
+                    <div class="bg-slate-50 dark:bg-bgDark text-slate-500 p-3 rounded-xl text-xs font-bold text-center border border-slate-100 dark:border-white/5">
+                        <i class="fa-solid fa-circle-info text-brand"></i> Belum ada data maintenance.
+                    </div>`;
+                return;
+            }
+
+            let html = '';
+            JENIS_MAINTENANCE.forEach(function (jenis) {
+                let info = maintenanceTerakhir[jenis];
+                if (!info) return; // jenis yang belum pernah dicatat, sembunyikan dari list
+
+                let kmAkhir = Number(info.kmAkhir) || 0;
+                let selisih = kmSekarang > 0 ? kmSekarang - kmAkhir : null;
+
+                let badgeClass = "bg-slate-100 dark:bg-white/5 text-slate-500";
+                let badgeText = "Belum ada KM Sekarang";
+                let cardBorder = "border-slate-100 dark:border-white/5";
+
+                if (jenis === "Ganti Oli" && selisih !== null) {
+                    if (selisih < 0) {
+                        badgeClass = "bg-red-500/10 text-red-500";
+                        badgeText = "Error: KM Sekarang < KM Terakhir";
+                    } else if (selisih >= BATAS_KM_OLI) {
+                        badgeClass = "bg-red-500/10 text-red-500 animate-pulse";
+                        badgeText = "⚠️ SEGERA GANTI OLI!";
+                        cardBorder = "border-red-500/40";
+                    } else if (selisih >= BATAS_KM_OLI - 200) {
+                        badgeClass = "bg-orange-500/10 text-orange-500";
+                        badgeText = "🔶 Mendekati Batas (" + (BATAS_KM_OLI - selisih).toLocaleString('id-ID') + " km lagi)";
+                    } else {
+                        badgeClass = "bg-brand/10 text-brand";
+                        badgeText = "✅ Aman, sisa " + (BATAS_KM_OLI - selisih).toLocaleString('id-ID') + " km";
+                    }
+                } else if (selisih !== null) {
+                    badgeClass = "bg-slate-100 dark:bg-white/5 text-slate-500";
+                    badgeText = selisih.toLocaleString('id-ID') + " km sejak servis terakhir";
+                }
+
+                html += `
+                    <div class="flex items-center justify-between p-3 rounded-xl border ${cardBorder} bg-slate-50 dark:bg-bgDark">
+                        <div class="min-w-0 pr-2">
+                            <span class="text-xs font-bold text-slate-700 dark:text-white block truncate">${jenis}</span>
+                            <span class="text-[10px] text-slate-400">Terakhir di KM ${kmAkhir.toLocaleString('id-ID')}</span>
+                        </div>
+                        <span class="text-[10px] font-bold px-2.5 py-1.5 rounded-lg text-right shrink-0 ${badgeClass}">${badgeText}</span>
+                    </div>`;
+            });
+
+            container.innerHTML = html || `
+                <div class="bg-slate-50 dark:bg-bgDark text-slate-500 p-3 rounded-xl text-xs font-bold text-center border border-slate-100 dark:border-white/5">
+                    <i class="fa-solid fa-circle-info text-brand"></i> Belum ada data maintenance.
+                </div>`;
+        }
+
+        // Simpan 1 catatan servis baru (dari tab Input) ke sheet MaintenanceMotor.
+        async function simpanMaintenance() {
+            let jenis = document.getElementById('maintenance_jenis').value;
+            let kmAwal = getVal('maintenance_km_awal');
+            let kmAkhir = getVal('maintenance_km_akhir');
+            let biaya = getVal('maintenance_biaya');
+            let keterangan = getStr('maintenance_keterangan');
+            let tanggalInput = document.getElementById('maintenance_tanggal').value; // yyyy-mm-dd
+            let btn = document.getElementById('text-simpan-maintenance');
+            let icon = document.getElementById('icon-simpan-maintenance');
+
+            if (!kmAwal || !kmAkhir) {
+                showToast("KM Awal & KM Akhir wajib diisi");
+                return;
+            }
+            if (kmAkhir < kmAwal) {
+                showToast("KM Akhir tidak boleh lebih kecil dari KM Awal");
+                return;
+            }
+
+            let tanggalISO = tanggalInput ? new Date(tanggalInput + 'T00:00:00').toISOString() : new Date().toISOString();
+
+            let dataMaintenance = {
+                tanggal: tanggalISO,
+                jenis: jenis,
+                km_awal: kmAwal,
+                km_akhir: kmAkhir,
+                biaya: biaya,
+                keterangan: keterangan
+            };
+
+            icon.className = 'fa-solid fa-spinner fa-spin';
+            btn.innerText = 'Menyimpan...';
+
+            try {
+                if (isServerAktif()) {
+                    await kirimKeServer({ action: 'simpan_maintenance', data: dataMaintenance });
+                } else {
+                    await new Promise(r => setTimeout(r, 600));
+                }
+
+                // Update state lokal langsung supaya kartu status ikut ter-update
+                // tanpa nunggu fetchRekapData selesai.
+                if (!maintenanceTerakhir[jenis] || kmAkhir > maintenanceTerakhir[jenis].kmAkhir) {
+                    maintenanceTerakhir[jenis] = { kmAkhir: kmAkhir, tanggal: tanggalISO };
+                }
+                renderMaintenanceList();
+
+                // Reset form
+                document.getElementById('maintenance_km_awal').value = '';
+                document.getElementById('maintenance_km_akhir').value = '';
+                document.getElementById('maintenance_biaya').value = '';
+                document.getElementById('maintenance_keterangan').value = '';
+
+                showToast("Catatan servis \"" + jenis + "\" tersimpan!");
+                setTimeout(fetchRekapData, 1500);
+            } catch (e) {
+                showToast(e.message || "Gagal menyimpan catatan servis.");
+            } finally {
+                icon.className = 'fa-solid fa-floppy-disk';
+                btn.innerText = 'Simpan Servis';
+            }
+        }
+
         function simpanSaldoLocal() {
             localStorage.setItem('saldo_gopay_driver', getVal('saldo_gopay_driver'));
             localStorage.setItem('saldo_gopay', getVal('saldo_gopay'));
@@ -1235,6 +1437,13 @@
         // --- Data & Filter Periode ---
         let allSheetRows = [];      
         let allDetailTransaksi = [];
+        let allMaintenanceRows = [];
+        let maintenanceTerakhir = {}; // { "Ganti Oli": { kmAkhir, tanggal }, ... } dari server
+        const BATAS_KM_OLI = 2000;
+        const JENIS_MAINTENANCE = [
+            "Ganti Oli", "Ganti Oli Gardan", "Ganti Ban", "Ganti Kampas Rem",
+            "Ganti Fan Belt (Vanbelt)", "Ganti Roller", "Servis Rutin"
+        ];
         let currentPeriode = 'day'; 
 
         const KATEGORI_KELUAR = [
@@ -1746,6 +1955,24 @@
                     if (Array.isArray(json.dataDetailTransaksi)) {
                         allDetailTransaksi = json.dataDetailTransaksi;
                         if (currentRiwayatSubTab === 'log') renderLogTransaksiList();
+                    }
+
+                    // Load Data Maintenance Motor (sheet MaintenanceMotor) -- riwayat
+                    // servis lengkap + ringkasan "terakhir per jenis" dari server,
+                    // dipakai kartu status di tab Monitor (khusus Ganti Oli 2.000 km).
+                    if (Array.isArray(json.dataMaintenance)) {
+                        allMaintenanceRows = json.dataMaintenance;
+                    }
+                    if (json.dataMaintenanceTerakhir && typeof json.dataMaintenanceTerakhir === 'object') {
+                        maintenanceTerakhir = {};
+                        Object.keys(json.dataMaintenanceTerakhir).forEach(function (jenis) {
+                            let info = json.dataMaintenanceTerakhir[jenis];
+                            maintenanceTerakhir[jenis] = {
+                                kmAkhir: Number(info.kmAkhir) || 0,
+                                tanggal: info.tanggal || ''
+                            };
+                        });
+                        renderMaintenanceList();
                     }
                     return true;
                 } else {
@@ -2368,7 +2595,15 @@
             renderHutangList();
             setRiwayatSubTab('laporan');
             setTimeout(() => switchTab('dashboard', 0), 100);
-            
+
+            // Default tanggal form Catat Maintenance Motor = hari ini
+            const nowMaint = new Date();
+            const mYYYY = nowMaint.getFullYear();
+            const mMM = String(nowMaint.getMonth() + 1).padStart(2, '0');
+            const mDD = String(nowMaint.getDate()).padStart(2, '0');
+            const elMaintTgl = document.getElementById('maintenance_tanggal');
+            if (elMaintTgl) elMaintTgl.value = `${mYYYY}-${mMM}-${mDD}`;
+
             fetchRekapData();
         };
 
