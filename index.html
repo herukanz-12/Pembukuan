@@ -865,6 +865,46 @@
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbyIFVD12GjcwYkZdQ3PLSjfL3pjvJgigP45n2O30BAG0bqAZNFUmVjQi1YA4K07AMuTqg/exec";
 
+        // Cek apakah GAS_URL sudah diisi dengan URL Web App yang valid
+        function isServerAktif() {
+            return !GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA");
+        }
+
+        // Helper terpusat untuk kirim data ke Google Apps Script.
+        // PENTING: TIDAK pakai mode:'no-cors' lagi, supaya respons server BENAR-BENAR bisa dibaca.
+        // Content-Type sengaja 'text/plain' (bukan 'application/json') agar browser tidak
+        // mengirim preflight OPTIONS dulu -- Apps Script Web App tidak menangani preflight,
+        // jadi permintaan bisa gagal kalau preflight dipicu.
+        async function kirimKeServer(payload) {
+            let res;
+            try {
+                res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (networkErr) {
+                throw new Error("Tidak bisa menghubungi server. Cek koneksi internet.");
+            }
+
+            if (!res.ok) {
+                throw new Error(`Server merespons dengan error (HTTP ${res.status}).`);
+            }
+
+            let json;
+            try {
+                json = await res.json();
+            } catch (parseErr) {
+                throw new Error("Respons server tidak valid.");
+            }
+
+            if (json.status !== 'success') {
+                throw new Error(json.message || "Server menolak permintaan.");
+            }
+
+            return json;
+        }
+
         // --- Theme Logic ---
         function toggleTheme() {
             const html = document.documentElement;
@@ -1451,7 +1491,7 @@
         }
 
         async function fetchRekapData() {
-            if (GAS_URL.includes("URL_WEB_APP") || GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) return;
+            if (!isServerAktif()) return;
             try {
                 const res = await fetch(GAS_URL);
                 const json = await res.json();
@@ -1610,13 +1650,8 @@
             btnIcon.className = "fa-solid fa-spinner fa-spin text-xl";
 
             try {
-                if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
-                    await fetch(GAS_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'simpan_harian', data: data })
-                    });
+                if (isServerAktif()) {
+                    await kirimKeServer({ action: 'simpan_harian', data: data });
                     showToast("Laporan berhasil disimpan!");
                 } else {
                     await new Promise(r => setTimeout(r, 1000));
@@ -1644,7 +1679,7 @@
                 switchTab('dashboard', 0); 
 
             } catch (error) {
-                showToast("Gagal menyambung ke Spreadsheet!");
+                showToast(error.message || "Gagal menyambung ke Spreadsheet!");
                 console.error(error);
             } finally {
                 btnText.innerText = "Simpan Laporan";
@@ -1749,7 +1784,7 @@
             }, 300);
         }
 
-        function simpanHutangBaru() {
+        async function simpanHutangBaru() {
             let nama = getStr('input_nama_hutang');
             let total = getVal('input_total_hutang');
             let keterangan = getStr('input_keterangan_hutang');
@@ -1776,23 +1811,26 @@
             simpanHutangLocal();
             renderHutangList();
             closeModalTambahHutang();
-            showToast(`Hutang ke ${nama} berhasil dicatat.`);
 
             // Kirim Tambah Hutang ke Google Sheet (Termasuk Tanggal & Keterangan)
-            if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
-                fetch(GAS_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+            if (isServerAktif()) {
+                try {
+                    await kirimKeServer({ 
                         action: 'tambah_hutang', 
                         id: newId, 
                         tanggal: todayDate, // KIRIM TANGGAL KE SERVER
                         nama: nama, 
                         totalAwal: total,
                         keterangan: keterangan // KIRIM KETERANGAN KE SERVER
-                    })
-                });
+                    });
+                    showToast(`Hutang ke ${nama} berhasil dicatat & tersinkron.`);
+                } catch (err) {
+                    // Data tetap aman di HP (localStorage), tapi kasih tahu jujur kalau belum sampai ke server
+                    showToast(`Tersimpan di HP, tapi gagal sinkron ke server: ${err.message}`);
+                    console.error(err);
+                }
+            } else {
+                showToast(`Hutang ke ${nama} berhasil dicatat (mode offline).`);
             }
         }
 
@@ -1906,13 +1944,8 @@
                     dataHutang: { id: id, nominal: nominal, tanggal: todayDate, keterangan: keterangan }
                 };
 
-                if (!GAS_URL.includes("URL_WEB_APP") && !GAS_URL.includes("GOOGLE_APPS_SCRIPT_ANDA")) {
-                    await fetch(GAS_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+                if (isServerAktif()) {
+                    await kirimKeServer(payload);
                 } else {
                     await new Promise(r => setTimeout(r, 800)); 
                 }
@@ -1941,7 +1974,9 @@
                 setTimeout(fetchRekapData, 1500);
 
             } catch (e) {
-                showToast("Gagal menyimpan pembayaran ke server.");
+                // Karena sekarang respons server benar-benar dibaca, pesan error ini akurat
+                // (bukan asumsi berhasil seperti sebelumnya saat masih pakai no-cors)
+                showToast(e.message || "Gagal menyimpan pembayaran ke server.");
                 btn.innerHTML = '<span>Coba Lagi</span>';
             }
         }
