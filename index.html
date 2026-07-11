@@ -310,7 +310,52 @@
             </div>
 
             <form id="inputForm" oninput="calculateRealtime(); simpanSaldoLocal();" class="space-y-6">
-                
+
+                <!-- Tombol Kembali ke Menu Input -->
+                <button type="button" onclick="showInputMenu()" class="input-panel-back hidden items-center gap-2 text-xs font-bold text-slate-500 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition mb-1">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Menu
+                </button>
+
+                <!-- =============== MENU INPUT (5 TOMBOL) =============== -->
+                <div id="input-menu-grid" class="space-y-3">
+                    <button type="button" onclick="showInputPanel('panel-trip')" class="input-menu-btn w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-blue-300 dark:hover:border-blue-500/30 transition text-left">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-500 text-lg shrink-0"><i class="fa-solid fa-route"></i></div>
+                        <div class="flex-1">
+                            <span class="block font-bold text-sm text-slate-800 dark:text-white">Total Trip Diselesaikan</span>
+                            <span class="block text-[11px] text-slate-400">Catat jumlah trip hari ini</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 dark:text-slate-600"></i>
+                    </button>
+
+                    <button type="button" onclick="showInputPanel('panel-dompet')" class="input-menu-btn w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-emerald-300 dark:hover:border-emerald-500/30 transition text-left">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-lg shrink-0"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="flex-1">
+                            <span class="block font-bold text-sm text-slate-800 dark:text-white">Dompet (Auto Kalkulasi)</span>
+                            <span class="block text-[11px] text-slate-400">Isi saldo awal tiap dompet</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 dark:text-slate-600"></i>
+                    </button>
+
+                    <button type="button" onclick="showInputPanel('panel-masuk-keluar')" class="input-menu-btn w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-brand/40 transition text-left">
+                        <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-brand text-lg shrink-0"><i class="fa-solid fa-right-left"></i></div>
+                        <div class="flex-1">
+                            <span class="block font-bold text-sm text-slate-800 dark:text-white">Input (Masuk dan Keluar)</span>
+                            <span class="block text-[11px] text-slate-400">Catat pendapatan &amp; pengeluaran</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 dark:text-slate-600"></i>
+                    </button>
+
+                    <button type="button" onclick="showInputPanel('panel-catat-maintenance')" class="input-menu-btn w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-red-300 dark:hover:border-red-500/30 transition text-left">
+                        <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 text-lg shrink-0"><i class="fa-solid fa-clipboard-list"></i></div>
+                        <div class="flex-1">
+                            <span class="block font-bold text-sm text-slate-800 dark:text-white">Catat Maintenance Motor</span>
+                            <span class="block text-[11px] text-slate-400">Simpan riwayat servis motor</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 dark:text-slate-600"></i>
+                    </button>
+                </div>
+
+                <div id="panel-trip" class="input-panel hidden">
                 <!-- Kotak Jumlah Trip (Netral/Aktivitas) -->
                 <div class="bg-blue-50/50 dark:bg-blue-500/5 rounded-2xl border border-blue-100 dark:border-blue-500/20 p-4 focus-within:border-blue-500 transition-all">
                     <div class="flex justify-between items-center mb-2">
@@ -318,7 +363,10 @@
                     </div>
                     <input type="number" id="in_trip" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-2xl outline-none" placeholder="0">
                 </div>
-                
+                </div>
+                <!-- /panel-trip -->
+
+                <div id="panel-dompet" class="input-panel hidden">
                 <!-- Saldo Awal Group -->
                 <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden">
                     <div class="absolute -right-6 -top-6 text-slate-50 dark:text-white/5 text-8xl pointer-events-none">
@@ -392,7 +440,10 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <!-- /panel-dompet -->
 
+                <div id="panel-masuk-keluar" class="input-panel hidden">
                 <!-- Toggle Arus Masuk / Keluar -->
                 <div class="relative grid grid-cols-2 bg-slate-200/50 dark:bg-white/5 rounded-full p-1 mb-2 border border-slate-200 dark:border-white/10 shadow-inner">
                     <div id="input-toggle-indicator" class="absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] bg-white dark:bg-cardDark rounded-full shadow-sm border border-slate-200 dark:border-white/5 transition-transform duration-300"></div>
@@ -514,6 +565,71 @@
                                     <input type="number" id="out_rokok" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
                                 </div>
 
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-gas-pump text-red-400"></i> Bensin</label>
+                                        <select id="dompet_out_bensin" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="cash">Cash</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
+                                    <input type="number" id="out_bensin" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-percent text-red-400"></i> Potongan Gojek</label>
+                                        <select id="dompet_out_potongan_gojek" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
+                                    <input type="number" id="out_potongan_gojek" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-oil-can text-red-400"></i> Ganti Oli Mesin</label>
+                                        <select id="dompet_out_ganti_oli_mesin" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="cash">Cash</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
+                                    <input type="number" id="out_ganti_oli_mesin" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-gears text-red-400"></i> Ganti Oli Gardan</label>
+                                        <select id="dompet_out_oli_gardan" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="cash">Cash</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
+                                    <input type="number" id="out_oli_gardan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-screwdriver-wrench text-red-400"></i> Servis Motor</label>
+                                        <select id="dompet_out_servis_motor" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="cash">Cash</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
+                                    <input type="number" id="out_servis_motor" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+
                                 <!-- Dynamic Manual Expense Entries -->
                                 <div class="border-t border-slate-100 dark:border-white/5 pt-4 mt-2">
                                     <div class="flex justify-between items-center mb-3">
@@ -531,7 +647,10 @@
                     </div>
 
                 </div>
+                </div>
+                <!-- /panel-masuk-keluar -->
 
+                <div id="panel-maintenance" class="input-panel hidden">
                 <!-- Maintenance Motor -->
                 <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mt-4">
                     <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
@@ -603,12 +722,16 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <!-- /panel-maintenance -->
 
-                <button type="button" onclick="simpanData()" class="w-full relative overflow-hidden group bg-brand hover:bg-brand-dark text-white font-bold text-lg py-5 px-4 rounded-[2rem] shadow-neon transition-all transform active:scale-95 flex items-center justify-center gap-3 mt-8 border border-white/20">
-                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                    <i class="fa-solid fa-cloud-arrow-up text-xl" id="icon-simpan"></i>
-                    <span id="text-simpan">Simpan Laporan</span>
-                </button>
+                <div id="input-submit-wrap" class="hidden">
+                    <button type="button" onclick="simpanData()" class="w-full relative overflow-hidden group bg-brand hover:bg-brand-dark text-white font-bold text-lg py-5 px-4 rounded-[2rem] shadow-neon transition-all transform active:scale-95 flex items-center justify-center gap-3 mt-8 border border-white/20">
+                        <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                        <i class="fa-solid fa-cloud-arrow-up text-xl" id="icon-simpan"></i>
+                        <span id="text-simpan">Simpan Laporan</span>
+                    </button>
+                </div>
             </form>
 
             <!-- ========================================== -->
@@ -618,6 +741,10 @@
             <!-- MaintenanceMotor (bukan ke DataHarian), jadi bisa dipakai -->
             <!-- kapan saja tanpa harus mengisi laporan pemasukan/pengeluaran. -->
             <!-- ========================================== -->
+            <div id="panel-catat-maintenance" class="input-panel hidden">
+                <button type="button" onclick="showInputMenu()" class="input-panel-back flex items-center gap-2 text-xs font-bold text-slate-500 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition mb-4">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Menu
+                </button>
             <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mt-4">
                 <h3 class="font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
                     <span class="w-2 h-6 rounded-full bg-red-500 block"></span>
@@ -676,6 +803,8 @@
                     </button>
                 </div>
             </div>
+            </div>
+            <!-- /panel-catat-maintenance -->
         </section>
 
         <!-- ========================================== -->
@@ -1036,6 +1165,36 @@
 
             const indicator = document.getElementById('nav-indicator');
             indicator.style.transform = `translateX(${index * 100}%)`;
+
+            // Setiap kali tab "Data Entry" dibuka, tampilkan menu 5 tombol dulu
+            // supaya halamannya kelihatan simpel & tidak penuh.
+            if (tabName === 'input') {
+                showInputMenu();
+            }
+        }
+
+        // --- Menu Input (5 Tombol) ---
+        // Daftar panel yang termasuk bagian dari form Laporan Harian (inputForm),
+        // jadi tombol "Simpan Laporan" harus tetap tampil selagi salah satu dari
+        // panel ini aktif. "panel-catat-maintenance" TIDAK termasuk karena itu
+        // form terpisah dengan tombol simpan sendiri (simpanMaintenanceServis()).
+        const INPUT_FORM_PANELS = ['panel-trip', 'panel-dompet', 'panel-masuk-keluar', 'panel-maintenance'];
+
+        function showInputMenu() {
+            document.getElementById('input-menu-grid').style.display = '';
+            document.querySelectorAll('.input-panel').forEach(el => { el.style.display = 'none'; });
+            document.getElementById('input-submit-wrap').style.display = 'none';
+            document.querySelectorAll('.input-panel-back').forEach(el => { el.style.display = 'none'; });
+        }
+
+        function showInputPanel(panelId) {
+            document.getElementById('input-menu-grid').style.display = 'none';
+            document.querySelectorAll('.input-panel').forEach(el => {
+                el.style.display = (el.id === panelId) ? 'block' : 'none';
+            });
+            document.getElementById('input-submit-wrap').style.display = INPUT_FORM_PANELS.includes(panelId) ? 'block' : 'none';
+            document.querySelectorAll('.input-panel-back').forEach(el => { el.style.display = 'flex'; });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // --- Toggle Input (Masuk/Keluar) ---
@@ -1171,6 +1330,11 @@
             subExpense('out_minum', 'dompet_out_minum');
             subExpense('out_kuota', 'dompet_out_kuota');
             subExpense('out_rokok', 'dompet_out_rokok');
+            subExpense('out_bensin', 'dompet_out_bensin');
+            subExpense('out_potongan_gojek', 'dompet_out_potongan_gojek');
+            subExpense('out_ganti_oli_mesin', 'dompet_out_ganti_oli_mesin');
+            subExpense('out_oli_gardan', 'dompet_out_oli_gardan');
+            subExpense('out_servis_motor', 'dompet_out_servis_motor');
             subExpense('out_servis', 'dompet_out_servis');
             subExpense('out_oli', 'dompet_out_oli');
             subExpense('out_sparepart', 'dompet_out_sparepart');
@@ -1434,6 +1598,11 @@
             { key: 'Keluar Sparepart', label: 'Sparepart',    icon: 'fa-gears',     color: 'orange' },
             { key: 'Keluar Kuota',     label: 'Kuota Internet', icon: 'fa-wifi',    color: 'blue'   },
             { key: 'Keluar Rokok',     label: 'Rokok',        icon: 'fa-smoking',   color: 'red'    },
+            { key: 'Keluar Bensin',    label: 'Bensin',       icon: 'fa-gas-pump',  color: 'red'    },
+            { key: 'Keluar Potongan Gojek',   label: 'Potongan Gojek',   icon: 'fa-percent',            color: 'red'    },
+            { key: 'Keluar Ganti Oli Mesin',  label: 'Ganti Oli Mesin',  icon: 'fa-oil-can',            color: 'orange' },
+            { key: 'Keluar Ganti Oli Gardan', label: 'Ganti Oli Gardan', icon: 'fa-gears',              color: 'orange' },
+            { key: 'Keluar Servis Motor',     label: 'Servis Motor',     icon: 'fa-screwdriver-wrench', color: 'orange' },
             { key: 'Keluar Lain',      label: 'Lain-lain / Cicilan', icon: 'fa-receipt', color: 'orange' }
         ];
 
@@ -2083,7 +2252,7 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
             
             // Clear manual rows
@@ -2150,6 +2319,11 @@
             tambahDetail('Keluar', 'Minum', '', getVal('out_minum'), getStr('dompet_out_minum'));
             tambahDetail('Keluar', 'Kuota', '', getVal('out_kuota'), getStr('dompet_out_kuota'));
             tambahDetail('Keluar', 'Rokok', '', getVal('out_rokok'), getStr('dompet_out_rokok'));
+            tambahDetail('Keluar', 'Bensin', '', getVal('out_bensin'), getStr('dompet_out_bensin'));
+            tambahDetail('Keluar', 'Potongan Gojek', '', getVal('out_potongan_gojek'), getStr('dompet_out_potongan_gojek'));
+            tambahDetail('Keluar', 'Ganti Oli Mesin', '', getVal('out_ganti_oli_mesin'), getStr('dompet_out_ganti_oli_mesin'));
+            tambahDetail('Keluar', 'Ganti Oli Gardan', '', getVal('out_oli_gardan'), getStr('dompet_out_oli_gardan'));
+            tambahDetail('Keluar', 'Servis Motor', '', getVal('out_servis_motor'), getStr('dompet_out_servis_motor'));
             tambahDetail('Keluar', 'Servis', '', getVal('out_servis'), getStr('dompet_out_servis'));
             tambahDetail('Keluar', 'Oli', '', getVal('out_oli'), getStr('dompet_out_oli'));
             tambahDetail('Keluar', 'Sparepart', '', getVal('out_sparepart'), getStr('dompet_out_sparepart'));
@@ -2180,6 +2354,11 @@
                 out_minum: getVal('out_minum'),
                 out_kuota: getVal('out_kuota'),
                 out_rokok: getVal('out_rokok'),
+                out_bensin: getVal('out_bensin'),
+                out_potongan_gojek: getVal('out_potongan_gojek'),
+                out_ganti_oli_mesin: getVal('out_ganti_oli_mesin'),
+                out_oli_gardan: getVal('out_oli_gardan'),
+                out_servis_motor: getVal('out_servis_motor'),
                 out_lain: totalOutLain,
                 out_lain_desc: listOutDesc.join('\n'),
                 
@@ -2194,7 +2373,7 @@
             };
 
             let validationIn = data.in_bid + data.in_tips + data.in_lain;
-            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
+            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_bensin + data.out_potongan_gojek + data.out_ganti_oli_mesin + data.out_oli_gardan + data.out_servis_motor + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
 
             if(validationIn === 0 && validationOut === 0) {
                 showToast("Isi nominal pemasukan/pengeluaran dulu!");
@@ -2221,6 +2400,11 @@
                     'Keluar Minum': data.out_minum,
                     'Keluar Kuota': data.out_kuota,
                     'Keluar Rokok': data.out_rokok,
+                    'Keluar Bensin': data.out_bensin,
+                    'Keluar Potongan Gojek': data.out_potongan_gojek,
+                    'Keluar Ganti Oli Mesin': data.out_ganti_oli_mesin,
+                    'Keluar Ganti Oli Gardan': data.out_oli_gardan,
+                    'Keluar Servis Motor': data.out_servis_motor,
                     'Keluar Servis': data.out_servis,
                     'Keluar Oli': data.out_oli,
                     'Keluar Sparepart': data.out_sparepart,
