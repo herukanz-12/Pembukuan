@@ -1539,9 +1539,8 @@
         function syncSaldoDariServer() {
             if (!Array.isArray(allSheetRows) || allSheetRows.length === 0) return;
 
-            // Ambil baris paling baru berdasarkan Timestamp
+            // Ambil baris paling baru berdasarkan Timestamp (urutkan dari terbaru ke terlama)
             let sortedRows = [...allSheetRows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
-            let terakhir = sortedRows[0];
 
             // Mapping: id input di HTML -> nama kolom di Google Sheet
             const mapping = {
@@ -1556,18 +1555,24 @@
 
             Object.keys(mapping).forEach((inputId) => {
                 let kolom = mapping[inputId];
-                let nilai = terakhir[kolom];
-                if (nilai !== undefined && nilai !== '') {
-                    let el = document.getElementById(inputId);
-                    if (el) el.value = Number(nilai) || 0;
+                
+                // Cari angka yang valid dari baris terbaru mundur ke belakang
+                for (let i = 0; i < sortedRows.length; i++) {
+                    let nilai = sortedRows[i][kolom];
+                    // Pastikan selnya tidak kosong dan benar-benar ada nilainya
+                    if (nilai !== undefined && nilai !== '' && nilai !== null) {
+                        let el = document.getElementById(inputId);
+                        if (el) el.value = Number(nilai) || 0;
+                        break; // Stop mencari jika sudah ketemu angka di baris yang paling baru
+                    }
                 }
             });
 
             // Backup ke localStorage HP ini & refresh tampilan
             simpanSaldoLocal();
-            simpanKmOliLocal();
+            if(typeof simpanKmOliLocal === "function") simpanKmOliLocal();
             calculateRealtime();
-            cekOli();
+            if(typeof cekOli === "function") cekOli();
         }
 
         function simpanKmOliLocal() {
