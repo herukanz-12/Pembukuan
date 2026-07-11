@@ -310,20 +310,27 @@
             </div>
 
             <!-- ========================================== -->
-            <!-- MENU 3 TOMBOL (accordion, biar tidak penuh) -->
+            <!-- MENU 4 TOMBOL (accordion, biar tidak penuh) -->
+            <!-- Tombol ke-4 (Maintenance Motor) BUKAN form/panel sendiri, -->
+            <!-- cuma shortcut buka panel Input & scroll ke box "Maintenance Motor" -->
+            <!-- yang sudah jadi bagian dari kategori pengeluaran di Keluar -->
             <!-- ========================================== -->
-            <div class="grid grid-cols-3 gap-3 mb-6" id="input-menu">
-                <button type="button" onclick="showInputPanel('trip')" data-panel="trip" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-4 transition-all active:scale-95">
+            <div class="grid grid-cols-2 gap-3 mb-6" id="input-menu">
+                <button type="button" onclick="showInputPanel('trip')" data-panel="trip" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-5 transition-all active:scale-95">
                     <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500 flex items-center justify-center text-lg"><i class="fa-solid fa-route"></i></div>
                     <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Total Trip<br>Diselesaikan</span>
                 </button>
-                <button type="button" onclick="showInputPanel('dompet')" data-panel="dompet" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-4 transition-all active:scale-95">
+                <button type="button" onclick="showInputPanel('dompet')" data-panel="dompet" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-5 transition-all active:scale-95">
                     <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg"><i class="fa-solid fa-wallet"></i></div>
                     <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Dompet<br>(Auto Kalkulasi)</span>
                 </button>
-                <button type="button" onclick="showInputPanel('inout')" data-panel="inout" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-4 transition-all active:scale-95">
+                <button type="button" onclick="showInputPanel('inout')" data-panel="inout" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-5 transition-all active:scale-95">
                     <div class="w-11 h-11 rounded-xl bg-brand/10 text-brand flex items-center justify-center text-lg"><i class="fa-solid fa-right-left"></i></div>
                     <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Input<br>(Masuk &amp; Keluar)</span>
+                </button>
+                <button type="button" onclick="bukaMaintenanceDiInput()" data-panel="inout" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-5 transition-all active:scale-95">
+                    <div class="w-11 h-11 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-500 flex items-center justify-center text-lg"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Catat<br>Maintenance Motor</span>
                 </button>
             </div>
 
@@ -556,7 +563,7 @@
                 </div>
 
                 <!-- Maintenance Motor -->
-                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mt-4">
+                <div id="maintenance-section-in-input" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mt-4">
                     <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
                         <span class="w-2 h-6 rounded-full bg-orange-500 block"></span>
                         Maintenance Motor
@@ -567,7 +574,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-wrench"></i></div>
                                 <div>
-                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Servis Ringan</span>
+                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Servis Motor</span>
                                     <select id="dompet_out_servis" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
                                         <option value="cash">Cash</option>
                                         <option value="bca">BCA</option>
@@ -585,7 +592,7 @@
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-oil-can"></i></div>
                                     <div>
-                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Ganti Oli</span>
+                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Ganti Oli Mesin</span>
                                         <select id="dompet_out_oli" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
                                             <option value="cash">Cash</option>
                                             <option value="bca">BCA</option>
@@ -602,13 +609,30 @@
                             </div>
                         </div>
 
+                        <!-- Oli Gardan Panel -->
+                        <div class="bg-slate-50 dark:bg-bgDark p-3 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between focus-within:border-orange-400 transition-all gap-2">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-oil-can"></i></div>
+                                <div>
+                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Ganti Oli Gardan</span>
+                                    <select id="dompet_out_oli_gardan" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
+                                        <option value="cash">Cash</option>
+                                        <option value="bca">BCA</option>
+                                        <option value="gopay">Gopay</option>
+                                        <option value="gopay_driver">Gopay Driver</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <input type="number" id="out_oli_gardan" class="w-24 bg-transparent text-right border-none p-0 text-red-500 font-bold text-lg outline-none" placeholder="0">
+                        </div>
+
                         <!-- Sparepart Panel -->
                         <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
                             <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-white/10 pb-3 gap-2">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-gears"></i></div>
                                     <div>
-                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Sparepart</span>
+                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Sparepart Motor</span>
                                         <select id="dompet_out_sparepart" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
                                             <option value="cash">Cash</option>
                                             <option value="bca">BCA</option>
@@ -624,65 +648,6 @@
                                 <input type="number" id="km_sparepart" class="w-24 bg-slate-50 dark:bg-bgDark rounded-lg text-center border-none p-1.5 text-sm font-bold text-slate-800 dark:text-white focus:ring-1 focus:ring-orange-400 outline-none" placeholder="15000">
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- ========================================== -->
-                <!-- CATAT MAINTENANCE MOTOR (Ganti Oli, Ban, dll) -->
-                <!-- Digabung ke sini (dalam panel Input) supaya menu utama cukup 3 tombol -->
-                <!-- ========================================== -->
-                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mt-4">
-                    <h3 class="font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
-                        <span class="w-2 h-6 rounded-full bg-orange-500 block"></span>
-                        Catat Maintenance Motor
-                    </h3>
-                    <p class="text-[10px] text-slate-500 mb-4">Catat servis (Ganti Oli, Ban, Kampas Rem, dll) beserta KM Awal &amp; KM Akhir. Khusus Ganti Oli, kamu akan diperingatkan otomatis kalau sudah mencapai 2.000 km.</p>
-
-                    <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Jenis Servis</label>
-                            <select id="maintenance_jenis" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand">
-                                <option value="Ganti Oli">Ganti Oli</option>
-                                <option value="Ganti Oli Gardan">Ganti Oli Gardan</option>
-                                <option value="Ganti Ban">Ganti Ban</option>
-                                <option value="Ganti Kampas Rem">Ganti Kampas Rem</option>
-                                <option value="Ganti Fan Belt (Vanbelt)">Ganti Fan Belt (Vanbelt)</option>
-                                <option value="Ganti Roller">Ganti Roller</option>
-                                <option value="Servis Rutin">Servis Rutin</option>
-                            </select>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Awal</label>
-                                <input type="number" id="maintenance_km_awal" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="12000">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Akhir</label>
-                                <input type="number" id="maintenance_km_akhir" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="12000">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Biaya (Rp)</label>
-                                <input type="number" id="maintenance_biaya" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="0">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Tanggal</label>
-                                <input type="date" id="maintenance_tanggal" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Keterangan (opsional)</label>
-                            <input type="text" id="maintenance_keterangan" class="w-full bg-white dark:bg-cardDark rounded-xl border border-slate-200 dark:border-white/10 p-3 text-sm text-slate-800 dark:text-white outline-none focus:ring-1 focus:ring-brand" placeholder="mis. bengkel Pak Budi">
-                        </div>
-
-                        <button type="button" onclick="simpanMaintenance()" class="w-full bg-slate-800 dark:bg-white/10 hover:bg-slate-900 dark:hover:bg-white/20 text-white font-bold text-sm py-4 rounded-2xl transition-all transform active:scale-95 flex items-center justify-center gap-2 border border-white/10">
-                            <i class="fa-solid fa-floppy-disk" id="icon-simpan-maintenance"></i>
-                            <span id="text-simpan-maintenance">Simpan Servis</span>
-                        </button>
                     </div>
                 </div>
 
@@ -1092,6 +1057,29 @@
         // --- Menu 3 Tombol di Tab Input (accordion, biar halaman tidak penuh) ---
         // Klik tombol -> panel terkait terbuka & yang lain tertutup.
         // Klik tombol yang sama lagi saat sudah terbuka -> panel ditutup (collapse).
+        // --- Tombol ke-4 (Catat Maintenance Motor): shortcut buka panel Input, -->
+        // --- lalu scroll ke box "Maintenance Motor" (bagian dari kategori Keluar) ---
+        function bukaMaintenanceDiInput() {
+            let target = document.getElementById('input-panel-inout');
+            let sudahTerbuka = target && !target.classList.contains('hidden');
+
+            if (!sudahTerbuka) {
+                showInputPanel('inout');
+            } else {
+                document.querySelectorAll('.input-menu-btn').forEach(el => {
+                    el.classList.remove('border-brand', 'ring-2', 'ring-brand/30');
+                });
+                document.querySelectorAll('.input-menu-btn[data-panel="inout"]').forEach(el => {
+                    el.classList.add('border-brand', 'ring-2', 'ring-brand/30');
+                });
+            }
+
+            setTimeout(() => {
+                let section = document.getElementById('maintenance-section-in-input');
+                if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
+        }
+
         function showInputPanel(name) {
             let target = document.getElementById('input-panel-' + name);
             let sedangTerbuka = target && !target.classList.contains('hidden');
@@ -1244,6 +1232,7 @@
             subExpense('out_rokok', 'dompet_out_rokok');
             subExpense('out_servis', 'dompet_out_servis');
             subExpense('out_oli', 'dompet_out_oli');
+            subExpense('out_oli_gardan', 'dompet_out_oli_gardan');
             subExpense('out_sparepart', 'dompet_out_sparepart');
 
             document.querySelectorAll('#manual-expense-list > div').forEach(row => {
@@ -1399,70 +1388,6 @@
                 </div>`;
         }
 
-        // Simpan 1 catatan servis baru (dari tab Input) ke sheet MaintenanceMotor.
-        async function simpanMaintenance() {
-            let jenis = document.getElementById('maintenance_jenis').value;
-            let kmAwal = getVal('maintenance_km_awal');
-            let kmAkhir = getVal('maintenance_km_akhir');
-            let biaya = getVal('maintenance_biaya');
-            let keterangan = getStr('maintenance_keterangan');
-            let tanggalInput = document.getElementById('maintenance_tanggal').value; // yyyy-mm-dd
-            let btn = document.getElementById('text-simpan-maintenance');
-            let icon = document.getElementById('icon-simpan-maintenance');
-
-            if (!kmAwal || !kmAkhir) {
-                showToast("KM Awal & KM Akhir wajib diisi");
-                return;
-            }
-            if (kmAkhir < kmAwal) {
-                showToast("KM Akhir tidak boleh lebih kecil dari KM Awal");
-                return;
-            }
-
-            let tanggalISO = tanggalInput ? new Date(tanggalInput + 'T00:00:00').toISOString() : new Date().toISOString();
-
-            let dataMaintenance = {
-                tanggal: tanggalISO,
-                jenis: jenis,
-                km_awal: kmAwal,
-                km_akhir: kmAkhir,
-                biaya: biaya,
-                keterangan: keterangan
-            };
-
-            icon.className = 'fa-solid fa-spinner fa-spin';
-            btn.innerText = 'Menyimpan...';
-
-            try {
-                if (isServerAktif()) {
-                    await kirimKeServer({ action: 'simpan_maintenance', data: dataMaintenance });
-                } else {
-                    await new Promise(r => setTimeout(r, 600));
-                }
-
-                // Update state lokal langsung supaya kartu status ikut ter-update
-                // tanpa nunggu fetchRekapData selesai.
-                if (!maintenanceTerakhir[jenis] || kmAkhir > maintenanceTerakhir[jenis].kmAkhir) {
-                    maintenanceTerakhir[jenis] = { kmAkhir: kmAkhir, tanggal: tanggalISO };
-                }
-                renderMaintenanceList();
-
-                // Reset form
-                document.getElementById('maintenance_km_awal').value = '';
-                document.getElementById('maintenance_km_akhir').value = '';
-                document.getElementById('maintenance_biaya').value = '';
-                document.getElementById('maintenance_keterangan').value = '';
-
-                showToast("Catatan servis \"" + jenis + "\" tersimpan!");
-                setTimeout(fetchRekapData, 1500);
-            } catch (e) {
-                showToast(e.message || "Gagal menyimpan catatan servis.");
-            } finally {
-                icon.className = 'fa-solid fa-floppy-disk';
-                btn.innerText = 'Simpan Servis';
-            }
-        }
-
         function simpanSaldoLocal() {
             localStorage.setItem('saldo_gopay_driver', getVal('saldo_gopay_driver'));
             localStorage.setItem('saldo_gopay', getVal('saldo_gopay'));
@@ -1496,9 +1421,10 @@
         const KATEGORI_KELUAR = [
             { key: 'Keluar Makan',     label: 'Makan',        icon: 'fa-utensils',  color: 'red'    },
             { key: 'Keluar Minum',     label: 'Minum',        icon: 'fa-mug-hot',   color: 'red'    },
-            { key: 'Keluar Servis',    label: 'Servis Ringan',icon: 'fa-wrench',    color: 'orange' },
-            { key: 'Keluar Oli',       label: 'Ganti Oli',    icon: 'fa-oil-can',   color: 'orange' },
-            { key: 'Keluar Sparepart', label: 'Sparepart',    icon: 'fa-gears',     color: 'orange' },
+            { key: 'Keluar Servis',    label: 'Servis Motor', icon: 'fa-wrench',    color: 'orange' },
+            { key: 'Keluar Oli',       label: 'Ganti Oli Mesin', icon: 'fa-oil-can', color: 'orange' },
+            { key: 'Keluar Oli Gardan', label: 'Ganti Oli Gardan', icon: 'fa-oil-can', color: 'orange' },
+            { key: 'Keluar Sparepart', label: 'Sparepart Motor', icon: 'fa-gears',  color: 'orange' },
             { key: 'Keluar Kuota',     label: 'Kuota Internet', icon: 'fa-wifi',    color: 'blue'   },
             { key: 'Keluar Rokok',     label: 'Rokok',        icon: 'fa-smoking',   color: 'red'    },
             { key: 'Keluar Lain',      label: 'Lain-lain / Cicilan', icon: 'fa-receipt', color: 'orange' }
@@ -2157,7 +2083,7 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_servis', 'out_oli', 'out_oli_gardan', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
             
             // Clear manual rows
@@ -2226,6 +2152,7 @@
             tambahDetail('Keluar', 'Rokok', '', getVal('out_rokok'), getStr('dompet_out_rokok'));
             tambahDetail('Keluar', 'Servis', '', getVal('out_servis'), getStr('dompet_out_servis'));
             tambahDetail('Keluar', 'Oli', '', getVal('out_oli'), getStr('dompet_out_oli'));
+            tambahDetail('Keluar', 'Oli Gardan', '', getVal('out_oli_gardan'), getStr('dompet_out_oli_gardan'));
             tambahDetail('Keluar', 'Sparepart', '', getVal('out_sparepart'), getStr('dompet_out_sparepart'));
             document.querySelectorAll('#manual-expense-list > div').forEach(row => {
                 let desc = row.querySelector('.manual-out-desc').value.trim();
@@ -2260,6 +2187,7 @@
                 out_servis: getVal('out_servis'),
                 out_oli: getVal('out_oli'),
                 km_oli: getVal('km_oli'),
+                out_oli_gardan: getVal('out_oli_gardan'),
                 out_sparepart: getVal('out_sparepart'),
                 km_sparepart: getVal('km_sparepart'),
                 km_sekarang: getVal('km_sekarang'),
@@ -2268,7 +2196,7 @@
             };
 
             let validationIn = data.in_bid + data.in_tips + data.in_lain;
-            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
+            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_servis + data.out_oli + data.out_oli_gardan + data.out_sparepart + data.out_lain;
 
             if(validationIn === 0 && validationOut === 0) {
                 showToast("Isi nominal pemasukan/pengeluaran dulu!");
@@ -2297,6 +2225,7 @@
                     'Keluar Rokok': data.out_rokok,
                     'Keluar Servis': data.out_servis,
                     'Keluar Oli': data.out_oli,
+                    'Keluar Oli Gardan': data.out_oli_gardan,
                     'Keluar Sparepart': data.out_sparepart,
                     'Keluar Lain': data.out_lain,
                     'Jumlah Trip': data.in_trip,
@@ -2564,6 +2493,7 @@
                     out_servis: 0,
                     out_oli: 0,
                     km_oli: getVal('km_oli'),
+                    out_oli_gardan: 0,
                     km_sekarang: getVal('km_sekarang'),
                     out_sparepart: 0,
                     km_sparepart: 0,
@@ -2642,14 +2572,6 @@
             renderHutangList();
             setRiwayatSubTab('laporan');
             setTimeout(() => switchTab('dashboard', 0), 100);
-
-            // Default tanggal form Catat Maintenance Motor = hari ini
-            const nowMaint = new Date();
-            const mYYYY = nowMaint.getFullYear();
-            const mMM = String(nowMaint.getMonth() + 1).padStart(2, '0');
-            const mDD = String(nowMaint.getDate()).padStart(2, '0');
-            const elMaintTgl = document.getElementById('maintenance_tanggal');
-            if (elMaintTgl) elMaintTgl.value = `${mYYYY}-${mMM}-${mDD}`;
 
             fetchRekapData();
         };
