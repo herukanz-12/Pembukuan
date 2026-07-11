@@ -231,13 +231,16 @@
                     </div>
                 </div>
 
-                <!-- Filter Periode: Harian / Mingguan -->
+                <!-- Filter Periode: Harian / Mingguan / Bulanan -->
                 <div class="relative z-10 flex bg-black/20 rounded-2xl p-1 mb-5 border border-white/10">
                     <button type="button" onclick="setPeriode('day')" id="btn-periode-day" class="periode-btn flex-1 text-xs font-bold py-2 rounded-xl transition-all bg-white/25 text-white">
                         Harian
                     </button>
                     <button type="button" onclick="setPeriode('week')" id="btn-periode-week" class="periode-btn flex-1 text-xs font-bold py-2 rounded-xl transition-all text-white/60">
                         Mingguan
+                    </button>
+                    <button type="button" onclick="setPeriode('month')" id="btn-periode-month" class="periode-btn flex-1 text-xs font-bold py-2 rounded-xl transition-all text-white/60">
+                        Bulanan
                     </button>
                 </div>
                 
@@ -1845,21 +1848,24 @@
 
         function setPeriode(periode) {
             currentPeriode = periode;
-            const btnDay = document.getElementById('btn-periode-day');
-            const btnWeek = document.getElementById('btn-periode-week');
-            const isDay = periode === 'day';
+            const tombolPeriode = [
+                { id: 'btn-periode-day', value: 'day' },
+                { id: 'btn-periode-week', value: 'week' },
+                { id: 'btn-periode-month', value: 'month' }
+            ];
 
-            btnDay.classList.toggle('bg-white/25', isDay);
-            btnDay.classList.toggle('text-white', isDay);
-            btnDay.classList.toggle('text-white/60', !isDay);
-
-            btnWeek.classList.toggle('bg-white/25', !isDay);
-            btnWeek.classList.toggle('text-white', !isDay);
-            btnWeek.classList.toggle('text-white/60', isDay);
+            tombolPeriode.forEach(({ id, value }) => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+                const aktif = value === periode;
+                btn.classList.toggle('bg-white/25', aktif);
+                btn.classList.toggle('text-white', aktif);
+                btn.classList.toggle('text-white/60', !aktif);
+            });
 
             // Label 'rincian-periode-label' & 'rincian-pendapatan-periode-label' TIDAK
             // diubah di sini lagi -- Rincian Pendapatan/Pengeluaran sekarang tetap
-            // Bulanan terus, gak ikut toggle Harian/Mingguan ini.
+            // Bulanan terus, gak ikut toggle Harian/Mingguan/Bulanan ini.
             renderRekap();
         }
 
