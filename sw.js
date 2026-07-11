@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ojolku-cache-v2';
+const CACHE_NAME = 'ojolku-cache-v2.1';
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json',
