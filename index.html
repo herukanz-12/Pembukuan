@@ -1987,6 +1987,17 @@
                 allSheetRows.push(tempRow);
                 renderRekap();
 
+                // PENTING: kunci base saldo (#saldo_gopay, #saldo_cash, dst) ke hasil
+                // akhir yang baru saja dihitung -- SEBELUM resetForm() ngosongin field
+                // Bid/Tips/pengeluaran. Kalau tidak, resetForm() bakal hitung ulang
+                // saldo dari base LAMA + delta 0, jadi "Saldo Saat Ini" keliatan balik
+                // ke angka sebelum transaksi walau datanya sudah bener kesimpen di sheet.
+                document.getElementById('saldo_gopay_driver').value = window.currentFinalSaldo.gopay_driver;
+                document.getElementById('saldo_gopay').value = window.currentFinalSaldo.gopay;
+                document.getElementById('saldo_cash').value = window.currentFinalSaldo.cash;
+                document.getElementById('saldo_bca').value = window.currentFinalSaldo.bca;
+                simpanSaldoLocal();
+
                 resetForm(); 
                 switchTab('dashboard', 0); 
 
