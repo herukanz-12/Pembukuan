@@ -296,6 +296,18 @@
                 </div>
             </div>
 
+            <!-- Rincian Pendapatan -->
+            <div class="flex items-center justify-between mb-4 mt-8">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pendapatan</h3>
+                <span id="rincian-pendapatan-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Harian</span>
+            </div>
+            <div id="rincian-pendapatan-list" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 space-y-5">
+                <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-coins text-2xl text-slate-300 dark:text-white/10"></i>
+                    Belum ada pendapatan tercatat.
+                </div>
+            </div>
+
             <!-- Rincian Pengeluaran -->
             <div class="flex items-center justify-between mb-4 mt-8">
                 <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pengeluaran</h3>
@@ -517,6 +529,7 @@
                                     <div id="manual-income-list" class="space-y-3">
                                         <!-- Dynamic rows append here -->
                                     </div>
+                                    <datalist id="daftar-kategori-masuk-lain"></datalist>
                                 </div>
                             </div>
                         </div>
@@ -655,6 +668,7 @@
                                     <div id="manual-expense-list" class="space-y-3">
                                         <!-- Dynamic rows append here -->
                                     </div>
+                                    <datalist id="daftar-kategori-lain"></datalist>
                                 </div>
                             </div>
                         </div>
@@ -1271,7 +1285,7 @@
             div.className = "flex gap-3 items-center bg-green-50/30 dark:bg-green-500/5 p-3 rounded-xl border border-green-100 dark:border-green-500/10 flex-wrap";
             div.innerHTML = `
                 <div class="w-full flex justify-between gap-2 mb-1">
-                    <input type="text" placeholder="Keterangan..." class="manual-in-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
+                    <input type="text" placeholder="Keterangan..." list="daftar-kategori-masuk-lain" class="manual-in-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
                     <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
                 </div>
                 <select class="manual-in-dompet text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none" onchange="calculateRealtime()">
@@ -1294,7 +1308,7 @@
             div.className = "flex gap-3 items-center bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/10 flex-wrap";
             div.innerHTML = `
                 <div class="w-full flex justify-between gap-2 mb-1">
-                    <input type="text" placeholder="Keterangan..." class="manual-out-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
+                    <input type="text" placeholder="Keterangan..." list="daftar-kategori-lain" class="manual-out-desc flex-1 bg-transparent text-sm text-slate-800 dark:text-white font-semibold outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" required>
                     <button type="button" onclick="removeManualRow('${rowId}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
                 </div>
                 <select class="manual-out-dompet text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none" onchange="calculateRealtime()">
@@ -1306,6 +1320,41 @@
                 <input type="number" placeholder="Rp 0" class="manual-out-val flex-1 bg-transparent text-sm text-red-500 font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
             `;
             list.appendChild(div);
+        }
+
+        // Daftar saran (datalist) buat kolom "Keterangan" di Pengeluaran Lainnya --
+        // diisi dari kategori CUSTOM yang pernah diketik user sebelumnya (dari log
+        // DetailTransaksi), supaya lain kali tinggal pilih dari saran, ga ketik ulang.
+        function refreshDaftarKategoriLain() {
+            const dl = document.getElementById('daftar-kategori-lain');
+            if (!dl) return;
+            let set = new Set();
+            (allDetailTransaksi || []).forEach(item => {
+                if (item['Tipe'] !== 'Keluar') return;
+                let kat = (item['Kategori'] || '').toString().trim();
+                if (kat && !KATEGORI_KELUAR_TETAP.has(kat)) set.add(kat);
+            });
+            dl.innerHTML = [...set]
+                .sort((a, b) => a.localeCompare(b, 'id'))
+                .map(k => `<option value="${k.replace(/"/g, '&quot;')}"></option>`)
+                .join('');
+        }
+
+        // Sama seperti refreshDaftarKategoriLain() tapi buat kolom "Keterangan" di
+        // Pendapatan Lainnya (tab Input > Masuk).
+        function refreshDaftarKategoriMasukLain() {
+            const dl = document.getElementById('daftar-kategori-masuk-lain');
+            if (!dl) return;
+            let set = new Set();
+            (allDetailTransaksi || []).forEach(item => {
+                if (item['Tipe'] !== 'Masuk') return;
+                let kat = (item['Kategori'] || '').toString().trim();
+                if (kat && !KATEGORI_MASUK_TETAP.has(kat)) set.add(kat);
+            });
+            dl.innerHTML = [...set]
+                .sort((a, b) => a.localeCompare(b, 'id'))
+                .map(k => `<option value="${k.replace(/"/g, '&quot;')}"></option>`)
+                .join('');
         }
 
         function removeManualRow(id) {
@@ -1624,6 +1673,43 @@
             { key: 'Keluar Lain',      label: 'Lain-lain / Cicilan', icon: 'fa-receipt', color: 'orange' }
         ];
 
+        // Peta ikon & warna untuk Rincian Pengeluaran versi granular (sumber:
+        // DetailTransaksi, bukan lagi kolom tetap DataHarian). Key di sini harus
+        // sama persis dengan string "kategori" yang dikirim tambahDetail(...).
+        // Kategori custom hasil ketikan user di "Pengeluaran Lainnya" TIDAK ada
+        // di peta ini -> otomatis kena fallback icon (fa-tag, warna amber) dan
+        // tetap tampil sebagai baris kategori sendiri (bukan "Belum Terkategori").
+        const KATEGORI_KELUAR_ICON_MAP = {
+            'Makan':             { icon: 'fa-utensils',            color: 'red'    },
+            'Minum':             { icon: 'fa-mug-hot',             color: 'red'    },
+            'Kuota':             { icon: 'fa-wifi',                color: 'blue'   },
+            'Rokok':             { icon: 'fa-smoking',             color: 'red'    },
+            'Bensin':            { icon: 'fa-gas-pump',            color: 'red'    },
+            'Potongan Gojek':    { icon: 'fa-percent',             color: 'red'    },
+            'Ganti Oli Mesin':   { icon: 'fa-oil-can',             color: 'orange' },
+            'Ganti Oli Gardan':  { icon: 'fa-gears',               color: 'orange' },
+            'Servis Motor':      { icon: 'fa-screwdriver-wrench',  color: 'orange' },
+            'Servis':            { icon: 'fa-wrench',              color: 'orange' },
+            'Oli':               { icon: 'fa-oil-can',             color: 'orange' },
+            'Sparepart':         { icon: 'fa-gears',               color: 'orange' },
+            'Cicilan Hutang':    { icon: 'fa-hand-holding-dollar', color: 'purple' },
+            'Lainnya':           { icon: 'fa-receipt',             color: 'amber'  }
+        };
+        // Kategori "tetap" (bawaan aplikasi) -- dipakai untuk menyaring supaya
+        // datalist saran ketik cuma isinya kategori CUSTOM buatan user sendiri.
+        const KATEGORI_KELUAR_TETAP = new Set(Object.keys(KATEGORI_KELUAR_ICON_MAP));
+
+        // Sama seperti KATEGORI_KELUAR_ICON_MAP tapi untuk Rincian Pendapatan.
+        // 'Lainnya' di sini jadi fallback kalau kolom keterangan dikosongin;
+        // kategori custom ketikan user (mis. "Bonus Referral") otomatis dapat
+        // ikon fallback fa-tag/teal karena tidak ada di peta ini.
+        const KATEGORI_MASUK_ICON_MAP = {
+            'Bid':     { icon: 'fa-motorcycle',          color: 'emerald' },
+            'Tips':    { icon: 'fa-hand-holding-heart',  color: 'emerald' },
+            'Lainnya': { icon: 'fa-coins',               color: 'teal'    }
+        };
+        const KATEGORI_MASUK_TETAP = new Set(Object.keys(KATEGORI_MASUK_ICON_MAP));
+
         function getWeekRange(d) {
             const date = new Date(d);
             const day = date.getDay();
@@ -1665,6 +1751,56 @@
             return { totalIn, totalOut, kategoriTotal };
         }
 
+        // Hitung breakdown pengeluaran per kategori dari log granular
+        // (allDetailTransaksi) -- beda dari computeTotals() yang scan kolom TETAP
+        // di allSheetRows. Dengan ini, kategori CUSTOM hasil ketikan user di
+        // "Pengeluaran Lainnya" (mis. "Beli Helm") jadi baris tersendiri di
+        // Rincian Pengeluaran, bukan numpuk jadi satu "Lain-lain" atau
+        // "Belum Terkategori".
+        function computeKategoriPengeluaran(periode) {
+            const now = new Date();
+            const todayStr = now.toDateString();
+            const { start, end } = getWeekRange(now);
+            let kategoriTotal = {};
+
+            (allDetailTransaksi || []).forEach((item) => {
+                if (item['Tipe'] !== 'Keluar') return;
+                const ts = new Date(item['Timestamp']);
+                const cocok = periode === 'day'
+                    ? ts.toDateString() === todayStr
+                    : (ts >= start && ts <= end);
+                if (!cocok) return;
+
+                let kat = (item['Kategori'] || '').toString().trim() || 'Lainnya';
+                kategoriTotal[kat] = (kategoriTotal[kat] || 0) + (Number(item['Nominal']) || 0);
+            });
+
+            return kategoriTotal;
+        }
+
+        // Sama seperti computeKategoriPengeluaran() tapi untuk sisi Pendapatan
+        // (tipe 'Masuk'), dipakai buat Rincian Pendapatan.
+        function computeKategoriPendapatan(periode) {
+            const now = new Date();
+            const todayStr = now.toDateString();
+            const { start, end } = getWeekRange(now);
+            let kategoriTotal = {};
+
+            (allDetailTransaksi || []).forEach((item) => {
+                if (item['Tipe'] !== 'Masuk') return;
+                const ts = new Date(item['Timestamp']);
+                const cocok = periode === 'day'
+                    ? ts.toDateString() === todayStr
+                    : (ts >= start && ts <= end);
+                if (!cocok) return;
+
+                let kat = (item['Kategori'] || '').toString().trim() || 'Lainnya';
+                kategoriTotal[kat] = (kategoriTotal[kat] || 0) + (Number(item['Nominal']) || 0);
+            });
+
+            return kategoriTotal;
+        }
+
         function setPeriode(periode) {
             currentPeriode = periode;
             const btnDay = document.getElementById('btn-periode-day');
@@ -1680,6 +1816,7 @@
             btnWeek.classList.toggle('text-white/60', isDay);
 
             document.getElementById('rincian-periode-label').innerText = isDay ? 'Harian' : 'Mingguan';
+            document.getElementById('rincian-pendapatan-periode-label').innerText = isDay ? 'Harian' : 'Mingguan';
             renderRekap();
         }
 
@@ -1700,7 +1837,8 @@
                 ? "text-4xl font-extrabold tracking-tight drop-shadow-md text-brand-neon"
                 : "text-4xl font-extrabold tracking-tight drop-shadow-md text-red-400";
 
-            renderRincianPengeluaran(dash.kategoriTotal, dash.totalOut);
+            renderRincianPendapatan(computeKategoriPendapatan(currentPeriode), dash.totalIn);
+            renderRincianPengeluaran(computeKategoriPengeluaran(currentPeriode), dash.totalOut);
 
             const mon = computeTotals(allSheetRows, 'day');
             const bersihMon = mon.totalIn - mon.totalOut;
@@ -2015,19 +2153,94 @@
             });
         }
 
+        // Sama seperti renderRincianPengeluaran() tapi buat sisi Pendapatan.
+        // Warna dibuat beda (emerald/teal) supaya kebedaan sama Rincian
+        // Pengeluaran (merah/oranye) walau strukturnya identik.
+        function renderRincianPendapatan(kategoriTotal, totalIn) {
+            const container = document.getElementById('rincian-pendapatan-list');
+
+            let items = Object.keys(kategoriTotal)
+                .map((kat) => {
+                    const meta = KATEGORI_MASUK_ICON_MAP[kat] || { icon: 'fa-tag', color: 'teal' };
+                    return { key: kat, label: kat, icon: meta.icon, color: meta.color, amount: kategoriTotal[kat] || 0 };
+                })
+                .filter(k => k.amount > 0)
+                .sort((a, b) => b.amount - a.amount);
+
+            // Jaring pengaman sama seperti di Rincian Pengeluaran: kalau ada
+            // selisih sama Total Pemasukan asli dari sheet (mis. baris lama
+            // sebelum DetailTransaksi ada), tampilkan sebagai "Belum Terkategori".
+            const sumKategori = items.reduce((s, k) => s + k.amount, 0);
+            const selisih = totalIn - sumKategori;
+            if (selisih > 0.5) {
+                items.push({
+                    key: '__uncategorized__',
+                    label: 'Belum Terkategori',
+                    icon: 'fa-circle-question',
+                    color: 'blue',
+                    amount: selisih
+                });
+            }
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-coins text-2xl text-slate-300 dark:text-white/10"></i>
+                        Belum ada pendapatan tercatat.
+                    </div>`;
+                return;
+            }
+
+            const colorMap = {
+                emerald: { bg: 'bg-emerald-100 dark:bg-emerald-500/10', text: 'text-emerald-500' },
+                teal:    { bg: 'bg-teal-100 dark:bg-teal-500/10',       text: 'text-teal-500'    },
+                blue:    { bg: 'bg-blue-100 dark:bg-blue-500/10',       text: 'text-blue-500'    }
+            };
+
+            container.innerHTML = items.map((item) => {
+                const persentase = totalIn > 0 ? (item.amount / totalIn) * 100 : 0;
+                const c = colorMap[item.color];
+                return `
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-11 h-11 rounded-xl ${c.bg} ${c.text} flex items-center justify-center shrink-0">
+                                <i class="fa-solid ${item.icon}"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-slate-800 dark:text-white truncate">${item.label}</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${formatRp(item.amount)} &nbsp;|&nbsp; ${persentase.toFixed(2)}%</p>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
+                            <div class="bg-gradient-to-r from-emerald-400 to-teal-400 h-2 rounded-full progress-bar-fill" style="width: ${persentase}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function renderRincianPengeluaran(kategoriTotal, totalOut) {
             const container = document.getElementById('rincian-pengeluaran-list');
-            let items = KATEGORI_KELUAR
-                .map(k => ({ ...k, amount: kategoriTotal[k.key] || 0 }))
+
+            // kategoriTotal sekarang objek dinamis { "Makan": 15000, "Beli Helm": 120000, ... }
+            // hasil dari computeKategoriPengeluaran() -- key-nya bisa kategori bawaan
+            // ATAU kategori custom ketikan user. Ikon/warna diambil dari
+            // KATEGORI_KELUAR_ICON_MAP kalau dikenal, kalau tidak pakai fallback
+            // (fa-tag, amber) supaya kategori custom tetap tampil rapi.
+            let items = Object.keys(kategoriTotal)
+                .map((kat) => {
+                    const meta = KATEGORI_KELUAR_ICON_MAP[kat] || { icon: 'fa-tag', color: 'amber' };
+                    return { key: kat, label: kat, icon: meta.icon, color: meta.color, amount: kategoriTotal[kat] || 0 };
+                })
                 .filter(k => k.amount > 0)
                 .sort((a, b) => b.amount - a.amount);
 
             // Jaring pengaman: kalau ada selisih antara Total Pengeluaran (yang
             // datang langsung dari sheet, selalu akurat) dengan jumlah semua
             // kategori di atas (bisa kurang kalau ada baris lama di sheet yang
-            // kolom kategorinya -- misal "Keluar Lain" -- belum lengkap/hilang),
-            // tampilkan sisanya sebagai 1 baris "Belum Terkategori" supaya angka
-            // di Rincian selalu match dengan Total Keluar, bukan tiba-tiba kosong.
+            // belum tercatat di DetailTransaksi), tampilkan sisanya sebagai 1 baris
+            // "Belum Terkategori" supaya angka di Rincian selalu match dengan Total
+            // Keluar, bukan tiba-tiba kosong.
             const sumKategori = items.reduce((s, k) => s + k.amount, 0);
             const selisih = totalOut - sumKategori;
             if (selisih > 0.5) {
@@ -2052,7 +2265,9 @@
             const colorMap = {
                 red:    { bg: 'bg-red-100 dark:bg-red-500/10',       text: 'text-red-500'    },
                 orange: { bg: 'bg-orange-100 dark:bg-orange-500/10', text: 'text-orange-500' },
-                blue:   { bg: 'bg-blue-100 dark:bg-blue-500/10',     text: 'text-blue-500'   }
+                blue:   { bg: 'bg-blue-100 dark:bg-blue-500/10',     text: 'text-blue-500'   },
+                purple: { bg: 'bg-purple-100 dark:bg-purple-500/10', text: 'text-purple-500' },
+                amber:  { bg: 'bg-amber-100 dark:bg-amber-500/10',   text: 'text-amber-500'  }
             };
 
             container.innerHTML = items.map((item) => {
@@ -2122,6 +2337,11 @@
                     if (Array.isArray(json.dataDetailTransaksi)) {
                         allDetailTransaksi = json.dataDetailTransaksi;
                         if (currentRiwayatSubTab === 'log') renderLogTransaksiList();
+                        // Rincian Pengeluaran di Beranda dihitung dari allDetailTransaksi,
+                        // jadi render ulang di sini (data ini baru siap setelah baris ini).
+                        renderRekap();
+                        refreshDaftarKategoriLain();
+                        refreshDaftarKategoriMasukLain();
                     }
 
                     // Load Riwayat Maintenance Motor (sheet MaintenanceMotor) + ringkasan
@@ -2338,7 +2558,10 @@
                 let desc = row.querySelector('.manual-in-desc').value.trim();
                 let val = parseFloat(row.querySelector('.manual-in-val').value) || 0;
                 let dmp = row.querySelector('.manual-in-dompet').value;
-                tambahDetail('Masuk', 'Lainnya', desc || 'Lainnya', val, dmp);
+                // Sama seperti Pengeluaran Lainnya: kategori = teks yang diketik
+                // user sendiri, supaya bisa jadi baris tersendiri di Rincian
+                // Pendapatan (bukan numpuk jadi satu "Lainnya").
+                tambahDetail('Masuk', desc || 'Lainnya', '', val, dmp);
             });
 
             tambahDetail('Keluar', 'Makan', '', getVal('out_makan'), getStr('dompet_out_makan'));
@@ -2357,7 +2580,10 @@
                 let desc = row.querySelector('.manual-out-desc').value.trim();
                 let val = parseFloat(row.querySelector('.manual-out-val').value) || 0;
                 let dmp = row.querySelector('.manual-out-dompet').value;
-                tambahDetail('Keluar', 'Lainnya', desc || 'Lainnya', val, dmp);
+                // Kategori = teks yang diketik user sendiri (jadi tercatat sebagai
+                // kategori tersendiri di DetailTransaksi & Rincian Pengeluaran,
+                // bukan digabung rata jadi "Lainnya"). Kalau kosong, fallback 'Lainnya'.
+                tambahDetail('Keluar', desc || 'Lainnya', '', val, dmp);
             });
 
             // MENGIRIM SALDO AKHIR (YANG SUDAH DIKALKULASI OTOMATIS)
@@ -2439,6 +2665,22 @@
                     'Pendapatan Bersih': validationIn - validationOut
                 };
                 allSheetRows.push(tempRow);
+
+                // Update juga log granular lokal (allDetailTransaksi) supaya Rincian
+                // Pengeluaran & saran kategori custom langsung update tanpa reload.
+                detailTransaksi.forEach(item => {
+                    allDetailTransaksi.push({
+                        'Timestamp': data.tanggal,
+                        'Tipe': item.tipe,
+                        'Kategori': item.kategori,
+                        'Keterangan': item.keterangan,
+                        'Nominal': item.nominal,
+                        'Dompet': item.dompet
+                    });
+                });
+                refreshDaftarKategoriLain();
+                refreshDaftarKategoriMasukLain();
+
                 renderRekap();
 
                 // PENTING: kunci base saldo (#saldo_gopay, #saldo_cash, dst) ke hasil
