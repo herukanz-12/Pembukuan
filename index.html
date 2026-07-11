@@ -309,45 +309,17 @@
                 </button>
             </div>
 
-            <!-- ========================================== -->
-            <!-- MENU 4 TOMBOL (accordion, biar tidak penuh) -->
-            <!-- Tombol ke-4 (Maintenance Motor) BUKAN form/panel sendiri, -->
-            <!-- cuma shortcut buka panel Input & scroll ke box "Maintenance Motor" -->
-            <!-- yang sudah jadi bagian dari kategori pengeluaran di Keluar -->
-            <!-- ========================================== -->
-            <div class="grid grid-cols-2 gap-3 mb-6" id="input-menu">
-                <button type="button" onclick="showInputPanel('trip')" data-panel="trip" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-5 transition-all active:scale-95">
-                    <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-500 flex items-center justify-center text-lg"><i class="fa-solid fa-route"></i></div>
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Total Trip<br>Diselesaikan</span>
-                </button>
-                <button type="button" onclick="showInputPanel('dompet')" data-panel="dompet" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-5 transition-all active:scale-95">
-                    <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg"><i class="fa-solid fa-wallet"></i></div>
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Dompet<br>(Auto Kalkulasi)</span>
-                </button>
-                <button type="button" onclick="showInputPanel('inout')" data-panel="inout" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-5 transition-all active:scale-95">
-                    <div class="w-11 h-11 rounded-xl bg-brand/10 text-brand flex items-center justify-center text-lg"><i class="fa-solid fa-right-left"></i></div>
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Input<br>(Masuk &amp; Keluar)</span>
-                </button>
-                <button type="button" onclick="bukaMaintenanceDiInput()" data-panel="inout" class="input-menu-btn flex flex-col items-center justify-center gap-2 bg-white dark:bg-cardDark rounded-2xl border-2 border-transparent shadow-glass p-5 transition-all active:scale-95">
-                    <div class="w-11 h-11 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-500 flex items-center justify-center text-lg"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 text-center leading-tight">Catat<br>Maintenance Motor</span>
-                </button>
-            </div>
-
             <form id="inputForm" oninput="calculateRealtime(); simpanSaldoLocal();" class="space-y-6">
                 
                 <!-- Kotak Jumlah Trip (Netral/Aktivitas) -->
-                <div id="input-panel-trip" class="input-panel hidden space-y-6">
                 <div class="bg-blue-50/50 dark:bg-blue-500/5 rounded-2xl border border-blue-100 dark:border-blue-500/20 p-4 focus-within:border-blue-500 transition-all">
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Total Trip Diselesaikan</label>
                     </div>
                     <input type="number" id="in_trip" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-2xl outline-none" placeholder="0">
                 </div>
-                </div>
                 
                 <!-- Saldo Awal Group -->
-                <div id="input-panel-dompet" class="input-panel hidden space-y-6">
                 <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden">
                     <div class="absolute -right-6 -top-6 text-slate-50 dark:text-white/5 text-8xl pointer-events-none">
                         <i class="fa-solid fa-wallet"></i>
@@ -420,10 +392,8 @@
                         </div>
                     </div>
                 </div>
-                </div>
 
                 <!-- Toggle Arus Masuk / Keluar -->
-                <div id="input-panel-inout" class="input-panel hidden space-y-6">
                 <div class="relative grid grid-cols-2 bg-slate-200/50 dark:bg-white/5 rounded-full p-1 mb-2 border border-slate-200 dark:border-white/10 shadow-inner">
                     <div id="input-toggle-indicator" class="absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] bg-white dark:bg-cardDark rounded-full shadow-sm border border-slate-200 dark:border-white/5 transition-transform duration-300"></div>
                     
@@ -563,7 +533,7 @@
                 </div>
 
                 <!-- Maintenance Motor -->
-                <div id="maintenance-section-in-input" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mt-4">
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mt-4">
                     <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
                         <span class="w-2 h-6 rounded-full bg-orange-500 block"></span>
                         Maintenance Motor
@@ -574,7 +544,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-wrench"></i></div>
                                 <div>
-                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Servis Motor</span>
+                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Servis Ringan</span>
                                     <select id="dompet_out_servis" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
                                         <option value="cash">Cash</option>
                                         <option value="bca">BCA</option>
@@ -592,7 +562,7 @@
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-oil-can"></i></div>
                                     <div>
-                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Ganti Oli Mesin</span>
+                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Ganti Oli</span>
                                         <select id="dompet_out_oli" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
                                             <option value="cash">Cash</option>
                                             <option value="bca">BCA</option>
@@ -609,30 +579,13 @@
                             </div>
                         </div>
 
-                        <!-- Oli Gardan Panel -->
-                        <div class="bg-slate-50 dark:bg-bgDark p-3 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between focus-within:border-orange-400 transition-all gap-2">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-oil-can"></i></div>
-                                <div>
-                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Ganti Oli Gardan</span>
-                                    <select id="dompet_out_oli_gardan" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
-                                        <option value="cash">Cash</option>
-                                        <option value="bca">BCA</option>
-                                        <option value="gopay">Gopay</option>
-                                        <option value="gopay_driver">Gopay Driver</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <input type="number" id="out_oli_gardan" class="w-24 bg-transparent text-right border-none p-0 text-red-500 font-bold text-lg outline-none" placeholder="0">
-                        </div>
-
                         <!-- Sparepart Panel -->
                         <div class="bg-slate-100/50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
                             <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-white/10 pb-3 gap-2">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-orange-500 shadow-sm shrink-0"><i class="fa-solid fa-gears"></i></div>
                                     <div>
-                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Sparepart Motor</span>
+                                        <span class="text-sm font-bold text-slate-800 dark:text-white block mb-1">Sparepart</span>
                                         <select id="dompet_out_sparepart" class="text-[9px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-md px-1.5 py-0.5 outline-none">
                                             <option value="cash">Cash</option>
                                             <option value="bca">BCA</option>
@@ -656,9 +609,73 @@
                     <i class="fa-solid fa-cloud-arrow-up text-xl" id="icon-simpan"></i>
                     <span id="text-simpan">Simpan Laporan</span>
                 </button>
-                </div>
             </form>
 
+            <!-- ========================================== -->
+            <!-- CATAT MAINTENANCE MOTOR (Riwayat Servis) -->
+            <!-- Panel terpisah dari form Laporan Harian di atas. Tiap kali -->
+            <!-- "Simpan Servis" ditekan, 1 baris baru ditambahkan ke sheet -->
+            <!-- MaintenanceMotor (bukan ke DataHarian), jadi bisa dipakai -->
+            <!-- kapan saja tanpa harus mengisi laporan pemasukan/pengeluaran. -->
+            <!-- ========================================== -->
+            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mt-4">
+                <h3 class="font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+                    <span class="w-2 h-6 rounded-full bg-red-500 block"></span>
+                    Catat Maintenance Motor
+                </h3>
+                <p class="text-[10px] text-slate-400 mb-5 ml-4">Riwayat servis tersimpan sendiri &amp; dipakai untuk cek status di tab Monitor.</p>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Jenis Servis</label>
+                        <select id="maint_jenis" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none focus:ring-1 focus:ring-red-400">
+                            <option value="Ganti Oli">Ganti Oli</option>
+                            <option value="Ganti Oli Gardan">Ganti Oli Gardan</option>
+                            <option value="Ganti Ban">Ganti Ban</option>
+                            <option value="Ganti Kampas Rem">Ganti Kampas Rem</option>
+                            <option value="Ganti Fan Belt/Vanbelt">Ganti Fan Belt/Vanbelt</option>
+                            <option value="Ganti Roller">Ganti Roller</option>
+                            <option value="Servis Rutin">Servis Rutin</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Awal</label>
+                            <input type="number" id="maint_km_awal" oninput="hitungJarakMaintenance()" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none focus:ring-1 focus:ring-red-400" placeholder="15000">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">KM Akhir</label>
+                            <input type="number" id="maint_km_akhir" oninput="hitungJarakMaintenance()" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none focus:ring-1 focus:ring-red-400" placeholder="17000">
+                        </div>
+                    </div>
+
+                    <div id="maint_jarak_info" class="hidden text-[10px] font-bold text-slate-500 bg-slate-50 dark:bg-bgDark rounded-xl p-2.5 text-center border border-slate-100 dark:border-white/5">
+                        Jarak tempuh: <span id="maint_jarak_text" class="text-red-500">0</span> km
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Biaya</label>
+                            <input type="number" id="maint_biaya" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none focus:ring-1 focus:ring-red-400" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Tanggal</label>
+                            <input type="date" id="maint_tanggal" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none focus:ring-1 focus:ring-red-400">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Keterangan (opsional)</label>
+                        <input type="text" id="maint_keterangan" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none focus:ring-1 focus:ring-red-400" placeholder="Contoh: bengkel langganan, Oli Federal Matic">
+                    </div>
+
+                    <button type="button" onclick="simpanMaintenanceServis()" class="w-full relative overflow-hidden group bg-red-500 hover:bg-red-600 text-white font-bold text-sm py-4 px-4 rounded-2xl shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 mt-2">
+                        <i class="fa-solid fa-wrench text-base" id="icon-simpan-maint"></i>
+                        <span id="text-simpan-maint">Simpan Servis</span>
+                    </button>
+                </div>
+            </div>
         </section>
 
         <!-- ========================================== -->
@@ -731,46 +748,14 @@
                 <div class="relative z-10 mb-5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Update Speedometer (KM Saat Ini)</label>
                     <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand transition-all">
-                        <input type="number" id="km_sekarang" oninput="cekOli(); simpanKmOliLocal(); renderMaintenanceList();" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
+                        <input type="number" id="km_sekarang" oninput="cekOli(); simpanKmOliLocal();" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
                         <span class="bg-white dark:bg-cardDark px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 shadow-sm mr-1">KM</span>
                     </div>
                 </div>
                 
-                <!-- Progress Bar Oli -->
-                <div class="mb-2 flex justify-between text-[10px] font-bold">
-                    <span class="text-slate-500">Kesehatan Oli</span>
-                    <span id="oli-percentage-text" class="text-brand">100%</span>
-                </div>
-                <div class="w-full bg-slate-100 dark:bg-bgDark rounded-full h-3 mb-4 overflow-hidden border border-slate-200 dark:border-white/5 shadow-inner">
-                    <div id="oli-progress" class="bg-gradient-to-r from-brand to-brand-neon h-3 rounded-full progress-bar-fill" style="width: 100%"></div>
-                </div>
-
-                <div id="alert-oli" class="hidden p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-sm relative z-10 transition-all mt-2">
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center shrink-0 animate-pulse">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                        <div>
-                            <strong class="text-red-500 block mb-1 text-sm">Waktunya Ganti Oli!</strong>
-                            <p class="text-red-500/80 text-[10px] leading-relaxed font-medium">Batas 2.000 KM telah tercapai atau terlewati. Segera jadwalkan servis.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="status-oli" class="bg-slate-50 dark:bg-bgDark text-slate-500 p-3 rounded-xl text-xs font-bold text-center relative z-10 border border-slate-100 dark:border-white/5 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-circle-info text-brand"></i>
-                    <span>Belum ada data referensi oli.</span>
-                </div>
-            </div>
-
-            <!-- Maintenance Motor (semua jenis servis) -->
-            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Maintenance Motor</h3>
-            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden mb-8">
-                <p class="text-[10px] text-slate-500 mb-4 relative z-10">Status dihitung dari selisih <strong>KM Sekarang</strong> (di atas) dengan KM Akhir servis terakhir per jenis. Khusus Ganti Oli, peringatan otomatis muncul di batas 2.000 km.</p>
-                <div id="maintenance-list" class="space-y-2.5 relative z-10">
-                    <div class="bg-slate-50 dark:bg-bgDark text-slate-500 p-3 rounded-xl text-xs font-bold text-center border border-slate-100 dark:border-white/5">
-                        <i class="fa-solid fa-circle-info text-brand"></i> Belum ada data maintenance.
-                    </div>
+                <!-- Kartu Maintenance Motor: status tiap jenis servis vs KM Sekarang -->
+                <div id="maintenance-status-list" class="space-y-3 relative z-10">
+                    <!-- Diisi oleh renderMaintenanceStatus() -->
                 </div>
             </div>
         </section>
@@ -936,7 +921,7 @@
 
     <!-- Bottom Navigation (Floating Glassmorphism) -->
     <nav class="fixed bottom-6 w-full z-40 px-6">
-        <div class="backdrop-blur-xl bg-white/80 dark:bg-cardDark/80 border border-slate-200/50 dark:border-white/10 shadow-float rounded-[2rem] p-2 flex justify-between items-center relative overflow-hidden">
+        <div class="backdrop-blur-xl bg-white/80 dark:bg-cardDark/80 border border-slate-200/50 dark:border-white/10 shadow-float rounded-[2rem] p-2 flex justify-between items-center relative">
             
             <!-- Active Indicator Pill -->
             <div id="nav-indicator" class="absolute top-2 bottom-2 w-1/5 bg-slate-100 dark:bg-white/5 rounded-2xl transition-all duration-300 ease-in-out -z-10 left-0"></div>
@@ -950,12 +935,12 @@
                 <i class="fa-solid fa-chart-line text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
                 <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Monitor</span>
             </button>
-
-            <button onclick="switchTab('input', 2)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative -mt-8" data-target="view-input">
-                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white shadow-neon border-4 border-white dark:border-bgDark mb-1 transition-transform duration-300 group-[.active]:scale-110">
-                    <i class="fa-solid fa-circle-plus text-2xl"></i>
+            
+            <button onclick="switchTab('input', 2)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative -mt-7" data-target="view-input">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center shadow-neon border-4 border-slate-50 dark:border-bgDark group-[.active]:scale-110 transition-all">
+                    <i class="fa-solid fa-circle-plus text-white text-2xl"></i>
                 </div>
-                <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Input</span>
+                <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors mt-1">Input</span>
             </button>
 
             <button onclick="switchTab('hutang', 3)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-hutang">
@@ -1051,50 +1036,6 @@
 
             const indicator = document.getElementById('nav-indicator');
             indicator.style.transform = `translateX(${index * 100}%)`;
-            indicator.style.opacity = (tabName === 'input') ? '0' : '1';
-        }
-
-        // --- Menu 3 Tombol di Tab Input (accordion, biar halaman tidak penuh) ---
-        // Klik tombol -> panel terkait terbuka & yang lain tertutup.
-        // Klik tombol yang sama lagi saat sudah terbuka -> panel ditutup (collapse).
-        // --- Tombol ke-4 (Catat Maintenance Motor): shortcut buka panel Input, -->
-        // --- lalu scroll ke box "Maintenance Motor" (bagian dari kategori Keluar) ---
-        function bukaMaintenanceDiInput() {
-            let target = document.getElementById('input-panel-inout');
-            let sudahTerbuka = target && !target.classList.contains('hidden');
-
-            if (!sudahTerbuka) {
-                showInputPanel('inout');
-            } else {
-                document.querySelectorAll('.input-menu-btn').forEach(el => {
-                    el.classList.remove('border-brand', 'ring-2', 'ring-brand/30');
-                });
-                document.querySelectorAll('.input-menu-btn[data-panel="inout"]').forEach(el => {
-                    el.classList.add('border-brand', 'ring-2', 'ring-brand/30');
-                });
-            }
-
-            setTimeout(() => {
-                let section = document.getElementById('maintenance-section-in-input');
-                if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 150);
-        }
-
-        function showInputPanel(name) {
-            let target = document.getElementById('input-panel-' + name);
-            let sedangTerbuka = target && !target.classList.contains('hidden');
-
-            document.querySelectorAll('.input-panel').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.input-menu-btn').forEach(el => {
-                el.classList.remove('border-brand', 'ring-2', 'ring-brand/30');
-            });
-
-            if (!sedangTerbuka && target) {
-                target.classList.remove('hidden');
-                let btn = document.querySelector('.input-menu-btn[data-panel="' + name + '"]');
-                if (btn) btn.classList.add('border-brand', 'ring-2', 'ring-brand/30');
-                setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
-            }
         }
 
         // --- Toggle Input (Masuk/Keluar) ---
@@ -1232,7 +1173,6 @@
             subExpense('out_rokok', 'dompet_out_rokok');
             subExpense('out_servis', 'dompet_out_servis');
             subExpense('out_oli', 'dompet_out_oli');
-            subExpense('out_oli_gardan', 'dompet_out_oli_gardan');
             subExpense('out_sparepart', 'dompet_out_sparepart');
 
             document.querySelectorAll('#manual-expense-list > div').forEach(row => {
@@ -1267,125 +1207,198 @@
             cekOli();
         }
 
+        // Daftar jenis servis yang dipantau di kartu "Maintenance Motor" (Tab Monitor).
+        // Ikon & warna sekadar visual; hanya "Ganti Oli" yang punya ambang batas
+        // otomatis (BATAS_KM_OLI_MONITOR = 2000 km, peringatan dini di 1.800 km)
+        // sesuai sheet MaintenanceMotor di backend (BATAS_KM_OLI).
+        const JENIS_SERVIS_MONITOR = [
+            { jenis: 'Ganti Oli', icon: 'fa-oil-can', color: 'orange' },
+            { jenis: 'Ganti Oli Gardan', icon: 'fa-gears', color: 'blue' },
+            { jenis: 'Ganti Ban', icon: 'fa-circle-dot', color: 'slate' },
+            { jenis: 'Ganti Kampas Rem', icon: 'fa-record-vinyl', color: 'red' },
+            { jenis: 'Ganti Fan Belt/Vanbelt', icon: 'fa-link', color: 'purple' },
+            { jenis: 'Ganti Roller', icon: 'fa-compact-disc', color: 'teal' },
+            { jenis: 'Servis Rutin', icon: 'fa-screwdriver-wrench', color: 'emerald' }
+        ];
+        const BATAS_KM_OLI_MONITOR = 2000;
+        const BATAS_KM_OLI_WARNING = 1800;
+
+        // cekOli() dipertahankan sebagai nama fungsi (dipanggil dari beberapa
+        // tempat lain di kode) tapi sekarang jadi generic renderer untuk SEMUA
+        // jenis servis (bukan cuma oli), berdasarkan data sheet MaintenanceMotor
+        // (window.maintenanceTerakhir) yang diambil dari fetchRekapData().
         function cekOli() {
-            let kmTerakhir = getVal('km_oli');
-            let kmSekarang = getVal('km_sekarang');
-            let alertOli = document.getElementById('alert-oli');
-            let statusOli = document.getElementById('status-oli');
-            let progressBar = document.getElementById('oli-progress');
-            let percentageText = document.getElementById('oli-percentage-text');
-            const BATAS_OLI = 2000;
-
-            if(kmTerakhir > 0 && kmSekarang > 0) {
-                let selisih = kmSekarang - kmTerakhir;
-                let sisaKm = BATAS_OLI - selisih;
-                let persentase = Math.max(0, Math.min(100, (sisaKm / BATAS_OLI) * 100));
-                
-                progressBar.style.width = persentase + "%";
-                percentageText.innerText = Math.round(persentase) + "%";
-
-                progressBar.className = "h-3 rounded-full progress-bar-fill transition-all duration-500 ";
-                if(persentase > 50) {
-                    progressBar.className += "bg-gradient-to-r from-brand to-brand-neon";
-                    percentageText.className = "text-brand";
-                } else if(persentase > 20) {
-                    progressBar.className += "bg-gradient-to-r from-yellow-400 to-orange-400";
-                    percentageText.className = "text-orange-500";
-                } else {
-                    progressBar.className += "bg-gradient-to-r from-red-500 to-red-400";
-                    percentageText.className = "text-red-500";
-                }
-
-                if(selisih >= BATAS_OLI) {
-                    alertOli.classList.remove('hidden');
-                    statusOli.classList.add('hidden');
-                } else if(selisih < 0) {
-                    alertOli.classList.add('hidden');
-                    statusOli.classList.remove('hidden');
-                    statusOli.innerHTML = "<span class='text-red-500 font-bold'>Error: KM Sekarang lebih kecil.</span>";
-                    progressBar.style.width = "0%";
-                    percentageText.innerText = "Error";
-                } else {
-                    alertOli.classList.add('hidden');
-                    statusOli.classList.remove('hidden');
-                    statusOli.innerHTML = `<span class='text-brand font-bold'>Sisa ${sisaKm.toLocaleString('id-ID')} KM</span> lagi.`;
-                }
-            } else {
-                alertOli.classList.add('hidden');
-                statusOli.classList.remove('hidden');
-                statusOli.innerHTML = "<i class='fa-solid fa-circle-info text-brand'></i><span>Masukkan KM Oli & KM Saat Ini.</span>";
-                progressBar.style.width = "100%";
-                progressBar.className = "h-3 rounded-full progress-bar-fill bg-slate-300 dark:bg-slate-700";
-                percentageText.innerText = "--";
-                percentageText.className = "text-slate-400";
-            }
+            renderMaintenanceStatus();
         }
 
-        // --- MAINTENANCE MOTOR (Ganti Oli, Ganti Oli Gardan, Ganti Ban, Ganti
-        // Kampas Rem, Ganti Fan Belt/Vanbelt, Ganti Roller, Servis Rutin) ---
-
-        // Render daftar status per jenis servis di tab Monitor. Dipanggil tiap
-        // kali data maintenance dari server berubah ATAU KM Sekarang diubah user.
-        function renderMaintenanceList() {
-            let container = document.getElementById('maintenance-list');
+        function renderMaintenanceStatus() {
+            let container = document.getElementById('maintenance-status-list');
             if (!container) return;
 
             let kmSekarang = getVal('km_sekarang');
-
-            if (Object.keys(maintenanceTerakhir).length === 0) {
-                container.innerHTML = `
-                    <div class="bg-slate-50 dark:bg-bgDark text-slate-500 p-3 rounded-xl text-xs font-bold text-center border border-slate-100 dark:border-white/5">
-                        <i class="fa-solid fa-circle-info text-brand"></i> Belum ada data maintenance.
-                    </div>`;
-                return;
-            }
+            let terakhir = window.maintenanceTerakhir || {};
 
             let html = '';
-            JENIS_MAINTENANCE.forEach(function (jenis) {
-                let info = maintenanceTerakhir[jenis];
-                if (!info) return; // jenis yang belum pernah dicatat, sembunyikan dari list
+            JENIS_SERVIS_MONITOR.forEach(item => {
+                let data = terakhir[item.jenis];
+                let badgeHtml = '';
+                let bodyHtml = '';
 
-                let kmAkhir = Number(info.kmAkhir) || 0;
-                let selisih = kmSekarang > 0 ? kmSekarang - kmAkhir : null;
-
-                let badgeClass = "bg-slate-100 dark:bg-white/5 text-slate-500";
-                let badgeText = "Belum ada KM Sekarang";
-                let cardBorder = "border-slate-100 dark:border-white/5";
-
-                if (jenis === "Ganti Oli" && selisih !== null) {
-                    if (selisih < 0) {
-                        badgeClass = "bg-red-500/10 text-red-500";
-                        badgeText = "Error: KM Sekarang < KM Terakhir";
-                    } else if (selisih >= BATAS_KM_OLI) {
-                        badgeClass = "bg-red-500/10 text-red-500 animate-pulse";
-                        badgeText = "⚠️ SEGERA GANTI OLI!";
-                        cardBorder = "border-red-500/40";
-                    } else if (selisih >= BATAS_KM_OLI - 200) {
-                        badgeClass = "bg-orange-500/10 text-orange-500";
-                        badgeText = "🔶 Mendekati Batas (" + (BATAS_KM_OLI - selisih).toLocaleString('id-ID') + " km lagi)";
-                    } else {
-                        badgeClass = "bg-brand/10 text-brand";
-                        badgeText = "✅ Aman, sisa " + (BATAS_KM_OLI - selisih).toLocaleString('id-ID') + " km";
+                if (!data || !data.kmAkhir) {
+                    bodyHtml = `<span class="text-slate-400 text-[11px] font-medium">Belum ada riwayat servis.</span>`;
+                } else {
+                    let kmAkhir = Number(data.kmAkhir) || 0;
+                    let tglText = '';
+                    if (data.tanggal) {
+                        let d = new Date(data.tanggal);
+                        if (!isNaN(d)) tglText = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                     }
-                } else if (selisih !== null) {
-                    badgeClass = "bg-slate-100 dark:bg-white/5 text-slate-500";
-                    badgeText = selisih.toLocaleString('id-ID') + " km sejak servis terakhir";
+
+                    if (kmSekarang > 0) {
+                        let selisih = kmSekarang - kmAkhir;
+                        if (selisih < 0) {
+                            bodyHtml = `<span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Terakhir di ${kmAkhir.toLocaleString('id-ID')} km${tglText ? ' · ' + tglText : ''}</span>`;
+                        } else {
+                            bodyHtml = `<span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Terakhir di ${kmAkhir.toLocaleString('id-ID')} km${tglText ? ' · ' + tglText : ''}</span><br><span class="text-[10px] text-slate-400">Sudah ${selisih.toLocaleString('id-ID')} km berjalan</span>`;
+
+                            if (item.jenis === 'Ganti Oli') {
+                                if (selisih >= BATAS_KM_OLI_MONITOR) {
+                                    badgeHtml = `<span class="animate-pulse bg-red-500 text-white text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full shrink-0">⚠️ Segera Ganti Oli!</span>`;
+                                } else if (selisih >= BATAS_KM_OLI_WARNING) {
+                                    badgeHtml = `<span class="bg-orange-500/15 text-orange-500 text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full shrink-0">⚠️ Mendekati Batas</span>`;
+                                }
+                            }
+                        }
+                    } else {
+                        bodyHtml = `<span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Terakhir di ${kmAkhir.toLocaleString('id-ID')} km${tglText ? ' · ' + tglText : ''}</span>`;
+                    }
                 }
 
                 html += `
-                    <div class="flex items-center justify-between p-3 rounded-xl border ${cardBorder} bg-slate-50 dark:bg-bgDark">
-                        <div class="min-w-0 pr-2">
-                            <span class="text-xs font-bold text-slate-700 dark:text-white block truncate">${jenis}</span>
-                            <span class="text-[10px] text-slate-400">Terakhir di KM ${kmAkhir.toLocaleString('id-ID')}</span>
+                <div class="bg-slate-50 dark:bg-bgDark p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-${item.color}-500 shadow-sm shrink-0"><i class="fa-solid ${item.icon}"></i></div>
+                        <div class="min-w-0">
+                            <span class="text-xs font-bold text-slate-800 dark:text-white block mb-0.5">${item.jenis}</span>
+                            ${bodyHtml}
                         </div>
-                        <span class="text-[10px] font-bold px-2.5 py-1.5 rounded-lg text-right shrink-0 ${badgeClass}">${badgeText}</span>
-                    </div>`;
+                    </div>
+                    ${badgeHtml}
+                </div>`;
             });
 
-            container.innerHTML = html || `
-                <div class="bg-slate-50 dark:bg-bgDark text-slate-500 p-3 rounded-xl text-xs font-bold text-center border border-slate-100 dark:border-white/5">
-                    <i class="fa-solid fa-circle-info text-brand"></i> Belum ada data maintenance.
-                </div>`;
+            container.innerHTML = html;
+        }
+
+        // Menampilkan preview "Jarak Tempuh" (KM Akhir - KM Awal) secara realtime
+        // di panel "Catat Maintenance Motor", supaya user bisa cek dulu sebelum
+        // menekan tombol Simpan Servis. Perhitungan pastinya tetap dilakukan lagi
+        // di backend (simpanMaintenance() di code.gs).
+        function hitungJarakMaintenance() {
+            let kmAwal = getVal('maint_km_awal');
+            let kmAkhir = getVal('maint_km_akhir');
+            let info = document.getElementById('maint_jarak_info');
+            let text = document.getElementById('maint_jarak_text');
+
+            if (kmAwal > 0 && kmAkhir > 0) {
+                let jarak = kmAkhir - kmAwal;
+                info.classList.remove('hidden');
+                if (jarak < 0) {
+                    text.innerText = "Error: KM Akhir < KM Awal";
+                    text.className = "text-red-500 font-bold";
+                } else {
+                    text.innerText = jarak.toLocaleString('id-ID');
+                    text.className = "text-red-500";
+                }
+            } else {
+                info.classList.add('hidden');
+            }
+        }
+
+        // Kirim 1 catatan servis baru ke sheet MaintenanceMotor (action:
+        // 'simpan_maintenance'), TERPISAH dari simpanData() / sheet DataHarian.
+        async function simpanMaintenanceServis() {
+            const btnText = document.getElementById('text-simpan-maint');
+            const btnIcon = document.getElementById('icon-simpan-maint');
+
+            let jenis = getStr('maint_jenis');
+            let kmAwal = getVal('maint_km_awal');
+            let kmAkhir = getVal('maint_km_akhir');
+            let biaya = getVal('maint_biaya');
+            let tanggalInput = document.getElementById('maint_tanggal').value;
+            let keterangan = getStr('maint_keterangan');
+
+            if (!jenis) {
+                showToast("Pilih jenis servis dulu!");
+                return;
+            }
+            if (kmAwal > 0 && kmAkhir > 0 && kmAkhir < kmAwal) {
+                showToast("KM Akhir tidak boleh lebih kecil dari KM Awal!");
+                return;
+            }
+            if (kmAwal === 0 && kmAkhir === 0 && biaya === 0) {
+                showToast("Isi minimal KM Akhir atau Biaya servis!");
+                return;
+            }
+
+            let tanggalISO = tanggalInput ? new Date(tanggalInput).toISOString() : new Date().toISOString();
+
+            let data = {
+                jenis: jenis,
+                km_awal: kmAwal,
+                km_akhir: kmAkhir,
+                biaya: biaya,
+                tanggal: tanggalISO,
+                keterangan: keterangan
+            };
+
+            btnText.innerText = "Menyimpan...";
+            btnIcon.className = "fa-solid fa-spinner fa-spin text-base";
+
+            try {
+                if (isServerAktif()) {
+                    await kirimKeServer({ action: 'simpan_maintenance', data: data });
+                    showToast("Catatan servis tersimpan!");
+                } else {
+                    await new Promise(r => setTimeout(r, 800));
+                    showToast("Simpan offline berhasil!");
+                }
+
+                // Update state lokal supaya kartu status di Tab Monitor langsung
+                // ter-refresh tanpa harus fetch ulang ke server.
+                if (kmAkhir > 0) {
+                    let existing = window.maintenanceTerakhir[jenis];
+                    if (!existing || kmAkhir > existing.kmAkhir) {
+                        window.maintenanceTerakhir[jenis] = { kmAkhir: kmAkhir, tanggal: tanggalISO };
+                    }
+                }
+                allMaintenanceData.push({
+                    'Timestamp': new Date().toISOString(),
+                    'Tanggal': tanggalISO,
+                    'Jenis Servis': jenis,
+                    'KM Awal': kmAwal,
+                    'KM Akhir': kmAkhir,
+                    'Jarak Tempuh': (kmAwal > 0 && kmAkhir > 0) ? kmAkhir - kmAwal : '',
+                    'Biaya': biaya,
+                    'Keterangan': keterangan
+                });
+                renderMaintenanceStatus();
+
+                // Reset form (kecuali jenis servis, biar enak input beruntun untuk jenis yang sama)
+                document.getElementById('maint_km_awal').value = '';
+                document.getElementById('maint_km_akhir').value = '';
+                document.getElementById('maint_biaya').value = '';
+                document.getElementById('maint_keterangan').value = '';
+                document.getElementById('maint_jarak_info').classList.add('hidden');
+                document.getElementById('maint_tanggal').value = new Date().toISOString().split('T')[0];
+
+            } catch (error) {
+                showToast(error.message || "Gagal menyimpan catatan servis!");
+                console.error(error);
+            } finally {
+                btnText.innerText = "Simpan Servis";
+                btnIcon.className = "fa-solid fa-wrench text-base";
+            }
         }
 
         function simpanSaldoLocal() {
@@ -1409,22 +1422,16 @@
         // --- Data & Filter Periode ---
         let allSheetRows = [];      
         let allDetailTransaksi = [];
-        let allMaintenanceRows = [];
-        let maintenanceTerakhir = {}; // { "Ganti Oli": { kmAkhir, tanggal }, ... } dari server
-        const BATAS_KM_OLI = 2000;
-        const JENIS_MAINTENANCE = [
-            "Ganti Oli", "Ganti Oli Gardan", "Ganti Ban", "Ganti Kampas Rem",
-            "Ganti Fan Belt (Vanbelt)", "Ganti Roller", "Servis Rutin"
-        ];
         let currentPeriode = 'day'; 
+        let allMaintenanceData = [];      // riwayat servis (sheet MaintenanceMotor), array of row objects
+        window.maintenanceTerakhir = {};  // { "Ganti Oli": { kmAkhir, tanggal }, ... } dari backend
 
         const KATEGORI_KELUAR = [
             { key: 'Keluar Makan',     label: 'Makan',        icon: 'fa-utensils',  color: 'red'    },
             { key: 'Keluar Minum',     label: 'Minum',        icon: 'fa-mug-hot',   color: 'red'    },
-            { key: 'Keluar Servis',    label: 'Servis Motor', icon: 'fa-wrench',    color: 'orange' },
-            { key: 'Keluar Oli',       label: 'Ganti Oli Mesin', icon: 'fa-oil-can', color: 'orange' },
-            { key: 'Keluar Oli Gardan', label: 'Ganti Oli Gardan', icon: 'fa-oil-can', color: 'orange' },
-            { key: 'Keluar Sparepart', label: 'Sparepart Motor', icon: 'fa-gears',  color: 'orange' },
+            { key: 'Keluar Servis',    label: 'Servis Ringan',icon: 'fa-wrench',    color: 'orange' },
+            { key: 'Keluar Oli',       label: 'Ganti Oli',    icon: 'fa-oil-can',   color: 'orange' },
+            { key: 'Keluar Sparepart', label: 'Sparepart',    icon: 'fa-gears',     color: 'orange' },
             { key: 'Keluar Kuota',     label: 'Kuota Internet', icon: 'fa-wifi',    color: 'blue'   },
             { key: 'Keluar Rokok',     label: 'Rokok',        icon: 'fa-smoking',   color: 'red'    },
             { key: 'Keluar Lain',      label: 'Lain-lain / Cicilan', icon: 'fa-receipt', color: 'orange' }
@@ -1930,23 +1937,16 @@
                         if (currentRiwayatSubTab === 'log') renderLogTransaksiList();
                     }
 
-                    // Load Data Maintenance Motor (sheet MaintenanceMotor) -- riwayat
-                    // servis lengkap + ringkasan "terakhir per jenis" dari server,
-                    // dipakai kartu status di tab Monitor (khusus Ganti Oli 2.000 km).
+                    // Load Riwayat Maintenance Motor (sheet MaintenanceMotor) + ringkasan
+                    // servis terakhir per jenis -- dipakai kartu "Maintenance Motor" di Tab Monitor.
                     if (Array.isArray(json.dataMaintenance)) {
-                        allMaintenanceRows = json.dataMaintenance;
+                        allMaintenanceData = json.dataMaintenance;
                     }
                     if (json.dataMaintenanceTerakhir && typeof json.dataMaintenanceTerakhir === 'object') {
-                        maintenanceTerakhir = {};
-                        Object.keys(json.dataMaintenanceTerakhir).forEach(function (jenis) {
-                            let info = json.dataMaintenanceTerakhir[jenis];
-                            maintenanceTerakhir[jenis] = {
-                                kmAkhir: Number(info.kmAkhir) || 0,
-                                tanggal: info.tanggal || ''
-                            };
-                        });
-                        renderMaintenanceList();
+                        window.maintenanceTerakhir = json.dataMaintenanceTerakhir;
                     }
+                    renderMaintenanceStatus();
+
                     return true;
                 } else {
                     showToast("Gagal memuat riwayat: " + json.message);
@@ -2083,7 +2083,7 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_servis', 'out_oli', 'out_oli_gardan', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
             
             // Clear manual rows
@@ -2152,7 +2152,6 @@
             tambahDetail('Keluar', 'Rokok', '', getVal('out_rokok'), getStr('dompet_out_rokok'));
             tambahDetail('Keluar', 'Servis', '', getVal('out_servis'), getStr('dompet_out_servis'));
             tambahDetail('Keluar', 'Oli', '', getVal('out_oli'), getStr('dompet_out_oli'));
-            tambahDetail('Keluar', 'Oli Gardan', '', getVal('out_oli_gardan'), getStr('dompet_out_oli_gardan'));
             tambahDetail('Keluar', 'Sparepart', '', getVal('out_sparepart'), getStr('dompet_out_sparepart'));
             document.querySelectorAll('#manual-expense-list > div').forEach(row => {
                 let desc = row.querySelector('.manual-out-desc').value.trim();
@@ -2187,7 +2186,6 @@
                 out_servis: getVal('out_servis'),
                 out_oli: getVal('out_oli'),
                 km_oli: getVal('km_oli'),
-                out_oli_gardan: getVal('out_oli_gardan'),
                 out_sparepart: getVal('out_sparepart'),
                 km_sparepart: getVal('km_sparepart'),
                 km_sekarang: getVal('km_sekarang'),
@@ -2196,7 +2194,7 @@
             };
 
             let validationIn = data.in_bid + data.in_tips + data.in_lain;
-            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_servis + data.out_oli + data.out_oli_gardan + data.out_sparepart + data.out_lain;
+            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
 
             if(validationIn === 0 && validationOut === 0) {
                 showToast("Isi nominal pemasukan/pengeluaran dulu!");
@@ -2225,7 +2223,6 @@
                     'Keluar Rokok': data.out_rokok,
                     'Keluar Servis': data.out_servis,
                     'Keluar Oli': data.out_oli,
-                    'Keluar Oli Gardan': data.out_oli_gardan,
                     'Keluar Sparepart': data.out_sparepart,
                     'Keluar Lain': data.out_lain,
                     'Jumlah Trip': data.in_trip,
@@ -2493,7 +2490,6 @@
                     out_servis: 0,
                     out_oli: 0,
                     km_oli: getVal('km_oli'),
-                    out_oli_gardan: 0,
                     km_sekarang: getVal('km_sekarang'),
                     out_sparepart: 0,
                     km_sparepart: 0,
@@ -2572,6 +2568,10 @@
             renderHutangList();
             setRiwayatSubTab('laporan');
             setTimeout(() => switchTab('dashboard', 0), 100);
+
+            // Default tanggal form "Catat Maintenance Motor" = hari ini
+            let maintTanggalEl = document.getElementById('maint_tanggal');
+            if (maintTanggalEl) maintTanggalEl.value = new Date().toISOString().split('T')[0];
 
             fetchRekapData();
         };
