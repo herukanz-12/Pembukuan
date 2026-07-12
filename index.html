@@ -422,6 +422,18 @@
                     </div>
                     <input type="number" id="in_trip" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-2xl outline-none" placeholder="0">
                 </div>
+
+                <!-- KM Motor Saat Ini -- diisi tiap akhir ngebid/malam, dipakai buat cek jadwal ganti oli per 2000 km -->
+                <div class="mt-4 bg-orange-50/50 dark:bg-orange-500/5 rounded-2xl border border-orange-100 dark:border-orange-500/20 p-4 focus-within:border-orange-500 transition-all">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-gauge-high"></i> KM Motor Saat Ini</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="in_km_sekarang" oninput="updateKmSekarang(this.value)" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-2xl outline-none" placeholder="16500">
+                        <span class="text-xs font-bold text-slate-400">KM</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1.5">Isi speedometer motor sekarang, biar jadwal ganti oli (tiap 2.000 km) ke-update otomatis.</p>
+                </div>
                 </div>
                 <!-- /panel-trip -->
 
@@ -938,7 +950,7 @@
                 <div class="relative z-10 mb-5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Update Speedometer (KM Saat Ini)</label>
                     <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand transition-all">
-                        <input type="number" id="km_sekarang" oninput="cekOli(); simpanKmOliLocal();" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
+                        <input type="number" id="km_sekarang" oninput="updateKmSekarang(this.value)" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
                         <span class="bg-white dark:bg-cardDark px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 shadow-sm mr-1">KM</span>
                     </div>
                 </div>
@@ -2551,6 +2563,19 @@
             });
         }
 
+        // Nyamain nilai KM Sekarang di dua tempat: kartu "Status Kendaraan" (Beranda)
+        // dan field "KM Motor Saat Ini" di panel Total Trip (tab Input). Mana pun yang
+        // diisi user duluan, yang lain ikut ke-update -- biar gak dobel-input manual
+        // dan datanya konsisten waktu disimpan/dicek jadwal ganti oli.
+        function updateKmSekarang(nilai) {
+            const elBeranda = document.getElementById('km_sekarang');
+            const elInputTab = document.getElementById('in_km_sekarang');
+            if (elBeranda) elBeranda.value = nilai;
+            if (elInputTab) elInputTab.value = nilai;
+            cekOli();
+            simpanKmOliLocal();
+        }
+
         function simpanKmOliLocal() {
             localStorage.setItem('km_oli', getVal('km_oli'));
             localStorage.setItem('km_sekarang', getVal('km_sekarang'));
@@ -2560,7 +2585,11 @@
             let savedKmOli = localStorage.getItem('km_oli');
             let savedKmSekarang = localStorage.getItem('km_sekarang');
             if(savedKmOli && savedKmOli !== "0") document.getElementById('km_oli').value = savedKmOli;
-            if(savedKmSekarang && savedKmSekarang !== "0") document.getElementById('km_sekarang').value = savedKmSekarang;
+            if(savedKmSekarang && savedKmSekarang !== "0") {
+                document.getElementById('km_sekarang').value = savedKmSekarang;
+                const elInputTab = document.getElementById('in_km_sekarang');
+                if (elInputTab) elInputTab.value = savedKmSekarang;
+            }
         }
 
         function resetForm() {
