@@ -461,7 +461,7 @@
                             </div>
                             <div class="flex items-center gap-2 border-t border-slate-200 dark:border-white/5 pt-2">
                                 <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
-                                <input type="number" id="saldo_gopay_driver" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
+                                <input type="number" id="saldo_gopay_driver" oninput="calculateRealtime()" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
                             </div>
                         </div>
 
@@ -476,7 +476,7 @@
                             </div>
                             <div class="flex items-center gap-2 border-t border-slate-200 dark:border-white/5 pt-2">
                                 <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
-                                <input type="number" id="saldo_gopay" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
+                                <input type="number" id="saldo_gopay" oninput="calculateRealtime()" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
                             </div>
                         </div>
                         
@@ -491,7 +491,7 @@
                             </div>
                             <div class="flex items-center gap-2 border-t border-slate-200 dark:border-white/5 pt-2">
                                 <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
-                                <input type="number" id="saldo_cash" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
+                                <input type="number" id="saldo_cash" oninput="calculateRealtime()" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
                             </div>
                         </div>
 
@@ -506,10 +506,14 @@
                             </div>
                             <div class="flex items-center gap-2 border-t border-slate-200 dark:border-white/5 pt-2">
                                 <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
-                                <input type="number" id="saldo_bca" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
+                                <input type="number" id="saldo_bca" oninput="calculateRealtime()" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
                             </div>
                         </div>
                     </div>
+                    <button type="button" onclick="simpanData(true)" class="relative z-10 w-full mt-5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Saldo Awal Sekarang
+                    </button>
+                    <p class="text-[10px] text-slate-400 mt-2 relative z-10 text-center">Pakai tombol ini kalau cuma mau update saldo awal aja, tanpa nunggu ada Trip/Masuk/Keluar. Kalau gak ditekan (atau cuma pindah tab), perubahan ini <strong>belum tersimpan ke server</strong> dan bisa ketiban data lama pas sinkron berikutnya.</p>
                 </div>
                 </div>
                 <!-- /panel-dompet -->
@@ -2629,10 +2633,17 @@
         }
 
         // --- Menyimpan Data Form ke Google Sheet ---
-        async function simpanData() {
+        async function simpanData(saldoOnly = false) {
             const btnText = document.getElementById('text-simpan');
             const btnIcon = document.getElementById('icon-simpan');
-            
+
+            // Jaga-jaga: paksa hitung ulang window.currentFinalSaldo dari nilai
+            // FIELD YANG KELIHATAN DI LAYAR sekarang, sebelum dikirim ke server.
+            // Ini nyegah kasus field Saldo Awal (Dompet) diisi tapi gak sempat
+            // ke-trigger calculateRealtime() (misal browser lama / autofill),
+            // yang bikin nilai lama ke-kirim padahal user udah ganti angkanya.
+            calculateRealtime();
+
             // 1. Kumpulkan data manual (dinamis) & kalkulasikan totals
             let totalInLain = 0;
             let listInDesc = [];
@@ -2746,7 +2757,7 @@
             let validationIn = data.in_bid + data.in_tips + data.in_lain;
             let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_bensin + data.out_potongan_gojek + data.out_talangan + data.out_ganti_oli_mesin + data.out_oli_gardan + data.out_servis_motor + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
 
-            if(validationIn === 0 && validationOut === 0) {
+            if(!saldoOnly && validationIn === 0 && validationOut === 0) {
                 showToast("Isi nominal pemasukan/pengeluaran dulu!");
                 return;
             }
