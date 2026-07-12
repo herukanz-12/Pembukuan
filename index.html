@@ -2763,6 +2763,20 @@
                 });
             }
 
+            // JARING PENGAMAN TAMBAHAN: kalau jumlah semua kategori (dari log
+            // granular DetailTransaksi) malah LEBIH BESAR dari Total Pengeluaran
+            // resmi (dari sheet DataHarian), berarti ada data yang tidak sinkron
+            // -- biasanya gara-gara 1 transaksi ke-log dobel di DetailTransaksi
+            // (mis. tap tombol Simpan 2x, atau retry submit pas koneksi lambat).
+            // Kalau dibiarkan, persentase per kategori bisa nembus >100% dan
+            // bikin bingung (kejadian: "Talangan Pesanan" ke-tampil sama besar
+            // dengan Total Pengeluaran, padahal ada kategori lain juga di bawahnya).
+            // Di sini kita: (1) kasih basis persen yang aman (gak akan >100%),
+            // dan (2) tampilkan baris peringatan biar user sadar & bisa cek
+            // sheet DetailTransaksi buat cari baris dobelnya.
+            const dataTidakSinkron = selisih < -0.5;
+            const basisPersen = dataTidakSinkron ? sumKategori : totalOut;
+
             if (items.length === 0) {
                 container.innerHTML = `
                     <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
@@ -2780,8 +2794,12 @@
                 amber:  { bg: 'bg-amber-100 dark:bg-amber-500/10',   text: 'text-amber-500'  }
             };
 
-            container.innerHTML = items.map((item) => {
-                const persentase = totalOut > 0 ? (item.amount / totalOut) * 100 : 0;
+            container.innerHTML = (dataTidakSinkron ? `
+                <div class="flex items-start gap-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-700 dark:text-amber-400">
+                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                    <span>Data tidak sinkron: total rincian kategori (${formatRp(sumKategori)}) lebih besar dari Total Pengeluaran (${formatRp(totalOut)}), selisih ${formatRp(sumKategori - totalOut)}. Kemungkinan ada transaksi yang ke-log dobel di sheet DetailTransaksi -- cek & hapus baris duplikatnya di sana.</span>
+                </div>` : '') + items.map((item) => {
+                const persentase = basisPersen > 0 ? (item.amount / basisPersen) * 100 : 0;
                 const c = colorMap[item.color];
                 return `
                     <div>
