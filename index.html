@@ -129,7 +129,7 @@
         </div>
         <div class="flex items-center gap-2">
             <button onclick="muatUlangData()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-brand hover:bg-slate-200 dark:hover:bg-white/10 transition border border-transparent dark:border-white/10 shadow-inner">
-                <i class="fa-solid fa-rotate-right"></i>
+                <i id="icon-refresh" class="fa-solid fa-rotate-right"></i>
             </button>
             <button onclick="openModalSettings()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 transition border border-transparent dark:border-white/10 shadow-inner">
                 <i class="fa-solid fa-gear"></i>
@@ -3149,14 +3149,21 @@
         }
 
         // --- Fungsi Tombol Refresh ---
-        async function muatUlangData() {
-            showToast("Memuat ulang data dari server...");
+        // silent=true dipakai untuk auto-load pertama kali saat app dibuka,
+        // supaya tidak menampilkan toast "Memuat ulang..." yang terkesan
+        // seperti user habis pencet tombol, tapi tetap fetch data terbaru
+        // & ikon reflash tetap berputar sebagai indikator loading.
+        async function muatUlangData(silent = false) {
+            const icon = document.getElementById('icon-refresh');
+            if (icon) icon.classList.add('fa-spin');
+            if (!silent) showToast("Memuat ulang data dari server...");
             const berhasil = await fetchRekapData();
             if (berhasil) {
                 showToast("Data berhasil diperbarui!");
             }
             // Kalau gagal, biarkan toast error asli dari fetchRekapData() yang tampil
             // (jangan ditimpa pesan "berhasil" palsu).
+            if (icon) icon.classList.remove('fa-spin');
         }
 
         // --- Inisialisasi Saat Aplikasi Dimuat ---
@@ -3177,7 +3184,11 @@
             let maintTanggalEl = document.getElementById('maint_tanggal');
             if (maintTanggalEl) maintTanggalEl.value = new Date().toISOString().split('T')[0];
 
-            fetchRekapData();
+            // Auto-sync ke server begitu app dibuka, biar user gak perlu pencet
+            // tombol reflash manual dulu buat lihat data terbaru. Dipanggil lewat
+            // muatUlangData(true) supaya perilakunya (ikon berputar + toast saat
+            // berhasil) persis sama seperti pencet tombol reflash.
+            muatUlangData(true);
         };
 
     </script>
