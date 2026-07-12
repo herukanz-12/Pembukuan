@@ -303,6 +303,9 @@
                 </div>
             </div>
 
+            <!-- Rincian Dompet CUSTOM (tambahan, hasil dari menu Pengaturan) -->
+            <div class="grid grid-cols-2 gap-3 mb-8 hidden" id="saldo-detail-grid-custom"></div>
+
             <!-- Rincian Pendapatan -->
             <div class="flex items-center justify-between mb-4 mt-8">
                 <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pendapatan</h3>
@@ -509,6 +512,9 @@
                                 <input type="number" id="saldo_bca" oninput="calculateRealtime()" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
                             </div>
                         </div>
+
+                        <!-- Dompet CUSTOM (tambahan dari menu Pengaturan) dirender otomatis di sini -->
+                        <div id="saldo-custom-form-container" class="space-y-3"></div>
                     </div>
                     <button type="button" id="btn-simpan-saldo-awal" onclick="simpanData(true)" class="relative z-10 w-full mt-5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-floppy-disk" id="icon-simpan-saldo-awal"></i>
@@ -1131,6 +1137,46 @@
                     <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Jatuh Tempo SIM</label>
                     <input type="date" id="set_sim" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none">
                 </div>
+
+                <!-- ============================================================ -->
+                <!-- KELOLA DOMPET (tambah dompet baru tanpa perlu buka laptop) -->
+                <!-- ============================================================ -->
+                <div class="border-t border-slate-200 dark:border-white/10 pt-4">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5"><i class="fa-solid fa-wallet text-amber-500"></i> Kelola Dompet</label>
+                    <p class="text-[10px] text-slate-400 mb-2">Dompet baru otomatis muncul di pilihan Masuk/Keluar & Bayar Cicilan.</p>
+                    <div id="list-kelola-dompet" class="space-y-2 mb-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="input_dompet_baru" placeholder="Nama dompet, mis. Dana" class="flex-1 bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-sm text-slate-800 dark:text-white outline-none">
+                        <button type="button" onclick="tambahDompetBaru()" class="px-4 rounded-xl bg-amber-500 text-white font-bold text-sm">Tambah</button>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- KELOLA KATEGORI PEMASUKAN "LAINNYA" -->
+                <!-- ============================================================ -->
+                <div class="border-t border-slate-200 dark:border-white/10 pt-4">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5"><i class="fa-solid fa-arrow-down text-green-500"></i> Kelola Kategori Pemasukan</label>
+                    <p class="text-[10px] text-slate-400 mb-2">Muncul sebagai pilihan di kolom "Keterangan" pada Pendapatan Lainnya -- tetap bisa ketik bebas kategori baru juga.</p>
+                    <div id="list-kelola-kategori-pemasukan" class="space-y-2 mb-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="input_kategori_pemasukan_baru" placeholder="Kategori, mis. Bonus Referral" class="flex-1 bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-sm text-slate-800 dark:text-white outline-none">
+                        <button type="button" onclick="tambahKategoriBaru('pemasukan')" class="px-4 rounded-xl bg-green-500 text-white font-bold text-sm">Tambah</button>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- KELOLA KATEGORI PENGELUARAN "LAINNYA" -->
+                <!-- ============================================================ -->
+                <div class="border-t border-slate-200 dark:border-white/10 pt-4">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5"><i class="fa-solid fa-arrow-up text-red-500"></i> Kelola Kategori Pengeluaran</label>
+                    <p class="text-[10px] text-slate-400 mb-2">Muncul sebagai pilihan di kolom "Keterangan" pada Pengeluaran Lainnya -- tetap bisa ketik bebas kategori baru juga.</p>
+                    <div id="list-kelola-kategori-pengeluaran" class="space-y-2 mb-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="input_kategori_pengeluaran_baru" placeholder="Kategori, mis. Parkir" class="flex-1 bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-sm text-slate-800 dark:text-white outline-none">
+                        <button type="button" onclick="tambahKategoriBaru('pengeluaran')" class="px-4 rounded-xl bg-red-500 text-white font-bold text-sm">Tambah</button>
+                    </div>
+                </div>
+
                 <div class="flex gap-3 mt-6">
                     <button onclick="closeModalSettings()" class="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-sm">Batal</button>
                     <button onclick="simpanSettings()" class="flex-1 py-3 rounded-xl bg-brand text-white font-bold text-sm shadow-neon">Simpan</button>
@@ -1360,6 +1406,7 @@
                 <input type="number" placeholder="Rp 0" class="manual-in-val flex-1 bg-transparent text-sm text-brand font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
             `;
             list.appendChild(div);
+            suntikDompetCustomKeSemuaSelect();
         }
 
         function addManualExpenseRow() {
@@ -1383,6 +1430,7 @@
                 <input type="number" placeholder="Rp 0" class="manual-out-val flex-1 bg-transparent text-sm text-red-500 font-bold text-right outline-none border-b border-dashed border-slate-300 dark:border-white/10 pb-1" oninput="calculateRealtime()" required>
             `;
             list.appendChild(div);
+            suntikDompetCustomKeSemuaSelect();
         }
 
         // Daftar saran (datalist) buat kolom "Keterangan" di Pengeluaran Lainnya --
@@ -1392,6 +1440,9 @@
             const dl = document.getElementById('daftar-kategori-lain');
             if (!dl) return;
             let set = new Set();
+            // Kategori yang dikelola manual lewat menu Pengaturan (kombinasi:
+            // tetap bisa dipilih dari sini ATAU ketik bebas kategori baru).
+            (kategoriPengeluaranCustomList || []).forEach(k => { if (k.nama) set.add(k.nama.trim()); });
             (allDetailTransaksi || []).forEach(item => {
                 if (item['Tipe'] !== 'Keluar') return;
                 let kat = (item['Kategori'] || '').toString().trim();
@@ -1409,6 +1460,9 @@
             const dl = document.getElementById('daftar-kategori-masuk-lain');
             if (!dl) return;
             let set = new Set();
+            // Kategori yang dikelola manual lewat menu Pengaturan (kombinasi:
+            // tetap bisa dipilih dari sini ATAU ketik bebas kategori baru).
+            (kategoriPemasukanCustomList || []).forEach(k => { if (k.nama) set.add(k.nama.trim()); });
             (allDetailTransaksi || []).forEach(item => {
                 if (item['Tipe'] !== 'Masuk') return;
                 let kat = (item['Kategori'] || '').toString().trim();
@@ -1434,8 +1488,15 @@
                 cash: getVal('saldo_cash'),
                 bca: getVal('saldo_bca')
             };
-
             let deltas = { gopay_driver: 0, gopay: 0, cash: 0, bca: 0 };
+
+            // Dompet CUSTOM (tambahan): masukkan juga ke base & deltas dengan key
+            // = id dompet-nya, supaya addIncome/subExpense di bawah bisa langsung
+            // pakai deltas[dompetId] tanpa perlu kode terpisah per dompet custom.
+            dompetCustomList.forEach(d => {
+                base[d.id] = getVal('saldo_custom_' + d.id);
+                deltas[d.id] = 0;
+            });
 
             // Helpers 
             const addIncome = (inputId, selectId) => { deltas[getStr(selectId)] += getVal(inputId); };
@@ -1479,20 +1540,36 @@
                 cash: base.cash + deltas.cash,
                 bca: base.bca + deltas.bca
             };
+            // Dompet CUSTOM (tambahan) ikut dihitung di objek finalSaldo yang SAMA,
+            // supaya window.currentFinalSaldo[idDompetCustom] otomatis bisa dipakai
+            // di mana saja (termasuk bayar cicilan hutang) tanpa kode terpisah.
+            let totalSaldoCustom = 0;
+            dompetCustomList.forEach(d => {
+                finalSaldo[d.id] = base[d.id] + deltas[d.id];
+                totalSaldoCustom += finalSaldo[d.id];
+            });
 
             // 5. Update Teks Saldo Akhir di Form Input
             document.getElementById('akhir_gopay_driver').innerText = formatRp(finalSaldo.gopay_driver);
             document.getElementById('akhir_gopay').innerText = formatRp(finalSaldo.gopay);
             document.getElementById('akhir_cash').innerText = formatRp(finalSaldo.cash);
             document.getElementById('akhir_bca').innerText = formatRp(finalSaldo.bca);
+            dompetCustomList.forEach(d => {
+                let elAkhir = document.getElementById('akhir_custom_' + d.id);
+                if (elAkhir) elAkhir.innerText = formatRp(finalSaldo[d.id]);
+            });
 
             // 6. Update Dashboard
             document.getElementById('dash-saldo-gopay-driver').innerText = formatRp(finalSaldo.gopay_driver);
             document.getElementById('dash-saldo-gopay').innerText = formatRp(finalSaldo.gopay);
             document.getElementById('dash-saldo-cash').innerText = formatRp(finalSaldo.cash);
             document.getElementById('dash-saldo-bca').innerText = formatRp(finalSaldo.bca);
+            dompetCustomList.forEach(d => {
+                let elDash = document.getElementById('dash-saldo-custom-' + d.id);
+                if (elDash) elDash.innerText = formatRp(finalSaldo[d.id]);
+            });
 
-            let totalSaldoSemua = finalSaldo.gopay_driver + finalSaldo.gopay + finalSaldo.cash + finalSaldo.bca;
+            let totalSaldoSemua = finalSaldo.gopay_driver + finalSaldo.gopay + finalSaldo.cash + finalSaldo.bca + totalSaldoCustom;
             let elTotalSaldo = document.getElementById('dash-saldo-total');
             if (elTotalSaldo) elTotalSaldo.innerText = formatRp(totalSaldoSemua);
 
@@ -1701,6 +1778,10 @@
             localStorage.setItem('saldo_gopay', getVal('saldo_gopay'));
             localStorage.setItem('saldo_cash', getVal('saldo_cash'));
             localStorage.setItem('saldo_bca', getVal('saldo_bca'));
+            dompetCustomList.forEach(d => {
+                let el = document.getElementById('saldo_custom_' + d.id);
+                if (el) localStorage.setItem('saldo_custom_' + d.id, el.value);
+            });
         }
 
         function muatSaldoLocal() {
@@ -1717,6 +1798,137 @@
         // --- Data & Filter Periode ---
         let allSheetRows = [];      
         let allDetailTransaksi = [];
+
+        // ==================================================================
+        // FITUR "TAMBAH DOMPET / KATEGORI DARI HP" (tanpa perlu buka laptop)
+        // ==================================================================
+        // dompetCustomList: dompet TAMBAHAN di luar 4 dompet bawaan (Gopay
+        // Driver, Gopay, Cash, BCA). Tiap item: { id, nama, saldo, urutan }.
+        let dompetCustomList = [];
+        let kategoriPemasukanCustomList = []; // { id, nama }
+        let kategoriPengeluaranCustomList = []; // { id, nama }
+
+        function simpanDompetCustomLocal() {
+            localStorage.setItem('dompet_custom_list', JSON.stringify(dompetCustomList));
+        }
+        function muatDompetCustomLocal() {
+            try {
+                let saved = localStorage.getItem('dompet_custom_list');
+                if (saved) dompetCustomList = JSON.parse(saved) || [];
+            } catch (e) { dompetCustomList = []; }
+        }
+        function simpanKategoriCustomLocal() {
+            localStorage.setItem('kategori_pemasukan_custom_list', JSON.stringify(kategoriPemasukanCustomList));
+            localStorage.setItem('kategori_pengeluaran_custom_list', JSON.stringify(kategoriPengeluaranCustomList));
+        }
+        function muatKategoriCustomLocal() {
+            try {
+                let a = localStorage.getItem('kategori_pemasukan_custom_list');
+                kategoriPemasukanCustomList = a ? (JSON.parse(a) || []) : [];
+            } catch (e) { kategoriPemasukanCustomList = []; }
+            try {
+                let b = localStorage.getItem('kategori_pengeluaran_custom_list');
+                kategoriPengeluaranCustomList = b ? (JSON.parse(b) || []) : [];
+            } catch (e) { kategoriPengeluaranCustomList = []; }
+        }
+
+        // ID semua <select> pemilih dompet yang sudah ada dari awal (fixed di HTML).
+        // Dompet custom akan disisipkan sebagai <optgroup> tambahan ke semua select
+        // ini + ke select dinamis (.manual-in-dompet / .manual-out-dompet / bayar hutang).
+        const ID_SELECT_DOMPET_FIXED = [
+            'dompet_in_bid', 'dompet_in_tips',
+            'dompet_out_makan', 'dompet_out_minum', 'dompet_out_kuota', 'dompet_out_rokok',
+            'dompet_out_bensin', 'dompet_out_potongan_gojek', 'dompet_out_ganti_oli_mesin',
+            'dompet_out_oli_gardan', 'dompet_out_servis_motor', 'dompet_out_talangan',
+            'dompet_out_servis', 'dompet_out_oli', 'dompet_out_sparepart',
+            'input_bayar_sumber'
+        ];
+
+        // Suntik pilihan dompet custom ke SEMUA select pemilih dompet (fixed + dinamis).
+        // Dipanggil tiap kali dompetCustomList berubah (tambah/hapus) & saat render awal.
+        function suntikDompetCustomKeSemuaSelect() {
+            let semuaSelect = ID_SELECT_DOMPET_FIXED.map(id => document.getElementById(id)).filter(Boolean);
+            semuaSelect = semuaSelect.concat(Array.from(document.querySelectorAll('.manual-in-dompet, .manual-out-dompet')));
+
+            semuaSelect.forEach(sel => {
+                let ogLama = sel.querySelector('optgroup.custom-dompet-group');
+                if (ogLama) ogLama.remove();
+                if (dompetCustomList.length === 0) return;
+                let og = document.createElement('optgroup');
+                og.label = 'Dompet Custom';
+                og.className = 'custom-dompet-group';
+                dompetCustomList.forEach(d => {
+                    let opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.nama;
+                    og.appendChild(opt);
+                });
+                sel.appendChild(og);
+            });
+        }
+
+        // Render input "Saldo Awal" tambahan di panel-dompet untuk tiap dompet custom,
+        // plus kartu "Saldo Akhir" ringkas di Dashboard (rincian saldo).
+        function renderSaldoCustomInputs() {
+            const containerForm = document.getElementById('saldo-custom-form-container');
+            const containerDash = document.getElementById('saldo-detail-grid-custom');
+            if (!containerForm || !containerDash) return;
+
+            // Simpan nilai yang sedang diketik user supaya tidak hilang saat re-render
+            let nilaiSekarang = {};
+            dompetCustomList.forEach(d => {
+                let el = document.getElementById('saldo_custom_' + d.id);
+                if (el) nilaiSekarang[d.id] = el.value;
+            });
+
+            if (dompetCustomList.length === 0) {
+                containerForm.innerHTML = `<p class="text-[11px] text-slate-400 text-center py-2">Belum ada dompet custom. Tambah lewat menu Pengaturan (ikon gear).</p>`;
+                containerDash.innerHTML = '';
+                containerDash.classList.add('hidden');
+                return;
+            }
+
+            containerForm.innerHTML = dompetCustomList.map(d => `
+                <div class="bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-wallet"></i> ${d.nama}</label>
+                        <div class="text-right">
+                            <span class="text-[9px] text-slate-400 block uppercase">Saldo Akhir</span>
+                            <span id="akhir_custom_${d.id}" class="font-bold text-amber-500 text-sm">Rp 0</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 border-t border-slate-200 dark:border-white/5 pt-2">
+                        <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
+                        <input type="number" id="saldo_custom_${d.id}" oninput="calculateRealtime()" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
+                    </div>
+                </div>
+            `).join('');
+
+            // Prioritas nilai: (1) yang lagi diketik user saat ini (jangan sampai
+            // ketiban saat re-render), (2) saldo dari server (sumber kebenaran,
+            // sama seperti perlakuan 4 dompet bawaan), (3) fallback localStorage
+            // kalau server belum punya datanya (mis. baru ditambah offline).
+            dompetCustomList.forEach(d => {
+                let el = document.getElementById('saldo_custom_' + d.id);
+                if (!el) return;
+                if (nilaiSekarang[d.id] !== undefined && nilaiSekarang[d.id] !== '') {
+                    el.value = nilaiSekarang[d.id];
+                } else if (d.saldo !== undefined && d.saldo !== null) {
+                    el.value = d.saldo || 0;
+                } else {
+                    let saved = localStorage.getItem('saldo_custom_' + d.id);
+                    el.value = (saved !== null && saved !== '0') ? saved : 0;
+                }
+            });
+
+            containerDash.innerHTML = dompetCustomList.map(d => `
+                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2"><i class="fa-solid fa-wallet"></i></div>
+                    <p class="text-xs text-slate-500 font-medium mb-1 truncate w-full">${d.nama}</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-custom-${d.id}">Rp 0</p>
+                </div>
+            `).join('');
+        }
         let currentPeriode = 'day'; 
         let allMaintenanceData = [];      // riwayat servis (sheet MaintenanceMotor), array of row objects
         window.maintenanceTerakhir = {};  // { "Ganti Oli": { kmAkhir, tanggal }, ... } dari backend
@@ -2016,7 +2228,11 @@
             document.getElementById('set_tabungan').value = localStorage.getItem('set_tabungan') || '10';
             document.getElementById('set_stnk').value = localStorage.getItem('set_stnk') || '';
             document.getElementById('set_sim').value = localStorage.getItem('set_sim') || '';
-            
+
+            renderKelolaDompet();
+            renderKelolaKategori('pemasukan');
+            renderKelolaKategori('pengeluaran');
+
             const modal = document.getElementById('modal-settings');
             const content = document.getElementById('modal-settings-content');
             modal.classList.remove('hidden');
@@ -2065,6 +2281,159 @@
             } else {
                 showToast("Pengaturan berhasil disimpan (mode offline).");
             }
+        }
+
+        // ======================================================================
+        // KELOLA DOMPET & KATEGORI CUSTOM (dari menu Pengaturan, tanpa laptop)
+        // ======================================================================
+        function renderKelolaDompet() {
+            const container = document.getElementById('list-kelola-dompet');
+            if (!container) return;
+            if (dompetCustomList.length === 0) {
+                container.innerHTML = `<p class="text-[11px] text-slate-400">Belum ada dompet custom.</p>`;
+                return;
+            }
+            container.innerHTML = dompetCustomList.map(d => `
+                <div class="flex items-center justify-between bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 px-3 py-2">
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">${d.nama}</span>
+                    <button type="button" onclick="hapusDompetItem('${d.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                </div>
+            `).join('');
+        }
+
+        async function tambahDompetBaru() {
+            const input = document.getElementById('input_dompet_baru');
+            const nama = (input.value || '').trim();
+            if (!nama) {
+                showToast("Nama dompet wajib diisi");
+                return;
+            }
+
+            let dompetBaru;
+            try {
+                if (isServerAktif()) {
+                    let hasil = await kirimKeServer({ action: 'tambah_dompet', nama: nama });
+                    dompetBaru = hasil.dompet || { id: 'dompet_' + new Date().getTime(), nama: nama, saldo: 0 };
+                } else {
+                    dompetBaru = { id: 'dompet_' + new Date().getTime(), nama: nama, saldo: 0 };
+                }
+            } catch (err) {
+                showToast(err.message || "Gagal menambah dompet ke server, disimpan lokal dulu.");
+                dompetBaru = { id: 'dompet_' + new Date().getTime(), nama: nama, saldo: 0 };
+            }
+
+            dompetCustomList.push(dompetBaru);
+            simpanDompetCustomLocal();
+            input.value = '';
+            renderKelolaDompet();
+            renderSaldoCustomInputs();
+            suntikDompetCustomKeSemuaSelect();
+            calculateRealtime();
+            showToast(`Dompet "${nama}" ditambahkan!`);
+        }
+
+        async function hapusDompetItem(id) {
+            let item = dompetCustomList.find(d => d.id === id);
+            if (!item) return;
+            if (!confirm(`Hapus dompet "${item.nama}"? Riwayat transaksi lama yang pernah pakai dompet ini tidak ikut terhapus.`)) return;
+
+            dompetCustomList = dompetCustomList.filter(d => d.id !== id);
+            simpanDompetCustomLocal();
+            localStorage.removeItem('saldo_custom_' + id);
+            renderKelolaDompet();
+            renderSaldoCustomInputs();
+            suntikDompetCustomKeSemuaSelect();
+            calculateRealtime();
+
+            if (isServerAktif()) {
+                try {
+                    await kirimKeServer({ action: 'hapus_dompet', id: id });
+                } catch (err) {
+                    showToast("Dompet dihapus di HP, tapi gagal sinkron hapus ke server: " + (err.message || ''));
+                    return;
+                }
+            }
+            showToast(`Dompet "${item.nama}" dihapus.`);
+        }
+
+        function renderKelolaKategori(tipe) {
+            const container = document.getElementById(tipe === 'pemasukan' ? 'list-kelola-kategori-pemasukan' : 'list-kelola-kategori-pengeluaran');
+            const list = tipe === 'pemasukan' ? kategoriPemasukanCustomList : kategoriPengeluaranCustomList;
+            if (!container) return;
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-[11px] text-slate-400">Belum ada kategori custom.</p>`;
+                return;
+            }
+            container.innerHTML = list.map(k => `
+                <div class="flex items-center justify-between bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 px-3 py-2">
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">${k.nama}</span>
+                    <button type="button" onclick="hapusKategoriItem('${tipe}', '${k.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                </div>
+            `).join('');
+        }
+
+        async function tambahKategoriBaru(tipe) {
+            const inputId = tipe === 'pemasukan' ? 'input_kategori_pemasukan_baru' : 'input_kategori_pengeluaran_baru';
+            const input = document.getElementById(inputId);
+            const nama = (input.value || '').trim();
+            if (!nama) {
+                showToast("Nama kategori wajib diisi");
+                return;
+            }
+
+            const action = tipe === 'pemasukan' ? 'tambah_kategori_pemasukan' : 'tambah_kategori_pengeluaran';
+            let katBaru;
+            try {
+                if (isServerAktif()) {
+                    let hasil = await kirimKeServer({ action: action, nama: nama });
+                    katBaru = hasil.kategori || { id: 'kat_' + new Date().getTime(), nama: nama };
+                } else {
+                    katBaru = { id: 'kat_' + new Date().getTime(), nama: nama };
+                }
+            } catch (err) {
+                showToast(err.message || "Gagal menambah kategori ke server, disimpan lokal dulu.");
+                katBaru = { id: 'kat_' + new Date().getTime(), nama: nama };
+            }
+
+            if (tipe === 'pemasukan') {
+                kategoriPemasukanCustomList.push(katBaru);
+                refreshDaftarKategoriMasukLain();
+            } else {
+                kategoriPengeluaranCustomList.push(katBaru);
+                refreshDaftarKategoriLain();
+            }
+            simpanKategoriCustomLocal();
+            input.value = '';
+            renderKelolaKategori(tipe);
+            showToast(`Kategori "${nama}" ditambahkan!`);
+        }
+
+        async function hapusKategoriItem(tipe, id) {
+            const list = tipe === 'pemasukan' ? kategoriPemasukanCustomList : kategoriPengeluaranCustomList;
+            let item = list.find(k => k.id === id);
+            if (!item) return;
+            if (!confirm(`Hapus kategori "${item.nama}"?`)) return;
+
+            if (tipe === 'pemasukan') {
+                kategoriPemasukanCustomList = kategoriPemasukanCustomList.filter(k => k.id !== id);
+                refreshDaftarKategoriMasukLain();
+            } else {
+                kategoriPengeluaranCustomList = kategoriPengeluaranCustomList.filter(k => k.id !== id);
+                refreshDaftarKategoriLain();
+            }
+            simpanKategoriCustomLocal();
+            renderKelolaKategori(tipe);
+
+            const action = tipe === 'pemasukan' ? 'hapus_kategori_pemasukan' : 'hapus_kategori_pengeluaran';
+            if (isServerAktif()) {
+                try {
+                    await kirimKeServer({ action: action, id: id });
+                } catch (err) {
+                    showToast("Kategori dihapus di HP, tapi gagal sinkron hapus ke server: " + (err.message || ''));
+                    return;
+                }
+            }
+            showToast(`Kategori "${item.nama}" dihapus.`);
         }
 
         // --- Cek Masa Berlaku Pajak STNK / SIM ---
@@ -2193,6 +2562,7 @@
             }
 
             const dompetLabelMap = { cash: 'Cash', gopay: 'Gopay', gopay_driver: 'Gopay Driver', bca: 'BCA' };
+            dompetCustomList.forEach(d => { dompetLabelMap[d.id] = d.nama; });
 
             // Urutkan dari yang paling baru
             let sorted = [...allDetailTransaksi].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
@@ -2442,6 +2812,32 @@
                     }
                     renderMaintenanceStatus();
 
+                    // Sinkron Dompet Custom (tambahan) & Kategori Custom dari server,
+                    // supaya dompet/kategori baru yang ditambah dari HP lain juga muncul.
+                    if (Array.isArray(json.dataDompetCustom)) {
+                        // Saldo lokal (localStorage) tetap prioritas kalau ada supaya angka
+                        // yang sedang diketik user di HP ini tidak ketiban data server,
+                        // tapi daftar ID/nama dompetnya sendiri disamakan dengan server.
+                        dompetCustomList = json.dataDompetCustom.map(d => ({ id: d.id, nama: d.nama, saldo: d.saldo, urutan: d.urutan }));
+                        simpanDompetCustomLocal();
+                        renderSaldoCustomInputs();
+                        suntikDompetCustomKeSemuaSelect();
+                        renderKelolaDompet();
+                        calculateRealtime();
+                    }
+                    if (Array.isArray(json.dataKategoriPemasukanCustom)) {
+                        kategoriPemasukanCustomList = json.dataKategoriPemasukanCustom;
+                        simpanKategoriCustomLocal();
+                        refreshDaftarKategoriMasukLain();
+                        renderKelolaKategori('pemasukan');
+                    }
+                    if (Array.isArray(json.dataKategoriPengeluaranCustom)) {
+                        kategoriPengeluaranCustomList = json.dataKategoriPengeluaranCustom;
+                        simpanKategoriCustomLocal();
+                        refreshDaftarKategoriLain();
+                        renderKelolaKategori('pengeluaran');
+                    }
+
                     return true;
                 } else {
                     showToast("Gagal memuat riwayat: " + json.message);
@@ -2466,9 +2862,11 @@
         // Efeknya: hapus/bersihkan riwayat DataHarian tidak lagi ikut menghapus saldo.
         function toggleSaldoDetail() {
             const grid = document.getElementById('saldo-detail-grid');
+            const gridCustom = document.getElementById('saldo-detail-grid-custom');
             const icon = document.getElementById('icon-saldo-total');
             if (!grid) return;
             grid.classList.toggle('hidden');
+            if (gridCustom && dompetCustomList.length > 0) gridCustom.classList.toggle('hidden');
             if (icon) icon.classList.toggle('rotate-180');
         }
 
@@ -2752,6 +3150,13 @@
                 out_sparepart: getVal('out_sparepart'),
                 km_sparepart: getVal('km_sparepart'),
                 km_sekarang: getVal('km_sekarang'),
+
+                // Saldo akhir dompet CUSTOM (tambahan), key = id dompet-nya.
+                saldoCustom: (function () {
+                    let map = {};
+                    dompetCustomList.forEach(d => { map[d.id] = window.currentFinalSaldo[d.id] || 0; });
+                    return map;
+                })(),
 
                 detail: detailTransaksi
             };
@@ -3093,7 +3498,15 @@
                     km_sparepart: 0,
                     out_lain: nominal,
                     out_lain_desc: deskripsiKeluar,
-                    detail: [{ tipe: 'Keluar', kategori: 'Cicilan Hutang', keterangan: deskripsiKeluar, nominal: nominal, dompet: sumber }]
+                    detail: [{ tipe: 'Keluar', kategori: 'Cicilan Hutang', keterangan: deskripsiKeluar, nominal: nominal, dompet: sumber }],
+                    // Saldo akhir dompet CUSTOM (tambahan) -- semua ikut disertakan,
+                    // yang dipakai bayar cicilan (kalau kebetulan dompet custom) dipotong nominal.
+                    saldoCustom: (function () {
+                        let map = {};
+                        dompetCustomList.forEach(d => { map[d.id] = window.currentFinalSaldo[d.id] || 0; });
+                        if (map.hasOwnProperty(sumber)) map[sumber] -= nominal;
+                        return map;
+                    })()
                 };
 
                 // Potong wallet yang digunakan untuk disave di sheet
@@ -3126,11 +3539,15 @@
                 });
                 simpanHutangLocal();
 
-                // 3. Potong saldo lokal base UI
-                let inputSaldoSource = document.getElementById('saldo_' + sumber);
-                let currentBase = parseFloat(inputSaldoSource.value) || 0;
-                inputSaldoSource.value = currentBase - nominal;
-                
+                // 3. Potong saldo lokal base UI (dompet bawaan pakai id 'saldo_xxx',
+                // dompet custom pakai id 'saldo_custom_xxx')
+                let idInputSumber = dompetCustomList.some(d => d.id === sumber) ? ('saldo_custom_' + sumber) : ('saldo_' + sumber);
+                let inputSaldoSource = document.getElementById(idInputSumber);
+                if (inputSaldoSource) {
+                    let currentBase = parseFloat(inputSaldoSource.value) || 0;
+                    inputSaldoSource.value = currentBase - nominal;
+                }
+
                 simpanSaldoLocal();
                 calculateRealtime(); // Kalkulasi ulang semua UI text
 
@@ -3168,6 +3585,17 @@
 
         // --- Inisialisasi Saat Aplikasi Dimuat ---
         window.onload = () => {
+            // Muat dulu daftar Dompet Custom & Kategori Custom dari backup lokal
+            // (localStorage), SEBELUM muatSaldoLocal()/calculateRealtime(), supaya
+            // input Saldo Awal & pilihan dompet custom sudah kerender duluan
+            // sebelum fetch ke server selesai.
+            muatDompetCustomLocal();
+            muatKategoriCustomLocal();
+            renderSaldoCustomInputs();
+            suntikDompetCustomKeSemuaSelect();
+            refreshDaftarKategoriLain();
+            refreshDaftarKategoriMasukLain();
+
             muatSaldoLocal();
             muatKmOliLocal();
             // Tampilin dulu saldo dari backup lokal (localStorage) SEBELUM nunggu
