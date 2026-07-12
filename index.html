@@ -264,7 +264,9 @@
             </div>
 
             <!-- Saldo Instan -->
-            <h3 class="text-sm font-bold text-slate-800 dark:text-white mb-1 uppercase tracking-wider">Saldo Saat Ini</h3>
+            <div class="flex items-center justify-between mb-1">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Saldo Saat Ini</h3>
+            </div>
             <p class="text-[10px] text-slate-400 mb-4">Hasil kalkulasi otomatis dari Saldo Akhir di tab Input. Ketuk kartu di bawah untuk lihat rincian per dompet.</p>
 
             <!-- Kartu Total Saldo (klik untuk expand/collapse rincian) -->
@@ -446,9 +448,14 @@
                     <div class="absolute -right-6 -top-6 text-slate-50 dark:text-white/5 text-8xl pointer-events-none">
                         <i class="fa-solid fa-wallet"></i>
                     </div>
-                    <h3 class="font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2 relative z-10">
-                        <span class="w-2 h-6 rounded-full bg-blue-500 block"></span>
-                        Dompet (Auto Kalkulasi)
+                    <h3 class="font-bold text-slate-800 dark:text-white mb-2 flex items-center justify-between gap-2 relative z-10">
+                        <span class="flex items-center gap-2">
+                            <span class="w-2 h-6 rounded-full bg-blue-500 block"></span>
+                            Dompet (Auto Kalkulasi)
+                        </span>
+                        <button type="button" onclick="openModalTransferSaldo()" class="flex items-center gap-1.5 text-[10px] font-bold text-brand bg-brand/10 hover:bg-brand/20 px-3 py-1.5 rounded-full transition-all active:scale-95 shrink-0">
+                            <i class="fa-solid fa-right-left text-[10px]"></i> Transfer Saldo
+                        </button>
                     </h3>
                     <p class="text-[10px] text-slate-500 mb-4 relative z-10">Isi <strong>Saldo Awal</strong> sesuai uang yang beneran ada sekarang. <strong>Saldo Akhir</strong> otomatis kehitung saat ada transaksi masuk/keluar, dan ini juga yang nanti muncul sebagai "Saldo Saat Ini" di Beranda.</p>
                     
@@ -1104,6 +1111,51 @@
                     <button onclick="closeModalBayarHutang()" class="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-sm">Batal</button>
                     <button onclick="prosesBayarHutang()" id="btn-proses-bayar" class="flex-1 py-3 rounded-xl bg-brand text-white font-bold text-sm shadow-neon flex justify-center items-center gap-2">
                         <span>Bayar Sekarang</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Transfer Saldo (pindah saldo antar dompet sendiri, BUKAN pemasukan/pengeluaran) -->
+    <div id="modal-transfer-saldo" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-6 opacity-0 transition-opacity">
+        <div class="bg-white dark:bg-cardDark rounded-[2rem] w-full max-w-sm p-6 shadow-float transform scale-95 transition-transform duration-300" id="modal-transfer-saldo-content">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-1">Transfer Saldo</h3>
+            <p class="text-xs text-slate-500 mb-4">Pindah saldo antar dompet kamu sendiri. Ini bukan pemasukan/pengeluaran, jadi tidak mempengaruhi Pendapatan Bersih.</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Dari Dompet</label>
+                    <select id="transfer_dari" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-brand">
+                        <option value="gopay_driver">Gopay Driver</option>
+                        <option value="gopay">Gopay</option>
+                        <option value="cash">Cash</option>
+                        <option value="bca">BCA</option>
+                    </select>
+                </div>
+                <div class="flex justify-center -my-1">
+                    <i class="fa-solid fa-arrow-down text-slate-300 dark:text-white/20"></i>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Ke Dompet</label>
+                    <select id="transfer_ke" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-brand">
+                        <option value="gopay">Gopay</option>
+                        <option value="gopay_driver">Gopay Driver</option>
+                        <option value="cash">Cash</option>
+                        <option value="bca">BCA</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Nominal Transfer</label>
+                    <div class="flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand">
+                        <span class="pl-3 text-slate-400 text-sm font-bold">Rp</span>
+                        <input type="number" id="transfer_nominal" class="w-full bg-transparent border-none p-2 text-brand font-bold text-2xl outline-none" placeholder="0">
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeModalTransferSaldo()" class="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-sm">Batal</button>
+                    <button onclick="prosesTransferSaldo()" id="btn-proses-transfer" class="flex-1 py-3 rounded-xl bg-brand text-white font-bold text-sm shadow-neon flex justify-center items-center gap-2">
+                        <span>Transfer Sekarang</span>
                     </button>
                 </div>
             </div>
@@ -1841,7 +1893,7 @@
             'dompet_out_bensin', 'dompet_out_potongan_gojek', 'dompet_out_ganti_oli_mesin',
             'dompet_out_oli_gardan', 'dompet_out_servis_motor', 'dompet_out_talangan',
             'dompet_out_servis', 'dompet_out_oli', 'dompet_out_sparepart',
-            'input_bayar_sumber'
+            'input_bayar_sumber', 'transfer_dari', 'transfer_ke'
         ];
 
         // Suntik pilihan dompet custom ke SEMUA select pemilih dompet (fixed + dinamis).
@@ -3436,6 +3488,108 @@
                 document.getElementById('input_bayar_keterangan').value = '';
                 document.getElementById('btn-proses-bayar').innerHTML = '<span>Bayar Sekarang</span>';
             }, 300);
+        }
+
+        // --- Transfer Saldo: pindah saldo antar dompet SENDIRI (mis. Gopay Driver ->
+        // Gopay). Ini BUKAN pemasukan/pengeluaran -- uangnya tetap punya kamu, cuma
+        // pindah kantong -- jadi tidak boleh lewat form Bid/Tips/Pengeluaran (yang
+        // akan salah menambah/mengurangi Pendapatan Bersih). Caranya: langsung
+        // update field "Saldo Awal" dompet asal & tujuan, lalu simpan lewat jalur
+        // yang sama seperti tombol "Simpan Saldo Awal Sekarang" (saldoOnly=true),
+        // supaya tidak menyentuh Total Pemasukan/Pengeluaran/Pendapatan Bersih sama
+        // sekali.
+        function openModalTransferSaldo() {
+            // Pastikan Saldo Awal (base) SUDAH sinkron dengan Saldo Akhir yang
+            // sedang tampil sekarang, supaya nominal yang dipotong/ditambah pas
+            // dengan saldo yang user lihat di dashboard, bukan base lama.
+            if (window.currentFinalSaldo) {
+                document.getElementById('saldo_gopay_driver').value = window.currentFinalSaldo.gopay_driver;
+                document.getElementById('saldo_gopay').value = window.currentFinalSaldo.gopay;
+                document.getElementById('saldo_cash').value = window.currentFinalSaldo.cash;
+                document.getElementById('saldo_bca').value = window.currentFinalSaldo.bca;
+                dompetCustomList.forEach(d => {
+                    let el = document.getElementById('saldo_custom_' + d.id);
+                    if (el) el.value = window.currentFinalSaldo[d.id] || 0;
+                });
+            }
+
+            const modal = document.getElementById('modal-transfer-saldo');
+            const content = document.getElementById('modal-transfer-saldo-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModalTransferSaldo() {
+            const modal = document.getElementById('modal-transfer-saldo');
+            const content = document.getElementById('modal-transfer-saldo-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('transfer_nominal').value = '';
+                document.getElementById('btn-proses-transfer').innerHTML = '<span>Transfer Sekarang</span>';
+            }, 300);
+        }
+
+        // Helper: id dompet ('cash', 'gopay_driver', dst atau id dompet custom) ->
+        // id elemen input Saldo Awal-nya di form.
+        function idInputSaldoDompet(keyDompet) {
+            let isCustom = dompetCustomList.some(d => d.id === keyDompet);
+            return isCustom ? ('saldo_custom_' + keyDompet) : ('saldo_' + keyDompet);
+        }
+
+        async function prosesTransferSaldo() {
+            let dari = document.getElementById('transfer_dari').value;
+            let ke = document.getElementById('transfer_ke').value;
+            let nominal = getVal('transfer_nominal');
+            let btn = document.getElementById('btn-proses-transfer');
+
+            if (dari === ke) {
+                showToast("Dompet asal dan tujuan tidak boleh sama");
+                return;
+            }
+            if (nominal <= 0) {
+                showToast("Nominal transfer harus lebih dari 0");
+                return;
+            }
+
+            let elDari = document.getElementById(idInputSaldoDompet(dari));
+            let elKe = document.getElementById(idInputSaldoDompet(ke));
+            if (!elDari || !elKe) {
+                showToast("Dompet tidak ditemukan");
+                return;
+            }
+
+            let saldoDariSekarang = parseFloat(elDari.value) || 0;
+            let saldoKeSekarang = parseFloat(elKe.value) || 0;
+
+            if (saldoDariSekarang < nominal) {
+                let namaDari = document.getElementById('transfer_dari').selectedOptions[0].text;
+                showToast(`Saldo ${namaDari} tidak cukup! Sisa: ${formatRp(saldoDariSekarang)}`);
+                // Tetap dilanjutkan (konsisten dengan prosesBayarHutang) -- kalau
+                // user tetap mau maksa transfer walau jadi minus, itu keputusan dia.
+            }
+
+            // Potong dari asal, tambah ke tujuan -- LANGSUNG di field Saldo Awal,
+            // supaya user tidak perlu itung-itung manual.
+            elDari.value = saldoDariSekarang - nominal;
+            elKe.value = saldoKeSekarang + nominal;
+
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+
+            try {
+                // saldoOnly = true -> jalur yang sama persis dengan "Simpan Saldo
+                // Awal Sekarang": cuma sinkronisasi saldo, TIDAK dicatat sebagai
+                // pemasukan/pengeluaran, jadi Pendapatan Bersih tidak berubah.
+                await simpanData(true);
+                closeModalTransferSaldo();
+            } catch (e) {
+                showToast("Gagal transfer: " + e.message);
+                btn.innerHTML = '<span>Transfer Sekarang</span>';
+            }
         }
 
         async function prosesBayarHutang() {
