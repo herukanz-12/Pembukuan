@@ -510,8 +510,9 @@
                             </div>
                         </div>
                     </div>
-                    <button type="button" onclick="simpanData(true)" class="relative z-10 w-full mt-5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Saldo Awal Sekarang
+                    <button type="button" id="btn-simpan-saldo-awal" onclick="simpanData(true)" class="relative z-10 w-full mt-5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk" id="icon-simpan-saldo-awal"></i>
+                        <span id="text-simpan-saldo-awal">Simpan Saldo Awal Sekarang</span>
                     </button>
                     <p class="text-[10px] text-slate-400 mt-2 relative z-10 text-center">Pakai tombol ini kalau cuma mau update saldo awal aja, tanpa nunggu ada Trip/Masuk/Keluar. Kalau gak ditekan (atau cuma pindah tab), perubahan ini <strong>belum tersimpan ke server</strong> dan bisa ketiban data lama pas sinkron berikutnya.</p>
                 </div>
@@ -2634,8 +2635,9 @@
 
         // --- Menyimpan Data Form ke Google Sheet ---
         async function simpanData(saldoOnly = false) {
-            const btnText = document.getElementById('text-simpan');
-            const btnIcon = document.getElementById('icon-simpan');
+            const btnText = document.getElementById(saldoOnly ? 'text-simpan-saldo-awal' : 'text-simpan');
+            const btnIcon = document.getElementById(saldoOnly ? 'icon-simpan-saldo-awal' : 'icon-simpan');
+            const teksAsliTombol = btnText ? btnText.innerText : '';
 
             // Jaga-jaga: paksa hitung ulang window.currentFinalSaldo dari nilai
             // FIELD YANG KELIHATAN DI LAYAR sekarang, sebelum dikirim ke server.
@@ -2768,10 +2770,10 @@
             try {
                 if (isServerAktif()) {
                     await kirimKeServer({ action: 'simpan_harian', data: data });
-                    showToast("Laporan berhasil disimpan!");
+                    showToast(saldoOnly ? "Saldo Awal berhasil disimpan ke server!" : "Laporan berhasil disimpan!");
                 } else {
                     await new Promise(r => setTimeout(r, 1000));
-                    showToast("Simpan offline berhasil!");
+                    showToast(saldoOnly ? "Saldo Awal disimpan offline!" : "Simpan offline berhasil!");
                 }
                 
                 let tempRow = { 
@@ -2825,15 +2827,28 @@
                 document.getElementById('saldo_bca').value = window.currentFinalSaldo.bca;
                 simpanSaldoLocal();
 
-                resetForm(); 
-                switchTab('dashboard', 0); 
+                if (saldoOnly) {
+                    // Jangan pindah tab -- biarin user tetep di panel Dompet dan
+                    // liat konfirmasinya langsung di tombol yang dia pencet.
+                    btnIcon.className = "fa-solid fa-check text-xl";
+                    btnText.innerText = "Tersimpan!";
+                    setTimeout(() => {
+                        btnIcon.className = "fa-solid fa-floppy-disk";
+                        btnText.innerText = teksAsliTombol;
+                    }, 2000);
+                } else {
+                    resetForm();
+                    switchTab('dashboard', 0);
+                }
 
             } catch (error) {
                 showToast(error.message || "Gagal menyambung ke Spreadsheet!");
                 console.error(error);
             } finally {
-                btnText.innerText = "Simpan Laporan";
-                btnIcon.className = "fa-solid fa-cloud-arrow-up text-xl";
+                if (!saldoOnly) {
+                    btnText.innerText = "Simpan Laporan";
+                    btnIcon.className = "fa-solid fa-cloud-arrow-up text-xl";
+                }
             }
         }
 
