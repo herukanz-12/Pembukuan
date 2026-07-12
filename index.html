@@ -2444,7 +2444,13 @@
                 }
             } catch (err) {
                 console.error('Gagal ambil data dari Sheet:', err);
-                showToast("Data kosong? Pastikan sudah 'Deploy' versi terbaru di Google Apps Script!");
+                if (!navigator.onLine || err instanceof TypeError) {
+                    // TypeError dari fetch() biasanya artinya request gak sampai ke server
+                    // sama sekali (sinyal jelek/putus), bukan masalah data/deploy.
+                    showToast("Gagal sinkron, sinyal kurang stabil. Data terakhir tetap dipakai, nanti otomatis sync ulang kalau sinyal membaik.");
+                } else {
+                    showToast("Data kosong? Pastikan sudah 'Deploy' versi terbaru di Google Apps Script!");
+                }
                 return false;
             }
         }
@@ -3131,6 +3137,12 @@
         window.onload = () => {
             muatSaldoLocal();
             muatKmOliLocal();
+            // Tampilin dulu saldo dari backup lokal (localStorage) SEBELUM nunggu
+            // fetch ke server -- biar "Saldo Saat Ini" / "Dompet (Auto Kalkulasi)"
+            // tetap kelihatan meski sinyal jelek/fetchRekapData() gagal. Nanti kalau
+            // fetch berhasil, syncSaldoDariServer() bakal manggil ulang dengan data
+            // paling baru dari server.
+            calculateRealtime();
             renderHutangList();
             setRiwayatSubTab('laporan');
             setTimeout(() => switchTab('dashboard', 0), 100);
