@@ -702,6 +702,19 @@
                                     <input type="number" id="out_servis_motor" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
                                 </div>
 
+                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-basket-shopping text-red-400"></i> Talangan Pesanan</label>
+                                        <select id="dompet_out_talangan" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="gopay_driver">Gopay Driver</option>
+                                            <option value="gopay">Gopay</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="bca">BCA</option>
+                                        </select>
+                                    </div>
+                                    <input type="number" id="out_talangan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                </div>
+
                                 <!-- Dynamic Manual Expense Entries -->
                                 <div class="border-t border-slate-100 dark:border-white/5 pt-4 mt-2">
                                     <div class="flex justify-between items-center mb-3">
@@ -1440,6 +1453,7 @@
             subExpense('out_rokok', 'dompet_out_rokok');
             subExpense('out_bensin', 'dompet_out_bensin');
             subExpense('out_potongan_gojek', 'dompet_out_potongan_gojek');
+            subExpense('out_talangan', 'dompet_out_talangan');
             subExpense('out_ganti_oli_mesin', 'dompet_out_ganti_oli_mesin');
             subExpense('out_oli_gardan', 'dompet_out_oli_gardan');
             subExpense('out_servis_motor', 'dompet_out_servis_motor');
@@ -1712,6 +1726,7 @@
             { key: 'Keluar Rokok',     label: 'Rokok',        icon: 'fa-smoking',   color: 'red'    },
             { key: 'Keluar Bensin',    label: 'Bensin',       icon: 'fa-gas-pump',  color: 'red'    },
             { key: 'Keluar Potongan Gojek',   label: 'Potongan Gojek',   icon: 'fa-percent',            color: 'red'    },
+            { key: 'Keluar Talangan Pesanan', label: 'Talangan Pesanan', icon: 'fa-basket-shopping',    color: 'purple' },
             { key: 'Keluar Ganti Oli Mesin',  label: 'Ganti Oli Mesin',  icon: 'fa-oil-can',            color: 'orange' },
             { key: 'Keluar Ganti Oli Gardan', label: 'Ganti Oli Gardan', icon: 'fa-gears',              color: 'orange' },
             { key: 'Keluar Servis Motor',     label: 'Servis Motor',     icon: 'fa-screwdriver-wrench', color: 'orange' },
@@ -1731,6 +1746,7 @@
             'Rokok':             { icon: 'fa-smoking',             color: 'red'    },
             'Bensin':            { icon: 'fa-gas-pump',            color: 'red'    },
             'Potongan Gojek':    { icon: 'fa-percent',             color: 'red'    },
+            'Talangan Pesanan':  { icon: 'fa-basket-shopping',     color: 'purple' },
             'Ganti Oli Mesin':   { icon: 'fa-oil-can',             color: 'orange' },
             'Ganti Oli Gardan':  { icon: 'fa-gears',               color: 'orange' },
             'Servis Motor':      { icon: 'fa-screwdriver-wrench',  color: 'orange' },
@@ -2593,7 +2609,7 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_talangan', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
             
             // Clear manual rows
@@ -2665,6 +2681,7 @@
             tambahDetail('Keluar', 'Rokok', '', getVal('out_rokok'), getStr('dompet_out_rokok'));
             tambahDetail('Keluar', 'Bensin', '', getVal('out_bensin'), getStr('dompet_out_bensin'));
             tambahDetail('Keluar', 'Potongan Gojek', '', getVal('out_potongan_gojek'), getStr('dompet_out_potongan_gojek'));
+            tambahDetail('Keluar', 'Talangan Pesanan', '', getVal('out_talangan'), getStr('dompet_out_talangan'));
             tambahDetail('Keluar', 'Ganti Oli Mesin', '', getVal('out_ganti_oli_mesin'), getStr('dompet_out_ganti_oli_mesin'));
             tambahDetail('Keluar', 'Ganti Oli Gardan', '', getVal('out_oli_gardan'), getStr('dompet_out_oli_gardan'));
             tambahDetail('Keluar', 'Servis Motor', '', getVal('out_servis_motor'), getStr('dompet_out_servis_motor'));
@@ -2703,6 +2720,7 @@
                 out_rokok: getVal('out_rokok'),
                 out_bensin: getVal('out_bensin'),
                 out_potongan_gojek: getVal('out_potongan_gojek'),
+                out_talangan: getVal('out_talangan'),
                 out_ganti_oli_mesin: getVal('out_ganti_oli_mesin'),
                 out_oli_gardan: getVal('out_oli_gardan'),
                 out_servis_motor: getVal('out_servis_motor'),
@@ -2720,7 +2738,7 @@
             };
 
             let validationIn = data.in_bid + data.in_tips + data.in_lain;
-            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_bensin + data.out_potongan_gojek + data.out_ganti_oli_mesin + data.out_oli_gardan + data.out_servis_motor + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
+            let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_bensin + data.out_potongan_gojek + data.out_talangan + data.out_ganti_oli_mesin + data.out_oli_gardan + data.out_servis_motor + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
 
             if(validationIn === 0 && validationOut === 0) {
                 showToast("Isi nominal pemasukan/pengeluaran dulu!");
@@ -2749,6 +2767,7 @@
                     'Keluar Rokok': data.out_rokok,
                     'Keluar Bensin': data.out_bensin,
                     'Keluar Potongan Gojek': data.out_potongan_gojek,
+                    'Keluar Talangan Pesanan': data.out_talangan,
                     'Keluar Ganti Oli Mesin': data.out_ganti_oli_mesin,
                     'Keluar Ganti Oli Gardan': data.out_oli_gardan,
                     'Keluar Servis Motor': data.out_servis_motor,
