@@ -2692,6 +2692,15 @@
                 });
             }
 
+            const dataTidakSinkron = selisih < -0.5;
+            const basisPersen = dataTidakSinkron ? sumKategori : totalIn;
+            
+            // Mengubah angka di judul kartu agar sama dengan hasil jumlah penjabaran
+            if (dataTidakSinkron) {
+                const elTotal = document.getElementById('total-rincian-pendapatan');
+                if (elTotal) elTotal.innerText = formatRp(sumKategori);
+            }
+
             if (items.length === 0) {
                 container.innerHTML = `
                     <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
@@ -2708,7 +2717,7 @@
             };
 
             container.innerHTML = items.map((item) => {
-                const persentase = totalIn > 0 ? (item.amount / totalIn) * 100 : 0;
+                const persentase = basisPersen > 0 ? (item.amount / basisPersen) * 100 : 0;
                 const c = colorMap[item.color];
                 return `
                     <div>
@@ -2776,6 +2785,12 @@
             // sheet DetailTransaksi buat cari baris dobelnya.
             const dataTidakSinkron = selisih < -0.5;
             const basisPersen = dataTidakSinkron ? sumKategori : totalOut;
+            
+            // Mengubah angka di judul kartu agar sama dengan hasil jumlah penjabaran
+            if (dataTidakSinkron) {
+                const elTotal = document.getElementById('total-rincian-pengeluaran');
+                if (elTotal) elTotal.innerText = formatRp(sumKategori);
+            }
 
             if (items.length === 0) {
                 container.innerHTML = `
