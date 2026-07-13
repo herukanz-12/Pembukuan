@@ -231,18 +231,26 @@
                     </div>
                 </div>
 
-                <!-- Filter Periode: Harian / Mingguan / Bulanan -->
-                <div class="relative z-10 flex bg-black/20 rounded-2xl p-1 mb-5 border border-white/10">
-                    <button type="button" onclick="setPeriode('day')" id="btn-periode-day" class="periode-btn flex-1 text-xs font-bold py-2 rounded-xl transition-all bg-white/25 text-white">
+                <!-- Filter Periode: Harian / Mingguan / Bulanan / Tahunan -->
+                <div class="relative z-10 flex bg-black/20 rounded-2xl p-1 mb-3 border border-white/10">
+                    <button type="button" onclick="setPeriode('day')" id="btn-periode-day" class="periode-btn flex-1 text-[10px] font-bold py-2 rounded-xl transition-all bg-white/25 text-white">
                         Harian
                     </button>
-                    <button type="button" onclick="setPeriode('week')" id="btn-periode-week" class="periode-btn flex-1 text-xs font-bold py-2 rounded-xl transition-all text-white/60">
+                    <button type="button" onclick="setPeriode('week')" id="btn-periode-week" class="periode-btn flex-1 text-[10px] font-bold py-2 rounded-xl transition-all text-white/60">
                         Mingguan
                     </button>
-                    <button type="button" onclick="setPeriode('month')" id="btn-periode-month" class="periode-btn flex-1 text-xs font-bold py-2 rounded-xl transition-all text-white/60">
+                    <button type="button" onclick="setPeriode('month')" id="btn-periode-month" class="periode-btn flex-1 text-[10px] font-bold py-2 rounded-xl transition-all text-white/60">
                         Bulanan
                     </button>
+                    <button type="button" onclick="setPeriode('year')" id="btn-periode-year" class="periode-btn flex-1 text-[10px] font-bold py-2 rounded-xl transition-all text-white/60">
+                        Tahunan
+                    </button>
                 </div>
+
+                <!-- Lihat Detail: buka rincian per-periode (mis. per minggu/bulan/tahun sebelumnya) -->
+                <button type="button" onclick="openModalDetailPendapatan()" class="relative z-10 w-full text-center text-[10px] font-bold text-white/70 hover:text-white py-1 mb-2 transition-colors">
+                    Lihat Detail <i class="fa-solid fa-chevron-right text-[9px] ml-0.5"></i>
+                </button>
                 
                 <div class="mt-4 flex justify-between items-center z-10 relative bg-black/10 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
                     <div class="flex items-center gap-3">
@@ -1023,13 +1031,19 @@
             <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Riwayat</h2>
             <p class="text-xs text-slate-500 mb-6">Ringkasan laporan & log transaksi granular</p>
 
-            <!-- Sub-tab: Riwayat Laporan vs Log Transaksi -->
-            <div class="flex bg-slate-100 dark:bg-white/5 rounded-2xl p-1 mb-6 border border-slate-200 dark:border-white/10">
-                <button type="button" onclick="setRiwayatSubTab('laporan')" id="btn-riwayat-laporan" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">
+            <!-- Sub-tab: Riwayat Laporan / Log Transaksi / Riwayat Sedekah / Riwayat Tabungan Servis -->
+            <div class="grid grid-cols-2 gap-1 bg-slate-100 dark:bg-white/5 rounded-2xl p-1 mb-6 border border-slate-200 dark:border-white/10">
+                <button type="button" onclick="setRiwayatSubTab('laporan')" id="btn-riwayat-laporan" class="riwayat-subtab-btn text-xs font-bold py-2.5 rounded-xl transition-all">
                     <i class="fa-solid fa-file-lines mr-1"></i> Riwayat Laporan
                 </button>
-                <button type="button" onclick="setRiwayatSubTab('log')" id="btn-riwayat-log" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">
+                <button type="button" onclick="setRiwayatSubTab('log')" id="btn-riwayat-log" class="riwayat-subtab-btn text-xs font-bold py-2.5 rounded-xl transition-all">
                     <i class="fa-solid fa-list-ul mr-1"></i> Log Transaksi
+                </button>
+                <button type="button" onclick="setRiwayatSubTab('sedekah')" id="btn-riwayat-sedekah" class="riwayat-subtab-btn text-xs font-bold py-2.5 rounded-xl transition-all">
+                    <i class="fa-solid fa-hand-holding-heart mr-1"></i> Riwayat Sedekah
+                </button>
+                <button type="button" onclick="setRiwayatSubTab('tabungan')" id="btn-riwayat-tabungan" class="riwayat-subtab-btn text-xs font-bold py-2.5 rounded-xl transition-all">
+                    <i class="fa-solid fa-piggy-bank mr-1"></i> Riwayat Tabungan
                 </button>
             </div>
 
@@ -1043,6 +1057,28 @@
             <!-- Panel: Log Transaksi (per-item granular, dari sheet DetailTransaksi) -->
             <div id="riwayat-log-panel" class="hidden">
                 <div id="log-transaksi-list-container" class="space-y-4 mb-8">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Panel: Riwayat Sedekah (kolom "Shodaqoh" tiap baris DataHarian yang > 0) -->
+            <div id="riwayat-sedekah-panel" class="hidden">
+                <div class="bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl p-5 mb-4 shadow-glass text-white">
+                    <span class="text-[10px] font-bold uppercase tracking-wide opacity-80 flex items-center gap-1.5"><i class="fa-solid fa-hand-holding-heart"></i> Total Sedekah</span>
+                    <span id="riwayat-sedekah-total" class="text-2xl font-extrabold block mt-1">Rp 0</span>
+                </div>
+                <div id="riwayat-sedekah-list-container" class="space-y-3 mb-8">
+                    <!-- Rendered dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Panel: Riwayat Tabungan Servis (kolom "Tabungan Servis" tiap baris DataHarian yang > 0) -->
+            <div id="riwayat-tabungan-panel" class="hidden">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl p-5 mb-4 shadow-glass text-white">
+                    <span class="text-[10px] font-bold uppercase tracking-wide opacity-80 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Total Tabungan Servis</span>
+                    <span id="riwayat-tabungan-total" class="text-2xl font-extrabold block mt-1">Rp 0</span>
+                </div>
+                <div id="riwayat-tabungan-list-container" class="space-y-3 mb-8">
                     <!-- Rendered dynamically via JS -->
                 </div>
             </div>
@@ -1161,6 +1197,21 @@
                         <span>Transfer Sekarang</span>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detail Pendapatan (rincian per-periode: harian/mingguan/bulanan/tahunan sebelumnya) -->
+    <div id="modal-detail-pendapatan" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center opacity-0 transition-opacity">
+        <div class="bg-white dark:bg-cardDark rounded-t-[2rem] sm:rounded-[2rem] w-full sm:max-w-sm max-h-[80vh] p-6 shadow-float transform translate-y-4 sm:translate-y-0 sm:scale-95 transition-transform duration-300 flex flex-col" id="modal-detail-pendapatan-content">
+            <div class="flex items-center justify-between mb-4 shrink-0">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white" id="detail-pendapatan-title">Pendapatan Mingguan</h3>
+                <button type="button" onclick="closeModalDetailPendapatan()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-300 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="detail-pendapatan-list" class="space-y-3 overflow-y-auto pr-1">
+                <!-- Rendered dynamically via JS -->
             </div>
         </div>
     </div>
@@ -2089,11 +2140,13 @@
 
             rows.forEach((row) => {
                 const ts = new Date(row['Timestamp']);
-                const cocok = periode === 'month'
-                    ? (ts.getMonth() === bulanSekarang && ts.getFullYear() === tahunSekarang)
-                    : periode === 'day'
-                        ? ts.toDateString() === todayStr
-                        : (ts >= start && ts <= end);
+                const cocok = periode === 'year'
+                    ? ts.getFullYear() === tahunSekarang
+                    : periode === 'month'
+                        ? (ts.getMonth() === bulanSekarang && ts.getFullYear() === tahunSekarang)
+                        : periode === 'day'
+                            ? ts.toDateString() === todayStr
+                            : (ts >= start && ts <= end);
 
                 if (cocok) {
                     totalIn += Number(row['Total Pemasukan']) || 0;
@@ -2105,6 +2158,127 @@
             });
 
             return { totalIn, totalOut, kategoriTotal };
+        }
+
+        // Jumlahkan Total Pemasukan/Pengeluaran/Trip dari allSheetRows untuk 1
+        // rentang tanggal custom [start, end] -- dipakai computeBreakdownList()
+        // untuk menyusun daftar per-minggu/bulan/tahun sebelumnya (beda dari
+        // computeTotals() yang selalu relatif ke "sekarang").
+        function sumRowsInRange(rows, start, end) {
+            let totalIn = 0, totalOut = 0, trips = 0;
+            rows.forEach((row) => {
+                const ts = new Date(row['Timestamp']);
+                if (ts >= start && ts <= end) {
+                    totalIn += Number(row['Total Pemasukan']) || 0;
+                    totalOut += Number(row['Total Pengeluaran']) || 0;
+                    trips += Number(row['Jumlah Trip']) || 0;
+                }
+            });
+            return { totalIn, totalOut, trips };
+        }
+
+        // Susun daftar rincian pendapatan bersih per-periode (beberapa periode
+        // terakhir), dipakai modal "Lihat Detail" di kartu Pendapatan Bersih.
+        // Formatnya niru pola "Pendapatan Mingguan" di aplikasi mitra ojol:
+        // "Minggu Ini", "Minggu Lalu", lalu "Minggu <no urut minggu di tahun ini>".
+        function computeBreakdownList(periode) {
+            const now = new Date();
+            let list = [];
+
+            if (periode === 'week') {
+                const { start: seninIni } = getWeekRange(now);
+                for (let i = 0; i < 8; i++) {
+                    const mulai = new Date(seninIni);
+                    mulai.setDate(mulai.getDate() - (7 * i));
+                    mulai.setHours(0, 0, 0, 0);
+                    const akhir = new Date(mulai);
+                    akhir.setDate(akhir.getDate() + 6);
+                    akhir.setHours(23, 59, 59, 999);
+
+                    const { totalIn, totalOut, trips } = sumRowsInRange(allSheetRows, mulai, akhir);
+                    const rangeText = `${mulai.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} - ${akhir.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}`;
+                    const noMinggu = getISOWeekNumber(mulai);
+                    const label = i === 0 ? `Minggu Ini (${rangeText})` : i === 1 ? `Minggu Lalu (${rangeText})` : `Minggu ${noMinggu} (${rangeText})`;
+                    list.push({ label, total: totalIn - totalOut, trips });
+                }
+            } else if (periode === 'month') {
+                for (let i = 0; i < 8; i++) {
+                    const bulanDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const mulai = new Date(bulanDate.getFullYear(), bulanDate.getMonth(), 1, 0, 0, 0, 0);
+                    const akhir = new Date(bulanDate.getFullYear(), bulanDate.getMonth() + 1, 0, 23, 59, 59, 999);
+
+                    const { totalIn, totalOut, trips } = sumRowsInRange(allSheetRows, mulai, akhir);
+                    const namaBulan = bulanDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                    const label = i === 0 ? `Bulan Ini (${namaBulan})` : i === 1 ? `Bulan Lalu (${namaBulan})` : namaBulan;
+                    list.push({ label, total: totalIn - totalOut, trips });
+                }
+            } else if (periode === 'year') {
+                for (let i = 0; i < 5; i++) {
+                    const tahun = now.getFullYear() - i;
+                    const mulai = new Date(tahun, 0, 1, 0, 0, 0, 0);
+                    const akhir = new Date(tahun, 11, 31, 23, 59, 59, 999);
+
+                    const { totalIn, totalOut, trips } = sumRowsInRange(allSheetRows, mulai, akhir);
+                    const label = i === 0 ? `Tahun Ini (${tahun})` : i === 1 ? `Tahun Lalu (${tahun})` : `${tahun}`;
+                    list.push({ label, total: totalIn - totalOut, trips });
+                }
+            } else { // day
+                for (let i = 0; i < 14; i++) {
+                    const tgl = new Date(now);
+                    tgl.setDate(tgl.getDate() - i);
+                    tgl.setHours(0, 0, 0, 0);
+                    const akhir = new Date(tgl);
+                    akhir.setHours(23, 59, 59, 999);
+
+                    const { totalIn, totalOut, trips } = sumRowsInRange(allSheetRows, tgl, akhir);
+                    const label = i === 0 ? 'Hari Ini' : i === 1 ? 'Kemarin' : tgl.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                    list.push({ label, total: totalIn - totalOut, trips });
+                }
+            }
+
+            return list;
+        }
+
+        // Nomor urut minggu dalam 1 tahun (ISO 8601), dipakai buat label
+        // "Minggu 27" dst di modal Detail Pendapatan.
+        function getISOWeekNumber(d) {
+            const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            const dayNum = date.getUTCDay() || 7;
+            date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+            return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+        }
+
+        // --- Modal "Lihat Detail" (rincian per-periode sebelumnya) ---
+        function openModalDetailPendapatan() {
+            const judulMap = { day: 'Pendapatan Harian', week: 'Pendapatan Mingguan', month: 'Pendapatan Bulanan', year: 'Pendapatan Tahunan' };
+            document.getElementById('detail-pendapatan-title').innerText = judulMap[currentPeriode] || 'Pendapatan';
+
+            const list = computeBreakdownList(currentPeriode);
+            const container = document.getElementById('detail-pendapatan-list');
+            container.innerHTML = list.map(item => `
+                <div class="bg-slate-50 dark:bg-bgDark rounded-2xl p-4 border border-slate-100 dark:border-white/5">
+                    <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">${item.label}</p>
+                    <p class="text-lg font-extrabold ${item.total >= 0 ? 'text-slate-800 dark:text-white' : 'text-red-500'}">${formatRp(item.total)}</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5"><i class="fa-solid fa-motorcycle mr-1"></i>${item.trips.toLocaleString('id-ID')} trip selesai</p>
+                </div>
+            `).join('');
+
+            const modal = document.getElementById('modal-detail-pendapatan');
+            const content = document.getElementById('modal-detail-pendapatan-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('translate-y-4', 'sm:scale-95');
+            }, 10);
+        }
+
+        function closeModalDetailPendapatan() {
+            const modal = document.getElementById('modal-detail-pendapatan');
+            const content = document.getElementById('modal-detail-pendapatan-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('translate-y-4', 'sm:scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
         // Hitung breakdown pengeluaran per kategori dari log granular
@@ -2170,7 +2344,8 @@
             const tombolPeriode = [
                 { id: 'btn-periode-day', value: 'day' },
                 { id: 'btn-periode-week', value: 'week' },
-                { id: 'btn-periode-month', value: 'month' }
+                { id: 'btn-periode-month', value: 'month' },
+                { id: 'btn-periode-year', value: 'year' }
             ];
 
             tombolPeriode.forEach(({ id, value }) => {
@@ -2293,6 +2468,10 @@
             
             // Jalankan fungsi merender list riwayat harian
             renderRiwayatList();
+            // Riwayat Sedekah & Tabungan sumbernya sama (allSheetRows), jadi ikut
+            // di-refresh di sini kalau sedang jadi sub-tab yang aktif.
+            if (currentRiwayatSubTab === 'sedekah') renderRiwayatSedekahList();
+            if (currentRiwayatSubTab === 'tabungan') renderRiwayatTabunganList();
         }
 
         // --- Fungsi Pengaturan (Settings Pop-Up) ---
@@ -2592,36 +2771,113 @@
             });
         }
 
-        // --- Toggle Sub-tab Riwayat: "Riwayat Laporan" (total per simpan) vs
-        // "Log Transaksi" (per-item granular dari sheet DetailTransaksi) ---
+        // --- Toggle Sub-tab Riwayat: "Riwayat Laporan" (total per simpan),
+        // "Log Transaksi" (per-item granular dari sheet DetailTransaksi),
+        // "Riwayat Sedekah", dan "Riwayat Tabungan Servis" (dari kolom
+        // Shodaqoh / Tabungan Servis di tiap baris sheet DataHarian) ---
         let currentRiwayatSubTab = 'laporan';
 
         function setRiwayatSubTab(tab) {
             currentRiwayatSubTab = tab;
-            const btnLaporan = document.getElementById('btn-riwayat-laporan');
-            const btnLog = document.getElementById('btn-riwayat-log');
-            const panelLaporan = document.getElementById('riwayat-laporan-panel');
-            const panelLog = document.getElementById('riwayat-log-panel');
-            const isLaporan = tab === 'laporan';
+            const tombol = {
+                laporan: document.getElementById('btn-riwayat-laporan'),
+                log: document.getElementById('btn-riwayat-log'),
+                sedekah: document.getElementById('btn-riwayat-sedekah'),
+                tabungan: document.getElementById('btn-riwayat-tabungan')
+            };
+            const panel = {
+                laporan: document.getElementById('riwayat-laporan-panel'),
+                log: document.getElementById('riwayat-log-panel'),
+                sedekah: document.getElementById('riwayat-sedekah-panel'),
+                tabungan: document.getElementById('riwayat-tabungan-panel')
+            };
 
-            [
-                [btnLaporan, isLaporan],
-                [btnLog, !isLaporan]
-            ].forEach(([btn, aktif]) => {
-                btn.classList.toggle('bg-white', aktif);
-                btn.classList.toggle('dark:bg-cardDark', aktif);
-                btn.classList.toggle('text-brand', aktif);
-                btn.classList.toggle('shadow-sm', aktif);
-                btn.classList.toggle('text-slate-500', !aktif);
-                btn.classList.toggle('dark:text-slate-400', !aktif);
+            Object.keys(tombol).forEach(key => {
+                let aktif = key === tab;
+                tombol[key].classList.toggle('bg-white', aktif);
+                tombol[key].classList.toggle('dark:bg-cardDark', aktif);
+                tombol[key].classList.toggle('text-brand', aktif);
+                tombol[key].classList.toggle('shadow-sm', aktif);
+                tombol[key].classList.toggle('text-slate-500', !aktif);
+                tombol[key].classList.toggle('dark:text-slate-400', !aktif);
+                panel[key].classList.toggle('hidden', !aktif);
             });
 
-            panelLaporan.classList.toggle('hidden', !isLaporan);
-            panelLog.classList.toggle('hidden', isLaporan);
-
-            if (!isLaporan) {
+            if (tab === 'log') {
                 renderLogTransaksiList();
+            } else if (tab === 'sedekah') {
+                renderRiwayatSedekahList();
+            } else if (tab === 'tabungan') {
+                renderRiwayatTabunganList();
             }
+        }
+
+        // --- Render Isi Tab "Riwayat Sedekah": tiap baris DataHarian yang
+        // kolom "Shodaqoh"-nya > 0, diurutkan terbaru dulu, plus total keseluruhan. ---
+        function renderRiwayatSedekahList() {
+            const container = document.getElementById('riwayat-sedekah-list-container');
+            const totalEl = document.getElementById('riwayat-sedekah-total');
+            if (!container || !totalEl) return;
+            container.innerHTML = '';
+
+            let rows = allSheetRows.filter(row => (Number(row['Shodaqoh']) || 0) > 0);
+
+            if (rows.length === 0) {
+                totalEl.innerText = formatRp(0);
+                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada riwayat sedekah.</p>`;
+                return;
+            }
+
+            let sorted = [...rows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+            let total = sorted.reduce((sum, row) => sum + (Number(row['Shodaqoh']) || 0), 0);
+            totalEl.innerText = formatRp(total);
+
+            sorted.forEach(row => {
+                let tgl = new Date(row['Timestamp']).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                container.innerHTML += `
+                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between animate-fade-in">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500 shrink-0"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${tgl}</span>
+                        </div>
+                        <span class="font-extrabold text-pink-500 text-sm shrink-0">${formatRp(Number(row['Shodaqoh']) || 0)}</span>
+                    </div>
+                `;
+            });
+        }
+
+        // --- Render Isi Tab "Riwayat Tabungan": tiap baris DataHarian yang
+        // kolom "Tabungan Servis"-nya > 0, diurutkan terbaru dulu, plus total keseluruhan. ---
+        function renderRiwayatTabunganList() {
+            const container = document.getElementById('riwayat-tabungan-list-container');
+            const totalEl = document.getElementById('riwayat-tabungan-total');
+            if (!container || !totalEl) return;
+            container.innerHTML = '';
+
+            let rows = allSheetRows.filter(row => (Number(row['Tabungan Servis']) || 0) > 0);
+
+            if (rows.length === 0) {
+                totalEl.innerText = formatRp(0);
+                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada riwayat tabungan servis.</p>`;
+                return;
+            }
+
+            let sorted = [...rows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+            let total = sorted.reduce((sum, row) => sum + (Number(row['Tabungan Servis']) || 0), 0);
+            totalEl.innerText = formatRp(total);
+
+            sorted.forEach(row => {
+                let tgl = new Date(row['Timestamp']).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                container.innerHTML += `
+                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between animate-fade-in">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0"><i class="fa-solid fa-piggy-bank"></i></div>
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${tgl}</span>
+                        </div>
+                        <span class="font-extrabold text-blue-500 text-sm shrink-0">${formatRp(Number(row['Tabungan Servis']) || 0)}</span>
+                    </div>
+                `;
+            });
         }
 
         // --- Render Isi Tab Log Transaksi (granular, dari sheet DetailTransaksi) ---
