@@ -862,10 +862,13 @@
                         <select id="maint_jenis" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none focus:ring-1 focus:ring-red-400">
                             <option value="Ganti Oli">Ganti Oli</option>
                             <option value="Ganti Oli Gardan">Ganti Oli Gardan</option>
+                            <option value="Ganti Busi">Ganti Busi</option>
+                            <option value="Ganti/Bersihkan Filter Udara">Ganti/Bersihkan Filter Udara</option>
                             <option value="Ganti Ban">Ganti Ban</option>
                             <option value="Ganti Kampas Rem">Ganti Kampas Rem</option>
                             <option value="Ganti Fan Belt/Vanbelt">Ganti Fan Belt/Vanbelt</option>
                             <option value="Ganti Roller">Ganti Roller</option>
+                            <option value="Kuras Minyak Rem">Kuras Minyak Rem</option>
                             <option value="Servis Rutin">Servis Rutin</option>
                         </select>
                     </div>
@@ -1632,20 +1635,37 @@
         }
 
         // Daftar jenis servis yang dipantau di kartu "Maintenance Motor" (Tab Monitor).
-        // Ikon & warna sekadar visual; hanya "Ganti Oli" yang punya ambang batas
-        // otomatis (BATAS_KM_OLI_MONITOR = 2000 km, peringatan dini di 1.800 km)
-        // sesuai sheet MaintenanceMotor di backend (BATAS_KM_OLI).
+        // Ikon & warna sekadar visual.
         const JENIS_SERVIS_MONITOR = [
             { jenis: 'Ganti Oli', icon: 'fa-oil-can', color: 'orange' },
             { jenis: 'Ganti Oli Gardan', icon: 'fa-gears', color: 'blue' },
+            { jenis: 'Ganti Busi', icon: 'fa-bolt', color: 'yellow' },
+            { jenis: 'Ganti/Bersihkan Filter Udara', icon: 'fa-wind', color: 'cyan' },
             { jenis: 'Ganti Ban', icon: 'fa-circle-dot', color: 'slate' },
             { jenis: 'Ganti Kampas Rem', icon: 'fa-record-vinyl', color: 'red' },
             { jenis: 'Ganti Fan Belt/Vanbelt', icon: 'fa-link', color: 'purple' },
             { jenis: 'Ganti Roller', icon: 'fa-compact-disc', color: 'teal' },
+            { jenis: 'Kuras Minyak Rem', icon: 'fa-droplet', color: 'pink' },
             { jenis: 'Servis Rutin', icon: 'fa-screwdriver-wrench', color: 'emerald' }
         ];
-        const BATAS_KM_OLI_MONITOR = 2000;
-        const BATAS_KM_OLI_WARNING = 1800;
+
+        // Ambang batas KM per jenis servis untuk badge peringatan di kartu Monitor.
+        // Sama persis dengan BATAS_SERVIS di backend (code.gs) -- kalau ubah salah
+        // satu, ubah juga yang satunya supaya status di app & di Sheet konsisten.
+        //   batas = jarak (km) sejak servis terakhir yang memicu badge merah "Segera ..."
+        //   dini  = berapa km sebelum "batas" mulai muncul badge kuning "Mendekati Batas"
+        //   mode  = 'ganti' (part harus diganti) atau 'cek' (part dicek dulu, belum tentu diganti)
+        // "Ganti Ban" & "Servis Rutin" sengaja tidak diberi ambang otomatis (kondisional).
+        const BATAS_SERVIS_MONITOR = {
+            'Ganti Oli':                    { batas: 2000,  dini: 200,  mode: 'ganti' },
+            'Ganti Oli Gardan':             { batas: 8000,  dini: 500,  mode: 'ganti' },
+            'Ganti Busi':                   { batas: 8000,  dini: 500,  mode: 'ganti' },
+            'Ganti/Bersihkan Filter Udara': { batas: 16000, dini: 1000, mode: 'ganti' },
+            'Ganti Fan Belt/Vanbelt':       { batas: 20000, dini: 1000, mode: 'ganti' },
+            'Ganti Roller':                 { batas: 20000, dini: 1000, mode: 'ganti' },
+            'Kuras Minyak Rem':             { batas: 20000, dini: 1000, mode: 'ganti' },
+            'Ganti Kampas Rem':             { batas: 4000,  dini: 0,    mode: 'cek' }
+        };
 
         // cekOli() dipertahankan sebagai nama fungsi (dipanggil dari beberapa
         // tempat lain di kode) tapi sekarang jadi generic renderer untuk SEMUA
@@ -1685,10 +1705,12 @@
                         } else {
                             bodyHtml = `<span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Terakhir di ${kmAkhir.toLocaleString('id-ID')} km${tglText ? ' · ' + tglText : ''}</span><br><span class="text-[10px] text-slate-400">Sudah ${selisih.toLocaleString('id-ID')} km berjalan</span>`;
 
-                            if (item.jenis === 'Ganti Oli') {
-                                if (selisih >= BATAS_KM_OLI_MONITOR) {
-                                    badgeHtml = `<span class="animate-pulse bg-red-500 text-white text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full shrink-0">⚠️ Segera Ganti Oli!</span>`;
-                                } else if (selisih >= BATAS_KM_OLI_WARNING) {
+                            let ambang = BATAS_SERVIS_MONITOR[item.jenis];
+                            if (ambang) {
+                                let aksiText = ambang.mode === 'cek' ? 'Segera Cek' : 'Segera Ganti';
+                                if (selisih >= ambang.batas) {
+                                    badgeHtml = `<span class="animate-pulse bg-red-500 text-white text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full shrink-0">⚠️ ${aksiText}!</span>`;
+                                } else if (selisih >= ambang.batas - ambang.dini) {
                                     badgeHtml = `<span class="bg-orange-500/15 text-orange-500 text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full shrink-0">⚠️ Mendekati Batas</span>`;
                                 }
                             }
