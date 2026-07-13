@@ -2554,14 +2554,11 @@
             `).join('');
         }
 
-        async function tambahDompetBaru() {
-            const input = document.getElementById('input_dompet_baru');
-            const nama = (input.value || '').trim();
-            if (!nama) {
-                showToast("Nama dompet wajib diisi");
-                return;
-            }
-
+        // Fungsi inti bikin dompet baru: sync ke server (kalau aktif) lalu push
+        // ke dompetCustomList & simpan lokal. Dipakai oleh tombol "Tambah" di
+        // menu Kelola Dompet, DAN oleh auto-seed dompet bawaan (lihat bawah).
+        // Mengembalikan objek dompet yang baru dibuat.
+        async function buatDompetBaru(nama) {
             let dompetBaru;
             try {
                 if (isServerAktif()) {
@@ -2571,18 +2568,62 @@
                     dompetBaru = { id: 'dompet_' + new Date().getTime(), nama: nama, saldo: 0 };
                 }
             } catch (err) {
-                showToast(err.message || "Gagal menambah dompet ke server, disimpan lokal dulu.");
                 dompetBaru = { id: 'dompet_' + new Date().getTime(), nama: nama, saldo: 0 };
             }
 
             dompetCustomList.push(dompetBaru);
             simpanDompetCustomLocal();
+            return dompetBaru;
+        }
+
+        async function tambahDompetBaru() {
+            const input = document.getElementById('input_dompet_baru');
+            const nama = (input.value || '').trim();
+            if (!nama) {
+                showToast("Nama dompet wajib diisi");
+                return;
+            }
+
+            try {
+                await buatDompetBaru(nama);
+            } catch (err) {
+                showToast(err.message || "Gagal menambah dompet ke server, disimpan lokal dulu.");
+            }
+
             input.value = '';
             renderKelolaDompet();
             renderSaldoCustomInputs();
             suntikDompetCustomKeSemuaSelect();
             calculateRealtime();
             showToast(`Dompet "${nama}" ditambahkan!`);
+        }
+
+        // --- Auto-seed dompet "Gopay Simpanan" ---
+        // Ditambahkan otomatis sekali saat pertama kali app dibuka versi ini,
+        // TANPA perlu user buka menu Kelola Dompet manual. Ditandai dengan flag
+        // di localStorage supaya tidak muncul lagi kalau user sengaja hapus
+        // dompet ini nanti (auto-seed cuma jalan sekali seumur hidup device ini).
+        async function autoSeedDompetGopaySimpanan() {
+            const FLAG_KEY = 'seed_dompet_gopay_simpanan_done';
+            if (localStorage.getItem(FLAG_KEY)) return; // sudah pernah di-seed, jangan ulang
+
+            let sudahAda = dompetCustomList.some(d => (d.nama || '').trim().toLowerCase() === 'gopay simpanan');
+            if (sudahAda) {
+                localStorage.setItem(FLAG_KEY, '1');
+                return;
+            }
+
+            try {
+                await buatDompetBaru('Gopay Simpanan');
+            } catch (e) {
+                // Kalau gagal total, coba lagi di sesi berikutnya (flag belum diset).
+                return;
+            }
+            localStorage.setItem(FLAG_KEY, '1');
+            renderKelolaDompet();
+            renderSaldoCustomInputs();
+            suntikDompetCustomKeSemuaSelect();
+            calculateRealtime();
         }
 
         async function hapusDompetItem(id) {
@@ -4093,13 +4134,21 @@
         }
 
         // --- Inisialisasi Saat Aplikasi Dimuat ---
-        window.onload = () => {
+        window.onload = async () => {
             // Muat dulu daftar Dompet Custom & Kategori Custom dari backup lokal
             // (localStorage), SEBELUM muatSaldoLocal()/calculateRealtime(), supaya
             // input Saldo Awal & pilihan dompet custom sudah kerender duluan
             // sebelum fetch ke server selesai.
             muatDompetCustomLocal();
             muatKategoriCustomLocal();
+
+            // Auto-seed dompet "Gopay Simpanan" (sekali saja, lihat komentar di
+            // definisi fungsinya). Ditunggu (await) DULU sebelum lanjut fetch data
+            // server di bawah, supaya kalau server aktif, dompet ini sempat
+            // kesimpan ke server dulu -- jadi tidak ketiban-timpa balik ke daftar
+            // lama pas muatUlangData() narik data terbaru dari server.
+            await autoSeedDompetGopaySimpanan();
+
             renderSaldoCustomInputs();
             suntikDompetCustomKeSemuaSelect();
             refreshDaftarKategoriLain();
