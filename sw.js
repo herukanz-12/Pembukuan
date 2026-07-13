@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ojolku-cache-v3.4.0'; // NAIKKAN tiap kali index.html/manifest.json berubah
+const CACHE_NAME = 'ojolku-cache-v3.5.0'; // NAIKKAN tiap kali index.html/manifest.json berubah
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json',
