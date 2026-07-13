@@ -2829,22 +2829,23 @@
             }
 
             // Dalam 1 hari bisa ada beberapa kali "Simpan" (tiap kali narik/ngebid
-            // update saldo), jadi tiap baris cuma nyimpen Shodaqoh PARSIAL dari
-            // sesi simpan itu -- bukan total 1 hari penuh. Makanya di sini
-            // dikelompokkan & dijumlah per tanggal dulu, supaya 1 hari = 1 kartu.
+            // update saldo), dan nilai Shodaqoh di tiap baris itu KUMULATIF hari
+            // itu (2.5% dari pendapatan bersih hari berjalan) -- bukan tambahan
+            // sejak simpan terakhir. Makanya yang dipakai cuma nilai dari sesi
+            // "Simpan" PALING TERAKHIR di hari itu (paling update), bukan dijumlah
+            // semua sesi simpan hari itu (itu akan double count).
             let perTanggal = {};
             let urutanTanggal = [];
             rows.forEach(row => {
                 let tglKey = new Date(row['Timestamp']).toDateString();
                 if (!perTanggal[tglKey]) {
-                    perTanggal[tglKey] = { timestamp: row['Timestamp'], total: 0 };
+                    perTanggal[tglKey] = { timestamp: row['Timestamp'], total: Number(row['Shodaqoh']) || 0 };
                     urutanTanggal.push(tglKey);
-                }
-                perTanggal[tglKey].total += Number(row['Shodaqoh']) || 0;
-                // Simpan timestamp PALING BARU di hari itu, biar kalau dibuka lagi
-                // tanggalnya tetap konsisten dengan urutan simpan terakhir.
-                if (new Date(row['Timestamp']) > new Date(perTanggal[tglKey].timestamp)) {
+                } else if (new Date(row['Timestamp']) > new Date(perTanggal[tglKey].timestamp)) {
+                    // Sesi simpan lebih baru ditemukan di hari yang sama -> pakai
+                    // nilai ini (timpa yang lama), karena ini yang paling update.
                     perTanggal[tglKey].timestamp = row['Timestamp'];
+                    perTanggal[tglKey].total = Number(row['Shodaqoh']) || 0;
                 }
             });
 
@@ -2886,17 +2887,20 @@
                 return;
             }
 
+            // Sama seperti Riwayat Sedekah: nilai "Tabungan Servis" tiap baris itu
+            // KUMULATIF hari itu (10% dari pendapatan bersih hari berjalan), jadi
+            // yang dipakai cuma nilai dari sesi "Simpan" PALING TERAKHIR di hari
+            // itu -- bukan dijumlah semua sesi simpan (itu akan double count).
             let perTanggal = {};
             let urutanTanggal = [];
             rows.forEach(row => {
                 let tglKey = new Date(row['Timestamp']).toDateString();
                 if (!perTanggal[tglKey]) {
-                    perTanggal[tglKey] = { timestamp: row['Timestamp'], total: 0 };
+                    perTanggal[tglKey] = { timestamp: row['Timestamp'], total: Number(row['Tabungan Servis']) || 0 };
                     urutanTanggal.push(tglKey);
-                }
-                perTanggal[tglKey].total += Number(row['Tabungan Servis']) || 0;
-                if (new Date(row['Timestamp']) > new Date(perTanggal[tglKey].timestamp)) {
+                } else if (new Date(row['Timestamp']) > new Date(perTanggal[tglKey].timestamp)) {
                     perTanggal[tglKey].timestamp = row['Timestamp'];
+                    perTanggal[tglKey].total = Number(row['Tabungan Servis']) || 0;
                 }
             });
 
