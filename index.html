@@ -242,6 +242,9 @@
                             <i class="fa-solid fa-wallet text-brand-neon"></i> Pendapatan Bersih
                         </p>
                         <h2 class="text-4xl font-extrabold tracking-tight drop-shadow-md text-brand-neon" id="dash-bersih">Rp 0</h2>
+                        <p class="text-xs font-semibold text-white/60 mt-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-sack-dollar text-white/50"></i> Kotor: <span class="font-bold text-white/80" id="dash-kotor">Rp 0</span>
+                        </p>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
                         <i class="fa-solid fa-bolt text-brand-neon"></i>
@@ -1958,6 +1961,33 @@
                 let saved = localStorage.getItem('dompet_custom_list');
                 if (saved) dompetCustomList = JSON.parse(saved) || [];
             } catch (e) { dompetCustomList = []; }
+            bersihDompetDuplikatLocal();
+        }
+
+        // Bersihin duplikat dompet custom di list lokal (nama sama, case-insensitive,
+        // spasi pinggir diabaikan). Dipertahankan yang saldonya paling besar; kalau
+        // sama semua, yang pertama muncul di list yang dipertahankan. Ini cuma
+        // beresin TAMPILAN lokal; pembersihan permanen di Google Sheet dilakukan
+        // via action 'bersihkan_dompet_duplikat' ke server (lihat autoBersihkanDompetDuplikat()).
+        function bersihDompetDuplikatLocal() {
+            let grup = {};
+            let urutanAsli = [];
+            dompetCustomList.forEach(d => {
+                let nama = (d.nama || '').trim().toLowerCase();
+                if (!grup[nama]) { grup[nama] = []; urutanAsli.push(nama); }
+                grup[nama].push(d);
+            });
+
+            let adaDuplikat = urutanAsli.some(nama => grup[nama].length > 1);
+            if (!adaDuplikat) return;
+
+            let hasil = [];
+            urutanAsli.forEach(nama => {
+                let items = grup[nama].slice().sort((a, b) => (b.saldo || 0) - (a.saldo || 0));
+                hasil.push(items[0]);
+            });
+            dompetCustomList = hasil;
+            simpanDompetCustomLocal();
         }
         function simpanKategoriCustomLocal() {
             localStorage.setItem('kategori_pemasukan_custom_list', JSON.stringify(kategoriPemasukanCustomList));
@@ -2387,6 +2417,10 @@
             document.getElementById('dash-in-day').innerText = formatRp(dash.totalIn);
             document.getElementById('dash-out-day').innerText = formatRp(dash.totalOut);
 
+            // Pendapatan Kotor = Total Masuk (sebelum dikurangi pengeluaran),
+            // ditampilkan berdampingan dengan Pendapatan Bersih di kartu digital wallet.
+            document.getElementById('dash-kotor').innerText = formatRp(dash.totalIn);
+
             let elDashBersih = document.getElementById('dash-bersih');
             elDashBersih.innerText = formatRp(bersihDash);
             // Kartu digital wallet-nya sendiri background hijau gelap, jadi angkanya
@@ -2657,6 +2691,33 @@
             renderSaldoCustomInputs();
             suntikDompetCustomKeSemuaSelect();
             calculateRealtime();
+        }
+
+        // --- Auto-bersihin dompet custom yang dobel di server (sekali saja) ---
+        // Nge-fix bug lama: dompet custom (terutama "Gopay Simpanan" hasil auto-seed)
+        // bisa numpuk beberapa baris di Google Sheet kalau tambah_dompet sempat
+        // kepanggil lebih dari sekali untuk nama yang sama. tambahDompetCustom()
+        // di backend sekarang sudah dicegah bikin duplikat baru, tapi baris-baris
+        // lama yang SUDAH kejadian tetap perlu dibersihin manual sekali ini.
+        async function autoBersihkanDompetDuplikat() {
+            const FLAG_KEY = 'cleanup_dompet_duplikat_done_v1';
+            if (localStorage.getItem(FLAG_KEY)) return;
+            if (!isServerAktif()) return; // tanpa server, cukup dedupe lokal (sudah jalan otomatis)
+
+            try {
+                let hasil = await kirimKeServer({ action: 'bersihkan_dompet_duplikat' });
+                if (Array.isArray(hasil.dompet)) {
+                    dompetCustomList = hasil.dompet.map(d => ({ id: d.id, nama: d.nama, saldo: d.saldo, urutan: d.urutan }));
+                    bersihDompetDuplikatLocal();
+                    simpanDompetCustomLocal();
+                    renderSaldoCustomInputs();
+                    suntikDompetCustomKeSemuaSelect();
+                    renderKelolaDompet();
+                }
+                localStorage.setItem(FLAG_KEY, '1');
+            } catch (e) {
+                // Gagal (mis. offline) -- coba lagi di sesi berikutnya, flag belum diset.
+            }
         }
 
         async function hapusDompetItem(id) {
@@ -3300,6 +3361,7 @@
                         // yang sedang diketik user di HP ini tidak ketiban data server,
                         // tapi daftar ID/nama dompetnya sendiri disamakan dengan server.
                         dompetCustomList = json.dataDompetCustom.map(d => ({ id: d.id, nama: d.nama, saldo: d.saldo, urutan: d.urutan }));
+                        bersihDompetDuplikatLocal();
                         simpanDompetCustomLocal();
                         renderSaldoCustomInputs();
                         suntikDompetCustomKeSemuaSelect();
@@ -4207,7 +4269,10 @@
             // tombol reflash manual dulu buat lihat data terbaru. Dipanggil lewat
             // muatUlangData(true) supaya perilakunya (ikon berputar + toast saat
             // berhasil) persis sama seperti pencet tombol reflash.
-            muatUlangData(true);
+            // Setelah sync server pertama ini selesai (dompetCustomList sudah
+            // pasti berisi data terbaru dari Sheet), baru jalanin pembersihan
+            // dompet duplikat SEKALI ke server -- lihat autoBersihkanDompetDuplikat().
+            muatUlangData(true).then(() => autoBersihkanDompetDuplikat());
         };
 
     </script>
