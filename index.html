@@ -116,6 +116,17 @@
 </head>
 <body class="bg-slate-50 dark:bg-bgDark text-slate-800 dark:text-slate-200 font-sans transition-colors duration-500 pb-28 min-h-screen relative bg-grid">
 
+    <!-- SPLASH SCREEN (LAYAR LOADING) -->
+    <div id="splash-screen" class="fixed inset-0 z-[100] bg-slate-50 dark:bg-bgDark flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="relative w-20 h-20 mb-4">
+            <div class="absolute inset-0 border-4 border-slate-200 dark:border-white/10 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-brand rounded-full border-t-transparent animate-spin"></div>
+            <i class="fa-solid fa-motorcycle absolute inset-0 flex items-center justify-center text-2xl text-brand"></i>
+        </div>
+        <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-1">OjolTracker</h2>
+        <p class="text-xs text-slate-500 animate-pulse">Sedang mengambil data...</p>
+    </div>
+
     <!-- Header (Glassmorphism) -->
     <header class="fixed top-0 w-full z-50 backdrop-blur-xl bg-white/70 dark:bg-bgDark/70 border-b border-slate-200/50 dark:border-white/5 px-6 py-4 flex justify-between items-center transition-colors shadow-glass">
         <div class="flex items-center gap-3">
@@ -4282,7 +4293,16 @@
             // Setelah sync server pertama ini selesai (dompetCustomList sudah
             // pasti berisi data terbaru dari Sheet), baru jalanin pembersihan
             // dompet duplikat SEKALI ke server -- lihat autoBersihkanDompetDuplikat().
-            muatUlangData(true).then(() => autoBersihkanDompetDuplikat());
+            muatUlangData(true).then(() => {
+                autoBersihkanDompetDuplikat();
+                
+                // Menghilangkan splash screen setelah data selesai dimuat
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.add('opacity-0');
+                    setTimeout(() => { splash.style.display = 'none'; }, 500); // Menunggu animasi pudar selesai
+                }
+            });
         };
 
         // --- Registrasi Service Worker (sw.js) ---
