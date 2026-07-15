@@ -13,6 +13,7 @@
     
     <!-- PWA Setup -->
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="./icon-192.png">
     <meta name="theme-color" content="#0B1120">
     <link rel="apple-touch-icon" href="./icon-192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2455,9 +2456,13 @@
             // Mengambil persentase alokasi dari settings (localStorage) atau default
             let pctSedekah = parseFloat(localStorage.getItem('set_sedekah')) || 2.5;
             let pctTabungan = parseFloat(localStorage.getItem('set_tabungan')) || 10;
-            
-            let shodaqoh = bersihMon > 0 ? bersihMon * (pctSedekah / 100) : 0;
-            let tabungan = bersihMon > 0 ? bersihMon * (pctTabungan / 100) : 0;
+
+            // Sedekah & Tabungan dihitung dari Pendapatan KOTOR (mon.totalIn),
+            // bukan dari Pendapatan Bersih lagi -- supaya alokasinya tidak
+            // berkurang gara-gara ada pengeluaran hari itu.
+            let kotorMon = mon.totalIn;
+            let shodaqoh = kotorMon > 0 ? kotorMon * (pctSedekah / 100) : 0;
+            let tabungan = kotorMon > 0 ? kotorMon * (pctTabungan / 100) : 0;
             document.getElementById('mon-shodaqoh').innerText = formatRp(shodaqoh);
             document.getElementById('mon-tabungan').innerText = formatRp(tabungan);
 
@@ -4275,6 +4280,17 @@
             muatUlangData(true).then(() => autoBersihkanDompetDuplikat());
         };
 
+        // --- Registrasi Service Worker (sw.js) ---
+        // File ini yang tadinya kesimpan/ketuker dengan nama "manifest.json".
+        // manifest.json HARUS berisi JSON (nama app, ikon, dll), sedangkan
+        // logic caching/offline ini harus di file terpisah bernama sw.js.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('[SW] Terdaftar, scope:', reg.scope))
+                    .catch((err) => console.log('[SW] Gagal daftar:', err));
+            });
+        }
     </script>
 </body>
 </html>
