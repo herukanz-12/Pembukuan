@@ -595,7 +595,8 @@
                                             <option value="bca">BCA</option>
                                         </select>
                                     </div>
-                                    <input type="number" id="in_bid" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
+                                    <input type="number" id="in_bid" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none mb-2" placeholder="0">
+                                    <input type="text" id="in_bid_order" class="w-full bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none" placeholder="No. Order (Opsional)">
                                 </div>
                                 <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
                                     <div class="flex justify-between items-center mb-2">
@@ -697,7 +698,7 @@
                                     <input type="number" id="out_bensin" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
                                 </div>
 
-                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
+                                <div c<div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
                                     <div class="flex justify-between items-center mb-2">
                                         <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-percent text-red-400"></i> Potongan Gojek</label>
                                         <select id="dompet_out_potongan_gojek" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
@@ -707,7 +708,9 @@
                                             <option value="bca">BCA</option>
                                         </select>
                                     </div>
-                                    <input type="number" id="out_potongan_gojek" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                    <input type="number" id="out_potongan_gojek" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none mb-2" placeholder="0">
+                                    <input type="text" id="out_potongan_gojek_order" class="w-full bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none" placeholder="No. Order (Opsional)">
+                                </div>
                                 </div>
 
                                 <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
@@ -753,13 +756,14 @@
                                     <div class="flex justify-between items-center mb-2">
                                         <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-basket-shopping text-red-400"></i> Talangan Pesanan</label>
                                         <select id="dompet_out_talangan" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
+                                            <option value="cash">Cash</option>
                                             <option value="gopay_driver">Gopay Driver</option>
                                             <option value="gopay">Gopay</option>
-                                            <option value="cash">Cash</option>
                                             <option value="bca">BCA</option>
                                         </select>
                                     </div>
-                                    <input type="number" id="out_talangan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
+                                    <input type="number" id="out_talangan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none mb-2" placeholder="0">
+                                    <input type="text" id="out_talangan_order" class="w-full bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none" placeholder="No. Order (Opsional)">
                                 </div>
 
                                 <!-- Dynamic Manual Expense Entries -->
@@ -2418,12 +2422,11 @@
             document.getElementById('dash-in-day').innerText = formatRp(dash.totalIn);
             document.getElementById('dash-out-day').innerText = formatRp(dash.totalOut);
 
-            // Pendapatan Kotor = Total Masuk (sebelum dikurangi pengeluaran),
-            // ditampilkan berdampingan dengan Pendapatan Bersih di kartu digital wallet.
-            document.getElementById('dash-kotor').innerText = formatRp(dash.totalIn);
+            // Pendapatan Kotor (Hasil Jasa Murni) = Total Masuk dikurangi Talangan Pesanan
+            let kotorMurni = dash.totalIn - (dash.kategoriTotal['Keluar Talangan Pesanan'] || 0);
+            document.getElementById('dash-kotor').innerText = formatRp(kotorMurni);
 
             let elDashBersih = document.getElementById('dash-bersih');
-            elDashBersih.innerText = formatRp(bersihDash);
             // Kartu digital wallet-nya sendiri background hijau gelap, jadi angkanya
             // pakai text-brand-neon (hijau terang) waktu positif biar tetap kebaca &
             // "nyala", dan text-red-400 (merah lebih terang) waktu minus biar kontras
@@ -2457,10 +2460,10 @@
             let pctSedekah = parseFloat(localStorage.getItem('set_sedekah')) || 2.5;
             let pctTabungan = parseFloat(localStorage.getItem('set_tabungan')) || 10;
 
-            // Sedekah & Tabungan dihitung dari Pendapatan KOTOR (mon.totalIn),
+            // Sedekah & Tabungan dihitung dari Pendapatan KOTOR Murni Jasa (mon.totalIn - Talangan),
             // bukan dari Pendapatan Bersih lagi -- supaya alokasinya tidak
-            // berkurang gara-gara ada pengeluaran hari itu.
-            let kotorMon = mon.totalIn;
+            // berkurang gara-gara ada pengeluaran hari itu, dan tidak bengkak karena uang makanan.
+            let kotorMon = mon.totalIn - (mon.kategoriTotal['Keluar Talangan Pesanan'] || 0);
             let shodaqoh = kotorMon > 0 ? kotorMon * (pctSedekah / 100) : 0;
             let tabungan = kotorMon > 0 ? kotorMon * (pctTabungan / 100) : 0;
             document.getElementById('mon-shodaqoh').innerText = formatRp(shodaqoh);
@@ -2484,7 +2487,7 @@
 
             // Update Progress Bar Target Pendapatan Kotor (Total Pemasukan sebelum
             // dikurangi pengeluaran) -- motor kedua, terpisah dari yang Bersih di atas.
-            let kotorDash = dash.totalIn;
+            let kotorDash = dash.totalIn - (dash.kategoriTotal['Keluar Talangan Pesanan'] || 0);
             document.getElementById('target-kotor-val').innerText = formatRp(kotorDash);
 
             if (targetPendapatan > 0) {
@@ -3566,7 +3569,7 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_talangan', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_bid_order', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
             
             // Clear manual rows
@@ -3628,7 +3631,7 @@
                 }
             };
 
-            tambahDetail('Masuk', 'Bid', '', getVal('in_bid'), getStr('dompet_in_bid'));
+            tambahDetail('Masuk', 'Bid', getStr('in_bid_order'), getVal('in_bid'), getStr('dompet_in_bid'));
             tambahDetail('Masuk', 'Tips', '', getVal('in_tips'), getStr('dompet_in_tips'));
             document.querySelectorAll('#manual-income-list > div').forEach(row => {
                 let desc = row.querySelector('.manual-in-desc').value.trim();
@@ -3645,8 +3648,8 @@
             tambahDetail('Keluar', 'Kuota', '', getVal('out_kuota'), getStr('dompet_out_kuota'));
             tambahDetail('Keluar', 'Rokok', '', getVal('out_rokok'), getStr('dompet_out_rokok'));
             tambahDetail('Keluar', 'Bensin', '', getVal('out_bensin'), getStr('dompet_out_bensin'));
-            tambahDetail('Keluar', 'Potongan Gojek', '', getVal('out_potongan_gojek'), getStr('dompet_out_potongan_gojek'));
-            tambahDetail('Keluar', 'Talangan Pesanan', '', getVal('out_talangan'), getStr('dompet_out_talangan'));
+            tambahDetail('Keluar', 'Potongan Gojek', getStr('out_potongan_gojek_order'), getVal('out_potongan_gojek'), getStr('dompet_out_potongan_gojek'));
+            tambahDetail('Keluar', 'Talangan Pesanan', getStr('out_talangan_order'), getVal('out_talangan'), getStr('dompet_out_talangan'));
             tambahDetail('Keluar', 'Ganti Oli Mesin', '', getVal('out_ganti_oli_mesin'), getStr('dompet_out_ganti_oli_mesin'));
             tambahDetail('Keluar', 'Ganti Oli Gardan', '', getVal('out_oli_gardan'), getStr('dompet_out_oli_gardan'));
             tambahDetail('Keluar', 'Servis Motor', '', getVal('out_servis_motor'), getStr('dompet_out_servis_motor'));
