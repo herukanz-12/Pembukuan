@@ -2465,8 +2465,11 @@
             document.getElementById('dash-in-day').innerText = formatRp(dash.totalIn);
             document.getElementById('dash-out-day').innerText = formatRp(dash.totalOut);
 
-            // Pendapatan Kotor (Hasil Jasa Murni) = Total Masuk dikurangi Talangan Pesanan
-            let kotorMurni = dash.totalIn - (dash.kategoriTotal['Keluar Talangan Pesanan'] || 0);
+            // Pendapatan Kotor (Hasil Jasa Murni) = Total Masuk dikurangi Talangan
+            // Pesanan (GoFood) dan Potongan Gojek (Bid/GoRide) -- dua-duanya uang
+            // yang lewat tangan kita tapi bukan hak kita.
+            let kotorMurni = dash.totalIn - (dash.kategoriTotal['Keluar Talangan Pesanan'] || 0) - (dash.kategoriTotal['Keluar Potongan Gojek'] || 0);
+            if (kotorMurni < 0) kotorMurni = 0;
             document.getElementById('dash-kotor').innerText = formatRp(kotorMurni);
 
             let elDashBersih = document.getElementById('dash-bersih');
@@ -2507,10 +2510,13 @@
             let pctSedekah = parseFloat(localStorage.getItem('set_sedekah')) || 2.5;
             let pctTabungan = parseFloat(localStorage.getItem('set_tabungan')) || 10;
 
-            // Sedekah & Tabungan dihitung dari Pendapatan KOTOR Murni Jasa (mon.totalIn - Talangan),
-            // bukan dari Pendapatan Bersih lagi -- supaya alokasinya tidak
-            // berkurang gara-gara ada pengeluaran hari itu, dan tidak bengkak karena uang makanan.
-            let kotorMon = mon.totalIn - (mon.kategoriTotal['Keluar Talangan Pesanan'] || 0);
+            // Sedekah & Tabungan dihitung dari Pendapatan KOTOR Murni Jasa
+            // (mon.totalIn - Talangan - Potongan Gojek), bukan dari Pendapatan
+            // Bersih lagi -- supaya alokasinya tidak berkurang gara-gara ada
+            // pengeluaran hari itu, dan tidak bengkak karena uang makanan atau
+            // uang Gojek yang numpang lewat.
+            let kotorMon = mon.totalIn - (mon.kategoriTotal['Keluar Talangan Pesanan'] || 0) - (mon.kategoriTotal['Keluar Potongan Gojek'] || 0);
+            if (kotorMon < 0) kotorMon = 0;
             let shodaqoh = kotorMon > 0 ? kotorMon * (pctSedekah / 100) : 0;
             let tabungan = kotorMon > 0 ? kotorMon * (pctTabungan / 100) : 0;
             document.getElementById('mon-shodaqoh').innerText = formatRp(shodaqoh);
