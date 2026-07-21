@@ -607,8 +607,13 @@
                                         </select>
                                     </div>
                                     <p class="text-[9px] text-green-600/70 dark:text-green-400/70 -mt-1 mb-2">(Sama dengan "Tagih Tunai")</p>
-                                    <input type="number" id="in_bid" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none mb-2" placeholder="0">
+                                    <input type="number" id="in_bid" oninput="autoHitungPotonganGojek()" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none mb-2" placeholder="0">
                                     <input type="text" id="in_bid_order" class="w-full bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none" placeholder="No. Order (Opsional)">
+                                    <div class="mt-2 pt-2 border-t border-dashed border-green-200 dark:border-green-500/20">
+                                        <label class="text-[9px] font-bold text-green-600/80 dark:text-green-400/80 uppercase flex items-center gap-1 mb-1"><i class="fa-solid fa-calculator"></i> Pendapatan Bersih (cek di app Gojek)</label>
+                                        <input type="number" id="in_bid_bersih" oninput="autoHitungPotonganGojek()" class="w-full bg-white dark:bg-cardDark border border-green-200 dark:border-green-500/20 rounded-lg p-2 text-sm text-slate-700 dark:text-slate-200 outline-none" placeholder="Opsional, khusus GoRide/Bid: isi ini biar Potongan Gojek otomatis">
+                                        <p id="hint_potongan_otomatis" class="text-[9px] text-slate-400 mt-1 hidden"></p>
+                                    </div>
                                 </div>
                                 <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
                                     <div class="flex justify-between items-center mb-2">
@@ -1627,6 +1632,28 @@
         }
 
         // --- Core Calculations ---
+        // Khusus order Bid (GoRide/GoCar): user tau 2 angka dari app Gojek --
+        // Total Diterima/Tagih Tunai (in_bid) dan Total Pendapatan Bersih (in_bid_bersih).
+        // Potongan Gojek (komisi 8% + biaya asuransi + biaya jasa aplikasi, dst)
+        // tinggal dihitung otomatis dari selisihnya, gak perlu diitung manual.
+        function autoHitungPotonganGojek() {
+            const bid = getVal('in_bid');
+            const bersih = getVal('in_bid_bersih');
+            const hint = document.getElementById('hint_potongan_otomatis');
+            if (bersih > 0 && bid > 0) {
+                let potongan = bid - bersih;
+                if (potongan < 0) potongan = 0;
+                document.getElementById('out_potongan_gojek').value = potongan;
+                if (hint) {
+                    hint.textContent = 'Potongan Gojek otomatis diisi Rp' + potongan.toLocaleString('id-ID');
+                    hint.classList.remove('hidden');
+                }
+                calculateRealtime();
+            } else if (hint) {
+                hint.classList.add('hidden');
+            }
+        }
+
         function calculateRealtime() {
             // 1. Ambil Nilai Saldo Awal (Base)
             let base = {
@@ -3585,8 +3612,10 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_bid_order', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_bid_order', 'in_bid_bersih', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
+            const hintPotongan = document.getElementById('hint_potongan_otomatis');
+            if (hintPotongan) hintPotongan.classList.add('hidden');
             
             // Clear manual rows
             document.getElementById('manual-income-list').innerHTML = '';
