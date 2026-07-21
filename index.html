@@ -2470,6 +2470,10 @@
             document.getElementById('dash-kotor').innerText = formatRp(kotorMurni);
 
             let elDashBersih = document.getElementById('dash-bersih');
+            // FIX: sebelumnya cuma className yang di-set, innerText-nya kelupaan --
+            // akibatnya kartu ini selamanya nampilin "Rp 0" bawaan HTML walau
+            // Total Masuk/Keluar-nya sudah benar.
+            elDashBersih.innerText = formatRp(bersihDash);
             // Kartu digital wallet-nya sendiri background hijau gelap, jadi angkanya
             // pakai text-brand-neon (hijau terang) waktu positif biar tetap kebaca &
             // "nyala", dan text-red-400 (merah lebih terang) waktu minus biar kontras
