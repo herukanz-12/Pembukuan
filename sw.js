@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ojolku-cache-v3.5.5'; // NAIKKAN tiap kali index.html/manifest.json berubah
+const CACHE_NAME = 'ojolku-cache-v3.6.0'; // NAIKKAN tiap kali index.html/manifest.json berubah
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json',
@@ -62,9 +62,15 @@ self.addEventListener('fetch', (event) => {
   //    Ini juga yang bikin update UI kepakai begitu deploy baru, tanpa nunggu 1x buka basi dulu.
   if (req.mode === 'navigate' || req.url.endsWith('index.html') || req.url.endsWith('manifest.json')) {
     event.respondWith(
-      fetch(req)
+      // cache: 'no-store' -> lewati cache HTTP browser (GitHub Pages menyuruh browser
+      // menyimpan file ~10 menit), jadi versi terbaru dari server benar-benar diambil.
+      fetch(req, { cache: 'no-store' })
         .then((networkResponse) => {
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, networkResponse.clone()));
+          // Hanya simpan ke cache kalau responsnya sukses (bukan error/redirect).
+          if (networkResponse && networkResponse.ok) {
+            const salinan = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, salinan));
+          }
           return networkResponse;
         })
         .catch(() => caches.match(req))
