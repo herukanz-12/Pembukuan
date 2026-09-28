@@ -573,6 +573,44 @@
                 <!-- /panel-dompet -->
 
                 <div id="panel-masuk-keluar" class="input-panel hidden">
+                <!-- SHORTCUT: Pesanan Tunai (GoFood / GoShop) -- 1x isi = Masuk (Cash) + Keluar (Talangan) sekaligus -->
+                <div class="bg-amber-50/60 dark:bg-amber-500/5 rounded-[2rem] border border-amber-200 dark:border-amber-500/20 p-5 mb-3 shadow-glass">
+                    <h3 class="font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2 text-sm">
+                        <span class="w-1.5 h-5 rounded-full bg-amber-500 block"></span>
+                        Pesanan Tunai (GoFood / GoShop)
+                    </h3>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-3">Isi sekali di sini, otomatis tercatat: Cash bertambah &amp; saldo talangan berkurang.</p>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase block mb-1">Tagih Tunai</label>
+                            <input type="number" id="gq_tagih" oninput="gqPreview()" class="w-full bg-white dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-lg font-bold text-brand outline-none focus:border-brand" placeholder="149000">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-red-500 uppercase block mb-1">Talangan</label>
+                            <input type="number" id="gq_talangan" oninput="gqPreview()" class="w-full bg-white dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-lg font-bold text-red-500 outline-none focus:border-red-400" placeholder="139000">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Talangan dari</label>
+                            <select id="gq_sumber" onchange="gqSimpanSumber(); gqPreview()" class="w-full text-xs font-bold bg-white dark:bg-bgDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-xl px-2 py-3 outline-none">
+                                <option value="gopay">Gopay</option>
+                                <option value="gopay_driver">Gopay Driver</option>
+                                <option value="bca">BCA</option>
+                                <option value="cash">Cash</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">No. Order</label>
+                            <input type="text" id="gq_order" class="w-full bg-white dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-slate-800 dark:text-white outline-none" placeholder="Opsional">
+                        </div>
+                    </div>
+                    <p id="gq_preview" class="text-[11px] text-slate-500 dark:text-slate-400 mb-3 hidden"></p>
+                    <button type="button" onclick="gqTerapkan()" class="w-full py-3 rounded-xl bg-amber-500 text-white font-bold text-sm active:scale-[0.98] transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt"></i> Catat Pesanan Tunai
+                    </button>
+                </div>
+
                 <!-- Toggle Arus Masuk / Keluar -->
                 <div class="relative grid grid-cols-2 bg-slate-200/50 dark:bg-white/5 rounded-full p-1 mb-2 border border-slate-200 dark:border-white/10 shadow-inner">
                     <div id="input-toggle-indicator" class="absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] bg-white dark:bg-cardDark rounded-full shadow-sm border border-slate-200 dark:border-white/5 transition-transform duration-300"></div>
@@ -1631,6 +1669,73 @@
             calculateRealtime();
         }
 
+        // --- SHORTCUT PESANAN TUNAI (GoFood/GoShop) ---
+        // 1x isi: Tagih Tunai -> field Bid (dompet Cash), Talangan -> field Talangan
+        // Pesanan (dompet pilihan). Order ke-2 dst di hari yang sama otomatis
+        // DIJUMLAHKAN ke angka yang sudah ada (selama dompetnya sama).
+        function gqLabelDompet(id) {
+            const sel = document.getElementById('gq_sumber');
+            const o = Array.from(sel.options).find(x => x.value === id);
+            return o ? o.textContent : id;
+        }
+        function gqSimpanSumber() {
+            try { localStorage.setItem('gq_sumber_terakhir', document.getElementById('gq_sumber').value); } catch (e) {}
+        }
+        function gqMuatSumber() {
+            try {
+                const v = localStorage.getItem('gq_sumber_terakhir');
+                const sel = document.getElementById('gq_sumber');
+                if (v && sel && Array.from(sel.options).some(o => o.value === v)) sel.value = v;
+            } catch (e) {}
+        }
+        function gqPreview() {
+            const tagih = getVal('gq_tagih'), talangan = getVal('gq_talangan');
+            const el = document.getElementById('gq_preview');
+            if (tagih <= 0 && talangan <= 0) { el.classList.add('hidden'); return; }
+            const sumber = gqLabelDompet(getStr('gq_sumber'));
+            let t = 'Cash +' + formatRp(tagih) + ' · ' + sumber + ' -' + formatRp(talangan);
+            if (tagih > 0 && talangan > 0) t += ' · Selisih ' + formatRp(tagih - talangan);
+            el.textContent = t;
+            el.classList.remove('hidden');
+        }
+        function gqGabungOrder(el, order) {
+            if (!order) return;
+            const lama = el.value.trim();
+            el.value = lama ? (lama.split(',').map(x => x.trim()).includes(order) ? lama : lama + ', ' + order) : order;
+        }
+        function gqTambahBaris(tipe, nominal, dompet, order) {
+            const masuk = tipe === 'masuk';
+            const elVal = document.getElementById(masuk ? 'in_bid' : 'out_talangan');
+            const elDmp = document.getElementById(masuk ? 'dompet_in_bid' : 'dompet_out_talangan');
+            const elOrd = document.getElementById(masuk ? 'in_bid_order' : 'out_talangan_order');
+            const cur = parseFloat(elVal.value) || 0;
+            if (cur === 0 || elDmp.value === dompet) {
+                elVal.value = cur + nominal;
+                elDmp.value = dompet;
+                gqGabungOrder(elOrd, order);
+            } else {
+                // Field utama sudah dipakai dompet lain -> masuk sebagai baris "Lainnya"
+                if (masuk) addManualIncomeRow(); else addManualExpenseRow();
+                const row = document.getElementById(masuk ? 'manual-income-list' : 'manual-expense-list').lastElementChild;
+                row.querySelector(masuk ? '.manual-in-desc' : '.manual-out-desc').value = masuk ? 'Bid' : 'Talangan Pesanan';
+                row.querySelector(masuk ? '.manual-in-dompet' : '.manual-out-dompet').value = dompet;
+                row.querySelector(masuk ? '.manual-in-val' : '.manual-out-val').value = nominal;
+            }
+        }
+        function gqTerapkan() {
+            const tagih = getVal('gq_tagih'), talangan = getVal('gq_talangan');
+            if (tagih <= 0 && talangan <= 0) { showToast('Isi Tagih Tunai & Talangan dulu'); return; }
+            const sumber = getStr('gq_sumber'), order = getStr('gq_order');
+            if (tagih > 0) gqTambahBaris('masuk', tagih, 'cash', order);
+            if (talangan > 0) gqTambahBaris('keluar', talangan, sumber, order);
+            gqSimpanSumber();
+            ['gq_tagih', 'gq_talangan', 'gq_order'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('gq_preview').classList.add('hidden');
+            calculateRealtime();
+            showToast('Pesanan tunai dicatat. Tekan Simpan untuk kirim ke Sheet.');
+        }
+        document.addEventListener('DOMContentLoaded', gqMuatSumber);
+
         // --- Core Calculations ---
         // Khusus order Bid (GoRide/GoCar): user tau 2 angka dari app Gojek --
         // Total Diterima/Tagih Tunai (in_bid) dan Total Pendapatan Bersih (in_bid_bersih).
@@ -2056,7 +2161,7 @@
         // Dompet custom akan disisipkan sebagai <optgroup> tambahan ke semua select
         // ini + ke select dinamis (.manual-in-dompet / .manual-out-dompet / bayar hutang).
         const ID_SELECT_DOMPET_FIXED = [
-            'dompet_in_bid', 'dompet_in_tips',
+            'dompet_in_bid', 'dompet_in_tips', 'gq_sumber',
             'dompet_out_makan', 'dompet_out_minum', 'dompet_out_kuota', 'dompet_out_rokok',
             'dompet_out_bensin', 'dompet_out_potongan_gojek', 'dompet_out_ganti_oli_mesin',
             'dompet_out_oli_gardan', 'dompet_out_servis_motor', 'dompet_out_talangan',
@@ -3624,6 +3729,8 @@
         function resetForm() {
             const inputs = ['in_bid', 'in_bid_order', 'in_bid_bersih', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
+            ['gq_tagih', 'gq_talangan', 'gq_order'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+            const gqp = document.getElementById('gq_preview'); if (gqp) gqp.classList.add('hidden');
             const hintPotongan = document.getElementById('hint_potongan_otomatis');
             if (hintPotongan) hintPotongan.classList.add('hidden');
             
