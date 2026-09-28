@@ -1667,6 +1667,7 @@
         function removeManualRow(id) {
             document.getElementById(id).remove();
             calculateRealtime();
+            simpanDraftForm();
         }
 
         // --- SHORTCUT PESANAN TUNAI (GoFood/GoShop) ---
@@ -1732,9 +1733,109 @@
             ['gq_tagih', 'gq_talangan', 'gq_order'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('gq_preview').classList.add('hidden');
             calculateRealtime();
+            simpanDraftForm();
             showToast('Pesanan tunai dicatat. Tekan Simpan untuk kirim ke Sheet.');
         }
         document.addEventListener('DOMContentLoaded', gqMuatSumber);
+
+        // --- DRAF OTOMATIS FORM INPUT ---
+        // Browser HP sering "mematikan" tab/PWA saat kita pindah ke app lain (mis.
+        // Gojek Driver), jadi halaman load ulang & isi form yang belum disimpan
+        // hilang. Solusi: isi form disalin ke localStorage tiap kali berubah (dan
+        // saat app ke-background), lalu dipulihkan otomatis saat app dibuka lagi.
+        // Draf dihapus setelah Simpan berhasil / tombol Reset.
+        const DRAFT_KEY = 'draf_form_input_v1';
+        const DRAFT_MAX_UMUR_MS = 36 * 60 * 60 * 1000; // draf lebih tua dari 36 jam dibuang
+        const DRAFT_FIELD = ['in_bid', 'in_bid_order', 'in_bid_bersih', 'in_tips', 'in_trip',
+            'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin',
+            'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order',
+            'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart',
+            'gq_tagih', 'gq_talangan', 'gq_order'];
+        let draftSiap = false; // baru boleh menyimpan setelah draf lama selesai dipulihkan
+        let draftTimer = null;
+
+        function simpanDraftForm() {
+            if (!draftSiap) return;
+            try {
+                const d = { t: Date.now(), f: {}, s: {}, mi: [], mo: [] };
+                let adaIsi = false;
+                DRAFT_FIELD.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && el.value !== '') { d.f[id] = el.value; adaIsi = true; }
+                });
+                ID_SELECT_DOMPET_FIXED.filter(id => /^dompet_(in|out)_/.test(id)).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) d.s[id] = el.value;
+                });
+                document.querySelectorAll('#manual-income-list > div').forEach(row => {
+                    const v = row.querySelector('.manual-in-val').value, ds = row.querySelector('.manual-in-desc').value;
+                    if (v !== '' || ds !== '') { adaIsi = true; d.mi.push({ d: ds, w: row.querySelector('.manual-in-dompet').value, v }); }
+                });
+                document.querySelectorAll('#manual-expense-list > div').forEach(row => {
+                    const v = row.querySelector('.manual-out-val').value, ds = row.querySelector('.manual-out-desc').value;
+                    if (v !== '' || ds !== '') { adaIsi = true; d.mo.push({ d: ds, w: row.querySelector('.manual-out-dompet').value, v }); }
+                });
+                if (!adaIsi) { localStorage.removeItem(DRAFT_KEY); return; }
+                const panel = Array.from(document.querySelectorAll('.input-panel')).find(el => el.style.display === 'block');
+                d.panel = panel ? panel.id : 'panel-masuk-keluar';
+                d.keluar = !document.getElementById('section-input-keluar').classList.contains('hidden');
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+            } catch (e) { /* localStorage penuh/diblokir: abaikan */ }
+        }
+
+        function hapusDraftForm() {
+            try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+        }
+
+        // Kembalikan true kalau ada draf yang dipulihkan.
+        function muatDraftForm() {
+            let d = null;
+            try { const raw = localStorage.getItem(DRAFT_KEY); if (raw) d = JSON.parse(raw); } catch (e) { d = null; }
+            draftSiap = true;
+            if (!d) return false;
+            if (!d.t || Date.now() - d.t > DRAFT_MAX_UMUR_MS) { hapusDraftForm(); return false; }
+
+            Object.entries(d.f || {}).forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.value = v; });
+            Object.entries(d.s || {}).forEach(([id, v]) => {
+                const el = document.getElementById(id);
+                if (el && Array.from(el.options).some(o => o.value === v)) el.value = v;
+            });
+            (d.mi || []).forEach(r => {
+                addManualIncomeRow();
+                const row = document.getElementById('manual-income-list').lastElementChild;
+                row.querySelector('.manual-in-desc').value = r.d || '';
+                row.querySelector('.manual-in-val').value = r.v || '';
+                const sel = row.querySelector('.manual-in-dompet');
+                if (Array.from(sel.options).some(o => o.value === r.w)) sel.value = r.w;
+            });
+            (d.mo || []).forEach(r => {
+                addManualExpenseRow();
+                const row = document.getElementById('manual-expense-list').lastElementChild;
+                row.querySelector('.manual-out-desc').value = r.d || '';
+                row.querySelector('.manual-out-val').value = r.v || '';
+                const sel = row.querySelector('.manual-out-dompet');
+                if (Array.from(sel.options).some(o => o.value === r.w)) sel.value = r.w;
+            });
+
+            // Buka lagi layar input yang tadi dipakai (window.onload akan memaksa
+            // ke Dashboard di 100ms pertama, jadi ini dijalankan sedikit setelahnya).
+            setTimeout(() => {
+                try {
+                    switchTab('input', 2);
+                    showInputPanel(d.panel || 'panel-masuk-keluar');
+                    if (d.panel === 'panel-masuk-keluar' || !d.panel) switchInputTab(d.keluar ? 'keluar' : 'masuk');
+                    showToast('Draf input yang belum disimpan dipulihkan');
+                } catch (e) {}
+            }, 400);
+            return true;
+        }
+
+        ['input', 'change'].forEach(ev => document.addEventListener(ev, () => {
+            clearTimeout(draftTimer);
+            draftTimer = setTimeout(simpanDraftForm, 300);
+        }));
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') simpanDraftForm(); });
+        window.addEventListener('pagehide', simpanDraftForm);
 
         // --- Core Calculations ---
         // Khusus order Bid (GoRide/GoCar): user tau 2 angka dari app Gojek --
@@ -2176,9 +2277,13 @@
             semuaSelect = semuaSelect.concat(Array.from(document.querySelectorAll('.manual-in-dompet, .manual-out-dompet')));
 
             semuaSelect.forEach(sel => {
+                const nilaiTerpilih = sel.value; // jaga pilihan user (termasuk dompet custom) agar tidak ke-reset
                 let ogLama = sel.querySelector('optgroup.custom-dompet-group');
                 if (ogLama) ogLama.remove();
-                if (dompetCustomList.length === 0) return;
+                if (dompetCustomList.length === 0) {
+                    if (nilaiTerpilih && Array.from(sel.options).some(o => o.value === nilaiTerpilih)) sel.value = nilaiTerpilih;
+                    return;
+                }
                 let og = document.createElement('optgroup');
                 og.label = 'Dompet Custom';
                 og.className = 'custom-dompet-group';
@@ -2189,6 +2294,7 @@
                     og.appendChild(opt);
                 });
                 sel.appendChild(og);
+                if (nilaiTerpilih && Array.from(sel.options).some(o => o.value === nilaiTerpilih)) sel.value = nilaiTerpilih;
             });
         }
 
@@ -3731,6 +3837,7 @@
             inputs.forEach(id => document.getElementById(id).value = '');
             ['gq_tagih', 'gq_talangan', 'gq_order'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
             const gqp = document.getElementById('gq_preview'); if (gqp) gqp.classList.add('hidden');
+            hapusDraftForm();
             const hintPotongan = document.getElementById('hint_potongan_otomatis');
             if (hintPotongan) hintPotongan.classList.add('hidden');
             
@@ -4421,6 +4528,7 @@
 
             muatSaldoLocal();
             muatKmOliLocal();
+            muatDraftForm(); // pulihkan isi form yang belum sempat disimpan (mis. app ke-reload)
             // Tampilin dulu saldo dari backup lokal (localStorage) SEBELUM nunggu
             // fetch ke server -- biar "Saldo Saat Ini" / "Dompet (Auto Kalkulasi)"
             // tetap kelihatan meski sinyal jelek/fetchRekapData() gagal. Nanti kalau
