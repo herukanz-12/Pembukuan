@@ -1155,6 +1155,20 @@
         <!-- 4. HUTANG / CICILAN VIEW -->
         <!-- ========================================== -->
         <section id="view-hutang" class="tab-content">
+            <!-- MENU KEUANGAN: tambah pilihan baru cukup menambah 1 objek di KEUANGAN_MENU (JS) -->
+            <div id="keuangan-menu">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Keuangan</h2>
+                    <p class="text-xs text-slate-500 mt-1">Pilih catatan yang mau dibuka</p>
+                </div>
+                <div id="keuangan-menu-list" class="space-y-3"></div>
+            </div>
+
+            <!-- SUB-HALAMAN: CATATAN CICILAN -->
+            <div id="keuangan-cicilan" style="display:none">
+            <button type="button" onclick="keuanganBuka('menu')" class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2.5 rounded-xl mb-5 hover:border-brand/40 transition">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Keuangan
+            </button>
             <div class="flex justify-between items-end mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Catatan Cicilan</h2>
@@ -1169,6 +1183,8 @@
             <div id="hutang-list-container" class="space-y-4 mb-8">
                 <!-- Card Hutang di-render oleh JS -->
             </div>
+            </div>
+            <!-- /keuangan-cicilan -->
         </section>
 
         <!-- ========================================== -->
@@ -1463,8 +1479,8 @@
             </button>
 
             <button onclick="switchTab('hutang', 3)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-hutang">
-                <i class="fa-solid fa-handshake-angle text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
-                <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Cicilan</span>
+                <i class="fa-solid fa-wallet text-xl mb-1 text-slate-400 group-[.active]:text-brand transition-all group-[.active]:scale-110 group-[.active]:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"></i>
+                <span class="text-[10px] font-bold text-slate-400 group-[.active]:text-brand transition-colors">Keuangan</span>
             </button>
 
             <button onclick="switchTab('riwayat', 4)" class="nav-btn group flex flex-col items-center w-1/5 py-2 relative" data-target="view-riwayat">
@@ -1563,6 +1579,9 @@
             // supaya halamannya kelihatan simpel & tidak penuh.
             if (tabName === 'input') {
                 showInputMenu();
+            }
+            if (tabName === 'hutang') {
+                keuanganBuka('menu');
             }
         }
 
@@ -4339,11 +4358,56 @@
 
         let hutangData = JSON.parse(localStorage.getItem('hutangData')) || [];
 
+
+        // ===== TAB KEUANGAN (menu pilihan) =====
+        // Tambah pilihan baru: tambah 1 objek di sini + 1 sub-halaman <div id="keuangan-xxx">.
+        const KEUANGAN_MENU = [
+            {
+                key: 'cicilan', icon: 'fa-handshake-angle', warna: 'brand', judul: 'Catatan Cicilan',
+                info: () => {
+                    if (!hutangData.length) return 'Belum ada catatan';
+                    const aktif = hutangData.filter(h => (h.totalAwal - h.terbayar) > 0);
+                    const sisa = aktif.reduce((t, h) => t + (h.totalAwal - h.terbayar), 0);
+                    const nama = hutangData.map(h => h.nama).join(', ');
+                    return nama + (sisa > 0 ? ' · Sisa ' + formatRp(sisa) : ' · Semua lunas');
+                }
+            }
+        ];
+
+        function keuanganRenderMenu() {
+            const el = document.getElementById('keuangan-menu-list');
+            if (!el) return;
+            el.innerHTML = KEUANGAN_MENU.map(m => {
+                let info = '';
+                try { info = m.info ? m.info() : ''; } catch (e) {}
+                return `<button type="button" onclick="keuanganBuka('${m.key}')" class="w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-brand/40 transition text-left">
+                    <span class="w-11 h-11 rounded-xl bg-brand/10 flex items-center justify-center shrink-0"><i class="fa-solid ${m.icon} text-brand"></i></span>
+                    <span class="flex-1 min-w-0">
+                        <span class="block font-bold text-sm text-slate-800 dark:text-white">${m.judul}</span>
+                        <span class="block text-[11px] text-slate-400 truncate">${info}</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </button>`;
+            }).join('');
+        }
+
+        function keuanganBuka(key) {
+            document.getElementById('keuangan-menu').style.display = (key === 'menu') ? '' : 'none';
+            KEUANGAN_MENU.forEach(m => {
+                const sub = document.getElementById('keuangan-' + m.key);
+                if (sub) sub.style.display = (key === m.key) ? '' : 'none';
+            });
+            if (key === 'menu') keuanganRenderMenu();
+            if (key === 'cicilan') renderHutangList();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function simpanHutangLocal() {
             localStorage.setItem('hutangData', JSON.stringify(hutangData));
         }
 
         function renderHutangList() {
+            if (typeof keuanganRenderMenu === 'function') keuanganRenderMenu();
             const container = document.getElementById('hutang-list-container');
             container.innerHTML = '';
 
