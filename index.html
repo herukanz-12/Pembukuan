@@ -140,6 +140,7 @@
             </div>
         </div>
         <div class="flex items-center gap-2">
+            <button type="button" id="badge-antrian" onclick="klikBadgeAntrian()" class="hidden"></button>
             <button onclick="muatUlangData()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-brand hover:bg-slate-200 dark:hover:bg-white/10 transition border border-transparent dark:border-white/10 shadow-inner">
                 <i id="icon-refresh" class="fa-solid fa-rotate-right"></i>
             </button>
@@ -1504,34 +1505,199 @@
         // Content-Type sengaja 'text/plain' (bukan 'application/json') agar browser tidak
         // mengirim preflight OPTIONS dulu -- Apps Script Web App tidak menangani preflight,
         // jadi permintaan bisa gagal kalau preflight dipicu.
-        async function kirimKeServer(payload) {
+        // ==========================================================
+        // MODE OFFLINE-FIRST: ANTRIAN KIRIM
+        // Data penting (laporan harian, bayar cicilan, tambah hutang, servis, pengaturan)
+        // selalu disimpan di HP dulu. Kalau internet jelek / putus, kiriman masuk antrian
+        // dan dikirim otomatis & diam-diam begitu koneksi membaik (selama aplikasi terbuka).
+        // Tiap kiriman punya clientId supaya server bisa menolak kiriman ganda.
+        // ==========================================================
+        const ANTRIAN_KEY = 'antrian_kirim_v1';
+        const ANTRIAN_DITOLAK_KEY = 'antrian_ditolak_v1';
+        const AKSI_BISA_ANTRI = ['simpan_harian', 'bayar_cicilan', 'tambah_hutang', 'simpan_maintenance', 'simpan_settings'];
+        const TIMEOUT_KIRIM_MS = 20000;
+
+        class ErrJaringan extends Error {}
+
+        function bacaAntrian(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch (e) { return []; } }
+        function tulisAntrian(key, arr) { try { localStorage.setItem(key, JSON.stringify(arr)); } catch (e) { console.error('Gagal simpan antrian', e); } }
+        function buatClientId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+
+        async function fetchDenganTimeout(url, opsi, ms) {
+            const ctl = new AbortController();
+            const t = setTimeout(() => ctl.abort(), ms);
+            try { return await fetch(url, Object.assign({}, opsi, { signal: ctl.signal })); }
+            finally { clearTimeout(t); }
+        }
+
+        // Kirim 1 payload. Gagal jaringan/timeout/5xx -> ErrJaringan (boleh diantrikan).
+        // Ditolak server / respons aneh -> Error biasa (jangan diulang terus-menerus).
+        async function kirimMentah(payload) {
             let res;
             try {
-                res = await fetch(GAS_URL, {
+                res = await fetchDenganTimeout(GAS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
-                });
+                }, TIMEOUT_KIRIM_MS);
             } catch (networkErr) {
-                throw new Error("Tidak bisa menghubungi server. Cek koneksi internet.");
+                throw new ErrJaringan("Tidak bisa menghubungi server. Cek koneksi internet.");
             }
-
             if (!res.ok) {
+                if (res.status >= 500) throw new ErrJaringan(`Server sedang bermasalah (HTTP ${res.status}).`);
                 throw new Error(`Server merespons dengan error (HTTP ${res.status}).`);
             }
-
             let json;
-            try {
-                json = await res.json();
-            } catch (parseErr) {
-                throw new Error("Respons server tidak valid.");
-            }
-
-            if (json.status !== 'success') {
-                throw new Error(json.message || "Server menolak permintaan.");
-            }
-
+            try { json = await res.json(); }
+            catch (parseErr) { throw new ErrJaringan("Respons server tidak valid (sinyal putus-nyambung?)."); }
+            if (json.status !== 'success') throw new Error(json.message || "Server menolak permintaan.");
             return json;
+        }
+
+        async function kirimKeServer(payload) {
+            if (!AKSI_BISA_ANTRI.includes(payload.action)) return kirimMentah(payload);
+
+            payload = Object.assign({}, payload, { clientId: payload.clientId || buatClientId() });
+            // Kalau antrian masih ada isinya, jangan menyalip: urutan kiriman harus dijaga.
+            if (bacaAntrian(ANTRIAN_KEY).length === 0 && navigator.onLine !== false) {
+                try { return await kirimMentah(payload); }
+                catch (e) { if (!(e instanceof ErrJaringan)) throw e; }
+            }
+            const q = bacaAntrian(ANTRIAN_KEY);
+            q.push({ id: payload.clientId, payload: payload, t: Date.now() });
+            tulisAntrian(ANTRIAN_KEY, q);
+            updateBadgeAntrian();
+            flushAntrian(); // dicoba di belakang layar, tidak ditunggu
+            return { status: 'success', queued: true };
+        }
+
+        let flushJalan = null;
+        function flushAntrian(sudahMenunggu) {
+            if (flushJalan) {
+                if (sudahMenunggu) return flushJalan;
+                // Ada percobaan yang masih berjalan (mungkin sedang gagal karena sinyal tadi).
+                // Setelah selesai, coba sekali lagi kalau sekarang sudah online.
+                return flushJalan.then(() => (bacaAntrian(ANTRIAN_KEY).length && navigator.onLine !== false) ? flushAntrian(true) : (bacaAntrian(ANTRIAN_KEY).length === 0));
+            }
+            flushJalan = (async () => {
+                let terkirim = 0;
+                while (true) {
+                    const q = bacaAntrian(ANTRIAN_KEY);
+                    if (!q.length) break;
+                    if (navigator.onLine === false) break;
+                    const item = q[0];
+                    try {
+                        await kirimMentah(item.payload);
+                    } catch (e) {
+                        if (e instanceof ErrJaringan) break; // sinyal jelek: coba lagi nanti
+                        // Ditolak server: pindahkan ke daftar "ditolak" supaya tidak menghalangi
+                        // antrian di belakangnya, tapi datanya TIDAK dibuang.
+                        const tol = bacaAntrian(ANTRIAN_DITOLAK_KEY);
+                        tol.push(Object.assign({}, item, { alasan: e.message }));
+                        tulisAntrian(ANTRIAN_DITOLAK_KEY, tol);
+                        tulisAntrian(ANTRIAN_KEY, bacaAntrian(ANTRIAN_KEY).filter(x => x.id !== item.id));
+                        updateBadgeAntrian();
+                        continue;
+                    }
+                    tulisAntrian(ANTRIAN_KEY, bacaAntrian(ANTRIAN_KEY).filter(x => x.id !== item.id));
+                    terkirim++;
+                    updateBadgeAntrian();
+                }
+                const bersih = bacaAntrian(ANTRIAN_KEY).length === 0;
+                if (terkirim > 0 && bersih) {
+                    showToast(`${terkirim} data offline sudah terkirim ke server`);
+                    setTimeout(() => { if (typeof fetchRekapData === 'function') fetchRekapData(); }, 800);
+                }
+                return bersih;
+            })().finally(() => { flushJalan = null; updateBadgeAntrian(); });
+            return flushJalan;
+        }
+
+        function updateBadgeAntrian() {
+            const el = document.getElementById('badge-antrian');
+            if (!el) return;
+            const n = bacaAntrian(ANTRIAN_KEY).length;
+            const tol = bacaAntrian(ANTRIAN_DITOLAK_KEY).length;
+            const offline = navigator.onLine === false;
+            if (!n && !tol && !offline) { el.classList.add('hidden'); return; }
+            el.classList.remove('hidden');
+            let teks, kelas;
+            if (tol) { teks = `${tol} ditolak`; kelas = 'bg-red-500/15 text-red-500 border-red-500/30'; }
+            else if (n) { teks = offline ? `${n} menunggu` : `${n} mengirim…`; kelas = 'bg-amber-500/15 text-amber-500 border-amber-500/30'; }
+            else { teks = 'Offline'; kelas = 'bg-slate-500/15 text-slate-500 border-slate-500/30'; }
+            el.className = 'flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-full border ' + kelas;
+            el.innerHTML = `<i class="fa-solid ${offline && !n && !tol ? 'fa-wifi' : 'fa-cloud-arrow-up'}"></i> ${teks}`;
+        }
+
+        async function klikBadgeAntrian() {
+            const tol = bacaAntrian(ANTRIAN_DITOLAK_KEY);
+            if (tol.length && confirm(`${tol.length} data ditolak server (${tol[0].alasan}).\nKirim ulang?`)) {
+                tulisAntrian(ANTRIAN_KEY, bacaAntrian(ANTRIAN_KEY).concat(tol));
+                tulisAntrian(ANTRIAN_DITOLAK_KEY, []);
+            }
+            if (!bacaAntrian(ANTRIAN_KEY).length) { updateBadgeAntrian(); showToast(navigator.onLine === false ? 'Sedang offline. Data tersimpan di HP.' : 'Tidak ada data yang menunggu.'); return; }
+            const ok = await flushAntrian();
+            if (!ok) showToast(navigator.onLine === false ? 'Masih offline, akan dikirim otomatis saat online.' : 'Server belum bisa dihubungi, dicoba lagi otomatis.');
+        }
+
+        // Pemicu kirim otomatis di belakang layar
+        window.addEventListener('online', () => { updateBadgeAntrian(); flushAntrian(); });
+        window.addEventListener('offline', updateBadgeAntrian);
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') flushAntrian(); });
+        setInterval(() => { if (bacaAntrian(ANTRIAN_KEY).length) flushAntrian(); }, 30000);
+
+        // ==========================================================
+        // SNAPSHOT DATA DI HP (IndexedDB): Beranda/Riwayat tetap terisi saat offline
+        // ==========================================================
+        function idbBuka() {
+            return new Promise((res, rej) => {
+                const r = indexedDB.open('ojol_db', 1);
+                r.onupgradeneeded = () => r.result.createObjectStore('kv');
+                r.onsuccess = () => res(r.result);
+                r.onerror = () => rej(r.error);
+            });
+        }
+        async function idbSet(k, v) {
+            const db = await idbBuka();
+            return new Promise((res, rej) => {
+                const tx = db.transaction('kv', 'readwrite');
+                tx.objectStore('kv').put(v, k);
+                tx.oncomplete = () => res();
+                tx.onerror = () => rej(tx.error);
+            });
+        }
+        async function idbGet(k) {
+            const db = await idbBuka();
+            return new Promise((res, rej) => {
+                const rq = db.transaction('kv').objectStore('kv').get(k);
+                rq.onsuccess = () => res(rq.result);
+                rq.onerror = () => rej(rq.error);
+            });
+        }
+        let snapTimer = null, snapMemulihkan = false;
+        function jadwalkanSnapshot() {
+            if (snapMemulihkan) return;
+            clearTimeout(snapTimer);
+            snapTimer = setTimeout(() => {
+                idbSet('snapshot', { t: Date.now(), rows: allSheetRows, detail: allDetailTransaksi, maint: allMaintenanceData, maintTerakhir: window.maintenanceTerakhir }).catch(() => {});
+            }, 800);
+        }
+        async function muatSnapshotLokal() {
+            try {
+                const snap = await idbGet('snapshot');
+                if (!snap) return false;
+                snapMemulihkan = true;
+                allSheetRows = snap.rows || [];
+                allDetailTransaksi = snap.detail || [];
+                allMaintenanceData = snap.maint || [];
+                window.maintenanceTerakhir = snap.maintTerakhir || {};
+                renderRekap();
+                renderMaintenanceStatus();
+                refreshDaftarKategoriLain();
+                refreshDaftarKategoriMasukLain();
+                return true;
+            } catch (e) { console.warn('Snapshot lokal gagal dimuat', e); return false; }
+            finally { snapMemulihkan = false; }
         }
 
         // --- Theme Logic ---
@@ -2276,6 +2442,7 @@
         }
 
         function renderMaintenanceStatus() {
+            if (typeof jadwalkanSnapshot === 'function') jadwalkanSnapshot();
             let container = document.getElementById('maintenance-status-list');
             if (!container) return;
 
@@ -2403,8 +2570,8 @@
 
             try {
                 if (isServerAktif()) {
-                    await kirimKeServer({ action: 'simpan_maintenance', data: data });
-                    showToast("Catatan servis tersimpan!");
+                    const hasilKirim = await kirimKeServer({ action: 'simpan_maintenance', data: data });
+                    showToast(hasilKirim && hasilKirim.queued ? "Catatan servis tersimpan di HP, dikirim otomatis saat online." : "Catatan servis tersimpan!");
                 } else {
                     await new Promise(r => setTimeout(r, 800));
                     showToast("Simpan offline berhasil!");
@@ -2945,6 +3112,7 @@
         }
 
         function renderRekap() {
+            if (typeof jadwalkanSnapshot === 'function') jadwalkanSnapshot();
             const dash = computeTotals(allSheetRows, currentPeriode);
             const bersihDash = dash.totalIn - dash.totalOut;
 
@@ -3139,8 +3307,8 @@
             // Sinkronkan ke sheet 'Pengaturan' supaya tidak hilang kalau ganti HP / clear cache
             if (isServerAktif()) {
                 try {
-                    await kirimKeServer({ action: 'simpan_settings', data: dataSettings });
-                    showToast("Pengaturan berhasil disimpan & tersinkron!");
+                    const hasilKirim = await kirimKeServer({ action: 'simpan_settings', data: dataSettings });
+                    showToast(hasilKirim && hasilKirim.queued ? "Pengaturan tersimpan di HP, dikirim otomatis saat online." : "Pengaturan berhasil disimpan & tersinkron!");
                 } catch (err) {
                     showToast(`Tersimpan di HP, tapi gagal sinkron ke server: ${err.message}`);
                     console.error(err);
@@ -3840,8 +4008,13 @@
 
         async function fetchRekapData() {
             if (!isServerAktif()) return false;
+            // Data offline yang belum terkirim harus naik dulu. Kalau masih ada yang
+            // tertinggal, JANGAN timpa tampilan dengan data server (server belum punya
+            // data itu) -- tetap pakai data di HP.
+            const antrianBersih = await flushAntrian();
+            if (!antrianBersih) return false;
             try {
-                const res = await fetch(GAS_URL, { cache: 'no-store' });
+                const res = await fetchDenganTimeout(GAS_URL, { cache: 'no-store' }, 25000);
                 const json = await res.json();
                 if (json.status === 'success') {
                     // Load Data Pengaturan LEBIH DULU, supaya waktu renderRekap()/cekPajakKendaran()
@@ -3935,7 +4108,7 @@
                 }
             } catch (err) {
                 console.error('Gagal ambil data dari Sheet:', err);
-                if (!navigator.onLine || err instanceof TypeError) {
+                if (!navigator.onLine || err instanceof TypeError || err.name === 'AbortError') {
                     // TypeError dari fetch() biasanya artinya request gak sampai ke server
                     // sama sekali (sinyal jelek/putus), bukan masalah data/deploy.
                     showToast("Gagal sinkron, sinyal kurang stabil. Data terakhir tetap dipakai, nanti otomatis sync ulang kalau sinyal membaik.");
@@ -4291,8 +4464,9 @@
 
             try {
                 if (isServerAktif()) {
-                    await kirimKeServer({ action: 'simpan_harian', data: data });
-                    showToast(saldoOnly ? "Saldo Awal berhasil disimpan ke server!" : "Laporan berhasil disimpan!");
+                    const hasilKirim = await kirimKeServer({ action: 'simpan_harian', data: data });
+                    if (hasilKirim && hasilKirim.queued) showToast("Tersimpan di HP. Dikirim otomatis saat internet tersedia.");
+                    else showToast(saldoOnly ? "Saldo Awal berhasil disimpan ke server!" : "Laporan berhasil disimpan!");
                 } else {
                     await new Promise(r => setTimeout(r, 1000));
                     showToast(saldoOnly ? "Saldo Awal disimpan offline!" : "Simpan offline berhasil!");
@@ -4552,7 +4726,7 @@
             // Kirim Tambah Hutang ke Google Sheet (Termasuk Tanggal & Keterangan)
             if (isServerAktif()) {
                 try {
-                    await kirimKeServer({ 
+                    const hasilKirim = await kirimKeServer({ 
                         action: 'tambah_hutang', 
                         id: newId, 
                         tanggal: todayDate, // KIRIM TANGGAL KE SERVER
@@ -4560,7 +4734,7 @@
                         totalAwal: total,
                         keterangan: keterangan // KIRIM KETERANGAN KE SERVER
                     });
-                    showToast(`Hutang ke ${nama} berhasil dicatat & tersinkron.`);
+                    showToast(hasilKirim && hasilKirim.queued ? `Hutang ke ${nama} tersimpan di HP, dikirim otomatis saat online.` : `Hutang ke ${nama} berhasil dicatat & tersinkron.`);
                 } catch (err) {
                     // Data tetap aman di HP (localStorage), tapi kasih tahu jujur kalau belum sampai ke server
                     showToast(`Tersimpan di HP, tapi gagal sinkron ke server: ${err.message}`);
@@ -4805,8 +4979,9 @@
                     dataHutang: { id: id, nominal: nominal, tanggal: todayDate, keterangan: keterangan }
                 };
 
+                let hasilBayar = null;
                 if (isServerAktif()) {
-                    await kirimKeServer(payload);
+                    hasilBayar = await kirimKeServer(payload);
                 } else {
                     await new Promise(r => setTimeout(r, 800)); 
                 }
@@ -4832,7 +5007,7 @@
                 simpanSaldoLocal();
                 calculateRealtime(); // Kalkulasi ulang semua UI text
 
-                showToast("Pembayaran berhasil dicatat!");
+                showToast(hasilBayar && hasilBayar.queued ? "Pembayaran tersimpan di HP, dikirim otomatis saat online." : "Pembayaran berhasil dicatat!");
                 renderHutangList();
                 closeModalBayarHutang();
                 
@@ -4895,6 +5070,9 @@
             // paling baru dari server.
             calculateRealtime();
             renderHutangList();
+            await muatSnapshotLokal(); // Beranda & Riwayat langsung terisi dari HP, tanpa nunggu internet
+            updateBadgeAntrian();
+            flushAntrian();            // kirim data offline yang tertinggal (kalau sudah ada sinyal)
             setRiwayatSubTab('laporan');
             setTimeout(() => switchTab('dashboard', 0), 100);
 
