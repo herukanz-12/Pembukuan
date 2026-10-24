@@ -632,28 +632,20 @@
                 <!-- Pesanan tunai dilipat -->
                 </details>
                 <div id="advanced-mk">
-                <!-- Pilih jenis catatan: Masuk / Keluar -->
-                <div class="mb-3">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5">Jenis Catatan</label>
-                    <div class="relative">
-                        <select id="pilih-arus" onchange="switchInputTab(this.value)" class="w-full appearance-none text-sm font-bold bg-white dark:bg-cardDark text-brand border border-slate-200 dark:border-white/10 rounded-2xl pl-4 pr-10 py-3.5 outline-none focus:border-brand shadow-glass">
-                            <option value="masuk">Masuk (Pendapatan)</option>
-                            <option value="keluar">Keluar (Pengeluaran)</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
-                    </div>
-                </div>
-
                 <!-- Container Tab Masuk & Keluar -->
                 <div class="relative">
                     
                     <!-- SECTION: MASUK -->
                     <div id="section-input-masuk" class="block animate-fade-in">
                         <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 flex flex-col h-full">
-                            <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2 text-sm">
-                                <span class="w-1.5 h-5 rounded-full bg-brand block"></span>
-                                Arus Masuk (Pendapatan)
-                            </h3>
+                            <div class="relative mb-5">
+                                <select id="pilih-arus" onchange="switchInputTab(this.value)" class="pilih-arus w-full appearance-none text-sm font-bold bg-transparent text-brand border-b-2 border-brand/40 pl-4 pr-9 py-2 outline-none cursor-pointer">
+                                    <option value="masuk" selected>Arus Masuk (Pendapatan)</option>
+                                    <option value="keluar">Arus Keluar (Pengeluaran)</option>
+                                </select>
+                                <span class="absolute left-0 top-2 w-1.5 h-5 rounded-full bg-brand block pointer-events-none"></span>
+                                <i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            </div>
                             <div class="space-y-4 flex-1">
                                 <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
                                     <div class="flex justify-between items-center mb-2">
@@ -707,10 +699,14 @@
                     <!-- SECTION: KELUAR -->
                     <div id="section-input-keluar" class="hidden animate-fade-in">
                         <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 flex flex-col h-full">
-                            <h3 class="font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2 text-sm">
-                                <span class="w-1.5 h-5 rounded-full bg-red-500 block"></span>
-                                Arus Keluar (Pengeluaran)
-                            </h3>
+                            <div class="relative mb-5">
+                                <select id="pilih-arus-keluar" onchange="switchInputTab(this.value)" class="pilih-arus w-full appearance-none text-sm font-bold bg-transparent text-red-500 border-b-2 border-red-500/40 pl-4 pr-9 py-2 outline-none cursor-pointer">
+                                    <option value="masuk">Arus Masuk (Pendapatan)</option>
+                                    <option value="keluar" selected>Arus Keluar (Pengeluaran)</option>
+                                </select>
+                                <span class="absolute left-0 top-2 w-1.5 h-5 rounded-full bg-red-500 block pointer-events-none"></span>
+                                <i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                            </div>
                             <div class="space-y-4">
                                 <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
                                     <div class="flex justify-between items-center mb-2">
@@ -1736,15 +1732,14 @@
         function switchInputTab(tab) {
             const secMasuk = document.getElementById('section-input-masuk');
             const secKeluar = document.getElementById('section-input-keluar');
-            const pilih = document.getElementById('pilih-arus');
             const masuk = tab !== 'keluar';
-            if (pilih) {
-                pilih.value = masuk ? 'masuk' : 'keluar';
-                pilih.classList.toggle('text-brand', masuk);
-                pilih.classList.toggle('text-red-500', !masuk);
-            }
+            ['pilih-arus', 'pilih-arus-keluar'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = masuk ? 'masuk' : 'keluar';
+            });
             secMasuk.classList.toggle('hidden', !masuk);
             secKeluar.classList.toggle('hidden', masuk);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // --- Helper Functions ---
