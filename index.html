@@ -948,12 +948,14 @@
                         <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Aset</h2>
                         <p class="text-xs text-slate-500 mt-1">Harta di luar saldo dompet</p>
                     </div>
-                    <button onclick="openModalAset()" class="text-xs font-bold text-brand bg-brand/10 border border-brand/20 px-4 py-2 rounded-xl hover:bg-brand/20 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Tambah</button>
+                    <div class="flex gap-2"><button onclick="openModalBeliAset()" class="text-xs font-bold text-brand bg-brand/10 border border-brand/20 px-4 py-2 rounded-xl hover:bg-brand/20 transition flex items-center gap-2"><i class="fa-solid fa-cart-shopping"></i> Beli</button>
+                    <button onclick="openModalAset()" class="text-xs font-bold text-brand bg-brand/10 border border-brand/20 px-4 py-2 rounded-xl hover:bg-brand/20 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Tambah</button></div>
                 </div>
                 <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 mb-4">
                     <p class="text-xs text-slate-500">Total aset</p>
                     <p id="aset-total" class="text-3xl font-extrabold tabular-nums text-slate-800 dark:text-white mt-0.5">Rp 0</p>
                     <p id="aset-info" class="text-[11px] text-slate-400 mt-1">Tidak dihitung dalam Total saldo</p>
+                    <p id="aset-ur" class="text-xs font-bold mt-2 hidden"></p>
                 </div>
                 <div id="aset-list-container" class="space-y-4 mb-8"></div>
             </div>
@@ -1137,6 +1139,31 @@
         </div>
     </div>
 
+    <!-- Modal Beli Aset (saldo dompet berkurang, nilai aset bertambah; BUKAN pengeluaran) -->
+    <div id="modal-beli-aset" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-6 opacity-0 transition-opacity">
+        <div class="bg-white dark:bg-cardDark rounded-[2rem] w-full max-w-sm p-6 shadow-float transform scale-95 transition-transform duration-300" id="modal-beli-aset-content">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-1">Beli / Tambah Aset</h3>
+            <p class="text-xs text-slate-500 mb-4">Saldo dompet berkurang, nilai aset bertambah. Bukan pengeluaran, jadi tidak mempengaruhi Pendapatan Bersih.</p>
+            <div class="space-y-4">
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Aset tujuan</label>
+                <select id="beli_aset_id" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand"></select></div>
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Dari dompet</label>
+                <select id="beli_aset_dompet" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand">
+                    <option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="cash">Cash</option><option value="bca">BCA</option>
+                </select></div>
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Uang keluar dari dompet</label>
+                <div class="flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand"><span class="pl-3 text-slate-400 text-sm font-bold">Rp</span><input type="number" inputmode="numeric" id="beli_aset_keluar" oninput="infoBeliAset()" class="w-full bg-transparent border-none p-2 text-slate-800 dark:text-white font-bold text-xl outline-none" placeholder="10000"></div></div>
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Nilai masuk ke aset</label>
+                <div class="flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand"><span class="pl-3 text-slate-400 text-sm font-bold">Rp</span><input type="number" inputmode="numeric" id="beli_aset_masuk" oninput="infoBeliAset()" class="w-full bg-transparent border-none p-2 text-brand font-bold text-xl outline-none" placeholder="9850"></div>
+                <p id="beli_aset_info" class="text-[11px] text-slate-400 mt-1.5"></p></div>
+                <div class="flex gap-3 mt-2">
+                    <button type="button" onclick="closeModalBeliAset()" class="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-sm">Batal</button>
+                    <button type="button" id="btn-proses-beli-aset" onclick="prosesBeliAset()" class="flex-1 py-3 rounded-xl bg-brand text-white font-bold text-sm shadow-neon">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Aset -->
     <div id="modal-aset" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-6 opacity-0 transition-opacity">
         <div class="bg-white dark:bg-cardDark rounded-[2rem] w-full max-w-sm p-6 shadow-float transform scale-95 transition-transform duration-300" id="modal-aset-content">
@@ -1147,8 +1174,11 @@
                 <input type="text" id="aset_nama" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="Contoh: Motor Beat 2019"></div>
                 <div><label class="text-xs font-semibold text-slate-500 mb-1 block">Nilai saat ini</label>
                 <div class="flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand"><span class="pl-3 text-slate-400 text-sm font-bold">Rp</span><input type="number" inputmode="numeric" id="aset_nilai" class="w-full bg-transparent border-none p-2 text-slate-800 dark:text-white font-bold text-xl outline-none" placeholder="0"></div></div>
+                <div><label class="text-xs font-semibold text-slate-500 mb-1 block">Modal (total uang yang sudah kamu setor)</label>
+                <div class="flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand"><span class="pl-3 text-slate-400 text-sm font-bold">Rp</span><input type="number" inputmode="decimal" id="aset_modal" class="w-full bg-transparent border-none p-2 text-slate-800 dark:text-white font-bold text-lg outline-none" placeholder="Kosongkan kalau tidak perlu"></div>
+                <p class="text-[11px] text-slate-400 mt-1">Dipakai untuk menghitung untung/rugi. Nilai saat ini diupdate manual, modal otomatis bertambah lewat tombol Beli.</p></div>
                 <div><label class="text-xs font-semibold text-slate-500 mb-1 block">Kategori</label>
-                <select id="aset_kategori" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none"><option>Kendaraan</option><option>Emas</option><option>Properti</option><option>Elektronik</option><option>Piutang</option><option selected>Lainnya</option></select></div>
+                <select id="aset_kategori" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none"><option>Kendaraan</option><option>Emas</option><option>Reksa Dana</option><option>Properti</option><option>Elektronik</option><option>Piutang</option><option selected>Lainnya</option></select></div>
                 <div><label class="text-xs font-semibold text-slate-500 mb-1 block">Keterangan (opsional)</label>
                 <input type="text" id="aset_ket" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="Contoh: harga pasar, bukan harga beli"></div>
                 <div class="flex gap-3 mt-2">
@@ -2360,7 +2390,7 @@
             'dompet_out_bensin', 'dompet_out_potongan_gojek', 'dompet_out_ganti_oli_mesin',
             'dompet_out_oli_gardan', 'dompet_out_servis_motor', 'dompet_out_talangan',
             'dompet_out_servis', 'dompet_out_oli', 'dompet_out_sparepart',
-            'input_bayar_sumber', 'transfer_dari', 'transfer_ke'
+            'input_bayar_sumber', 'transfer_dari', 'transfer_ke', 'beli_aset_dompet'
         ];
 
         // Suntik pilihan dompet custom ke SEMUA select pemilih dompet (fixed + dinamis).
@@ -4837,15 +4867,31 @@
         // ==========================================================
         let asetData = [];
         try { asetData = JSON.parse(localStorage.getItem('asetData')) || []; } catch (e) { asetData = []; }
-        const ASET_IKON = { Kendaraan: 'fa-motorcycle', Emas: 'fa-coins', Properti: 'fa-house', Elektronik: 'fa-mobile-screen', Piutang: 'fa-hand-holding-dollar', Lainnya: 'fa-box' };
+        const ASET_IKON = { Kendaraan: 'fa-motorcycle', Emas: 'fa-coins', 'Reksa Dana': 'fa-chart-line', Properti: 'fa-house', Elektronik: 'fa-mobile-screen', Piutang: 'fa-hand-holding-dollar', Lainnya: 'fa-box' };
         function totalAset() { return asetData.reduce((t, a) => t + (Number(a.nilai) || 0), 0); }
         function simpanAsetLocal() { try { localStorage.setItem('asetData', JSON.stringify(asetData)); } catch (e) {} }
         function escAset(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
+        // Untung/rugi = nilai saat ini - modal. Hanya dihitung kalau modal sudah diisi (> 0).
+        function modalAda(a) { return a && a.modal != null && a.modal !== '' && Number(a.modal) > 0; }
+        function labelUR(sel, modal, kecil) {
+            const naik = sel >= 0, pct = modal > 0 ? Math.abs(sel) / modal * 100 : 0;
+            const tanda = naik ? '+' : '\u2212';
+            return `<span class="${kecil ? 'block text-[11px]' : ''} font-bold tabular-nums ${naik ? 'text-emerald-500' : 'text-red-500'}">${tanda}${formatRp(Math.round(Math.abs(sel)))} (${tanda}${pct.toFixed(2).replace('.', ',')}%)</span>`;
+        }
         function renderAsetList() {
             const box = document.getElementById('aset-list-container');
             if (!box) return;
             document.getElementById('aset-total').innerText = formatRp(totalAset());
+            const urEl = document.getElementById('aset-ur');
+            if (urEl) {
+                const ber = asetData.filter(modalAda);
+                if (ber.length) {
+                    const mod = ber.reduce((t, a) => t + Number(a.modal), 0), nil = ber.reduce((t, a) => t + (Number(a.nilai) || 0), 0);
+                    urEl.innerHTML = 'Untung/rugi ' + labelUR(nil - mod, mod, false) + ` <span class="text-slate-400 font-medium">dari modal ${formatRp(Math.round(mod))}</span>`;
+                    urEl.classList.remove('hidden');
+                } else urEl.classList.add('hidden');
+            }
             document.getElementById('aset-info').innerText = asetData.length ? asetData.length + ' aset · tidak dihitung dalam Total saldo' : 'Tidak dihitung dalam Total saldo';
             if (!asetData.length) {
                 box.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada aset. Tekan Tambah untuk mencatat motor, emas, atau harta lain.</p>`;
@@ -4861,7 +4907,7 @@
                         <button type="button" onclick="openModalAset('${a.id}')" class="w-full flex items-center gap-3 py-3 text-left">
                             <span class="w-9 h-9 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0"><i class="fa-solid ${ASET_IKON[a.kategori] || 'fa-box'} text-sm"></i></span>
                             <span class="flex-1 min-w-0"><span class="block text-[13px] font-bold text-slate-800 dark:text-white truncate">${escAset(a.nama)}</span>${a.keterangan ? `<span class="block text-[11px] text-slate-400 truncate">${escAset(a.keterangan)}</span>` : ''}</span>
-                            <span class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white shrink-0">${formatRp(Number(a.nilai) || 0)}</span>
+                            <span class="shrink-0 text-right"><span class="block text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">${formatRp(Number(a.nilai) || 0)}</span>${modalAda(a) ? labelUR((Number(a.nilai) || 0) - Number(a.modal), Number(a.modal), true) : ''}</span>
                         </button>`).join('')}</div></div>`;
             }).join('');
         }
@@ -4872,6 +4918,7 @@
             document.getElementById('aset_id').value = a ? a.id : '';
             document.getElementById('aset_nama').value = a ? a.nama : '';
             document.getElementById('aset_nilai').value = a ? a.nilai : '';
+            document.getElementById('aset_modal').value = (a && a.modal != null) ? a.modal : '';
             document.getElementById('aset_kategori').value = a ? (a.kategori || 'Lainnya') : 'Lainnya';
             document.getElementById('aset_ket').value = a ? (a.keterangan || '') : '';
             document.getElementById('btn-hapus-aset').classList.toggle('hidden', !a);
@@ -4896,13 +4943,78 @@
         }
         async function simpanAset() {
             const nama = getStr('aset_nama'), nilai = getVal('aset_nilai');
-            if (!nama || nilai <= 0) { showToast('Nama dan nilai aset harus diisi'); return; }
+            if (!nama || nilai < 0) { showToast('Nama dan nilai aset harus diisi'); return; }
             const id = getStr('aset_id');
-            const item = { id: id || Date.now().toString(), nama, nilai, kategori: getStr('aset_kategori'), keterangan: getStr('aset_ket'), tanggal: new Date().toISOString().split('T')[0] };
+            const modalStr = getStr('aset_modal');
+            const modal = modalStr === '' ? null : Math.max(0, parseFloat(modalStr) || 0);
+            const item = { id: id || Date.now().toString(), nama, nilai, modal, kategori: getStr('aset_kategori'), keterangan: getStr('aset_ket'), tanggal: new Date().toISOString().split('T')[0] };
             const i = asetData.findIndex(x => x.id === id);
             if (id && i >= 0) { item.tanggal = asetData[i].tanggal || item.tanggal; asetData[i] = item; } else asetData.push(item);
             closeModalAset();
             await kirimAsetKeServer('Aset tersimpan.');
+        }
+        // --- Beli / Tambah Aset: potong saldo dompet (tanpa jadi pengeluaran) + tambah nilai aset.
+        // Nilai aset yang masuk boleh beda dari uang keluar (mis. beli emas Rp 10.000 -> masuk 9.850).
+        function infoBeliAset() {
+            const k = getVal('beli_aset_keluar'), m = getVal('beli_aset_masuk');
+            const el = document.getElementById('beli_aset_info');
+            if (!el) return;
+            if (k > 0 && m > 0) {
+                const d = k - m;
+                el.innerText = d > 0 ? 'Selisih ' + formatRp(d) + ' (biaya/spread, tidak dicatat sebagai pengeluaran)' : (d < 0 ? 'Nilai masuk lebih besar ' + formatRp(-d) + ' dari uang keluar' : 'Tanpa selisih');
+            } else el.innerText = '';
+        }
+        function openModalBeliAset() {
+            if (!asetData.length) { showToast('Tambah aset dulu, baru bisa beli/tambah nilainya'); return; }
+            const sel = document.getElementById('beli_aset_id');
+            sel.innerHTML = asetData.map(a => `<option value="${escAset(a.id)}">${escAset(a.nama)} (${formatRp(Number(a.nilai) || 0)})</option>`).join('');
+            if (window.currentFinalSaldo && !adaTransaksiBelumDisimpan()) {
+                document.getElementById('saldo_gopay_driver').value = window.currentFinalSaldo.gopay_driver;
+                document.getElementById('saldo_gopay').value = window.currentFinalSaldo.gopay;
+                document.getElementById('saldo_cash').value = window.currentFinalSaldo.cash;
+                document.getElementById('saldo_bca').value = window.currentFinalSaldo.bca;
+                dompetCustomList.forEach(d => {
+                    let el = document.getElementById('saldo_custom_' + d.id);
+                    if (el) el.value = window.currentFinalSaldo[d.id] || 0;
+                });
+            }
+            document.getElementById('beli_aset_keluar').value = '';
+            document.getElementById('beli_aset_masuk').value = '';
+            infoBeliAset();
+            const m = document.getElementById('modal-beli-aset'), c = document.getElementById('modal-beli-aset-content');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+        }
+        function closeModalBeliAset() {
+            const m = document.getElementById('modal-beli-aset'), c = document.getElementById('modal-beli-aset-content');
+            m.classList.add('opacity-0'); c.classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+        async function prosesBeliAset() {
+            const btn = document.getElementById('btn-proses-beli-aset');
+            if (btn.dataset.sibuk === '1') return;
+            const id = getStr('beli_aset_id'), dompet = document.getElementById('beli_aset_dompet').value;
+            const keluar = getVal('beli_aset_keluar'), masuk = getVal('beli_aset_masuk');
+            const a = asetData.find(x => x.id === id);
+            if (!a) { showToast('Pilih aset tujuan'); return; }
+            if (keluar <= 0 || masuk <= 0) { showToast('Uang keluar dan nilai masuk harus lebih dari 0'); return; }
+            const elDompet = document.getElementById(idInputSaldoDompet(dompet));
+            if (!elDompet) { showToast('Dompet tidak ditemukan'); return; }
+            const saldoLama = parseFloat(elDompet.value) || 0;
+            if (saldoLama < keluar) showToast('Saldo dompet tidak cukup! Sisa: ' + formatRp(saldoLama));
+            btn.dataset.sibuk = '1';
+            elDompet.value = saldoLama - keluar;
+            try {
+                await simpanData(true); // sinkron saldo saja, bukan pemasukan/pengeluaran
+                a.nilai = (Number(a.nilai) || 0) + masuk;
+                const adaModal = modalAda(a);
+                if (adaModal) a.modal = Number(a.modal) + keluar; // modal = uang yang benar-benar keluar
+                closeModalBeliAset();
+                await kirimAsetKeServer('Aset bertambah ' + formatRp(masuk) + ', saldo dompet berkurang ' + formatRp(keluar) + '.' + (adaModal ? '' : ' Modal aset ini belum diisi, ketuk asetnya untuk mengisi.'));
+            } catch (e) {
+                elDompet.value = saldoLama;
+                showToast('Gagal: ' + e.message);
+            } finally { btn.dataset.sibuk = '0'; }
         }
         async function hapusAset() {
             const id = getStr('aset_id');
