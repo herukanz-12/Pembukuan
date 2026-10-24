@@ -250,6 +250,12 @@
                     <span class="text-xs font-bold text-slate-500 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-brand"></i> Total Trip Bulan Ini</span>
                     <span class="text-sm font-extrabold text-brand" id="dash-trip-bulan">0 Trip</span>
                 </div>
+                <div id="dash-trip-target-wrap" class="hidden mt-3">
+                    <div class="w-full bg-slate-100 dark:bg-bgDark rounded-full h-2 overflow-hidden">
+                        <div id="dash-trip-target-bar" class="bg-gradient-to-r from-brand to-brand-neon h-2 rounded-full progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                    <p id="dash-trip-target-info" class="text-[10px] text-slate-400 mt-1.5"></p>
+                </div>
             </div>
 
             <!-- Digital Wallet Card -->
@@ -1359,6 +1365,18 @@
                 <div>
                     <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Jatuh Tempo SIM</label>
                     <input type="date" id="set_sim" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none">
+                </div>
+
+                <!-- ============================================================ -->
+                <!-- TARGET TRIP BULANAN (insentif Gojek) -->
+                <!-- ============================================================ -->
+                <div class="border-t border-slate-200 dark:border-white/10 pt-4">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5"><i class="fa-solid fa-bullseye text-brand"></i> Target Trip Bulanan</label>
+                    <input type="number" id="set_target_trip" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none mb-2" placeholder="620">
+                    <p class="text-[10px] text-slate-400 mb-3">Target trip dari insentif Gojek. Progresnya tampil di kartu Trip Hari Ini (Beranda). Kosongkan / isi 0 untuk menyembunyikan.</p>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Trip di Aplikasi Gojek Saat Ini</label>
+                    <input type="number" id="set_trip_gojek" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none mb-1" placeholder="204">
+                    <p class="text-[10px] text-slate-400">Isi sesuai angka "Trip selesai" di Gojek sekarang. Aplikasi ini menghitung sendiri selisih trip sebelum kamu mulai mencatat di sini, dan otomatis kembali ke 0 saat ganti bulan.</p>
                 </div>
 
                 <!-- ============================================================ -->
@@ -2697,6 +2715,31 @@
             return total;
         }
 
+        // ===== TARGET TRIP BULANAN =====
+        function kunciBulan(d) {
+            d = d || new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        }
+
+        // Trip bulan ini yang sudah TERSIMPAN di aplikasi (tanpa koreksi, tanpa form yang belum disimpan)
+        function tripBulanIniTersimpan() {
+            const now = new Date();
+            const peta = petaTripPerHari();
+            let total = 0;
+            Object.keys(peta).forEach(k => {
+                const d = new Date(Number(k));
+                if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) total += peta[k];
+            });
+            return total;
+        }
+
+        // Koreksi = trip yang sudah ada di Gojek sebelum mulai dicatat di aplikasi ini.
+        // Hanya berlaku untuk bulan saat koreksi dibuat -> otomatis 0 saat ganti bulan.
+        function tripKoreksiBulanIni() {
+            if (localStorage.getItem('set_trip_koreksi_bulan') !== kunciBulan()) return 0;
+            return Number(localStorage.getItem('set_trip_koreksi')) || 0;
+        }
+
         function computeTotals(rows, periode) {
             const now = new Date();
             const todayStr = now.toDateString();
@@ -3061,9 +3104,27 @@
             });
             // Termasuk input yang lagi diketik di form (belum disimpan), kalau form
             // hari ini juga masih dalam bulan yang sama (selalu, karena "hari ini" pasti bulan berjalan)
-            totalTripBulanIni += liveTrip;
+            totalTripBulanIni += liveTrip + tripKoreksiBulanIni();
             let elTripBulan = document.getElementById('dash-trip-bulan');
-            if (elTripBulan) elTripBulan.innerText = totalTripBulanIni + " Trip";
+            let targetTrip = parseFloat(localStorage.getItem('set_target_trip')) || 0;
+            if (elTripBulan) elTripBulan.innerText = targetTrip > 0 ? (totalTripBulanIni + " / " + targetTrip + " Trip") : (totalTripBulanIni + " Trip");
+            const wrapTarget = document.getElementById('dash-trip-target-wrap');
+            if (wrapTarget) {
+                if (targetTrip > 0) {
+                    wrapTarget.classList.remove('hidden');
+                    const persenTrip = Math.max(0, Math.min(100, (totalTripBulanIni / targetTrip) * 100));
+                    document.getElementById('dash-trip-target-bar').style.width = persenTrip + '%';
+                    const sisaTrip = Math.max(0, targetTrip - totalTripBulanIni);
+                    const sekarang = new Date();
+                    const hariTerakhir = new Date(sekarang.getFullYear(), sekarang.getMonth() + 1, 0).getDate();
+                    const sisaHari = hariTerakhir - sekarang.getDate() + 1; // termasuk hari ini
+                    document.getElementById('dash-trip-target-info').innerText = sisaTrip === 0
+                        ? 'Target trip bulan ini tercapai! 🎉'
+                        : 'Tercapai ' + Math.round(persenTrip) + '% · sisa ' + sisaTrip + ' trip · perlu ±' + Math.ceil(sisaTrip / sisaHari) + ' trip/hari (' + sisaHari + ' hari lagi)';
+                } else {
+                    wrapTarget.classList.add('hidden');
+                }
+            }
 
             // Jalankan fungsi cek berkala STNK & SIM
             cekPajakKendaran();
@@ -3083,6 +3144,9 @@
             document.getElementById('set_tabungan').value = localStorage.getItem('set_tabungan') || '10';
             document.getElementById('set_stnk').value = localStorage.getItem('set_stnk') || '';
             document.getElementById('set_sim').value = localStorage.getItem('set_sim') || '';
+            document.getElementById('set_target_trip').value = localStorage.getItem('set_target_trip') || '';
+            const tripGojekSekarang = tripBulanIniTersimpan() + tripKoreksiBulanIni();
+            document.getElementById('set_trip_gojek').value = tripGojekSekarang > 0 ? tripGojekSekarang : '';
 
             renderKelolaDompet();
             renderKelolaKategori('pemasukan');
@@ -3120,6 +3184,19 @@
             localStorage.setItem('set_tabungan', dataSettings.tabungan);
             localStorage.setItem('set_stnk', dataSettings.stnk);
             localStorage.setItem('set_sim', dataSettings.sim);
+
+            // Target trip bulanan + koreksi trip (selisih angka Gojek dengan yang tercatat di aplikasi ini)
+            dataSettings.targetTrip = document.getElementById('set_target_trip').value;
+            localStorage.setItem('set_target_trip', dataSettings.targetTrip || 0);
+            const tripGojekInput = document.getElementById('set_trip_gojek').value;
+            if (tripGojekInput !== '') {
+                dataSettings.koreksiTrip = Math.max(0, (parseFloat(tripGojekInput) || 0) - tripBulanIniTersimpan());
+            } else {
+                dataSettings.koreksiTrip = tripKoreksiBulanIni();
+            }
+            dataSettings.bulanKoreksi = kunciBulan();
+            localStorage.setItem('set_trip_koreksi', dataSettings.koreksiTrip);
+            localStorage.setItem('set_trip_koreksi_bulan', dataSettings.bulanKoreksi);
 
             closeModalSettings();
             renderRekap();
@@ -3836,6 +3913,9 @@
                         if (s.tabungan !== undefined) localStorage.setItem('set_tabungan', s.tabungan);
                         if (s.stnk !== undefined) localStorage.setItem('set_stnk', s.stnk);
                         if (s.sim !== undefined) localStorage.setItem('set_sim', s.sim);
+                        if (s.targetTrip !== undefined) localStorage.setItem('set_target_trip', s.targetTrip);
+                        if (s.koreksiTrip !== undefined) localStorage.setItem('set_trip_koreksi', s.koreksiTrip);
+                        if (s.bulanKoreksi !== undefined && s.bulanKoreksi !== '') localStorage.setItem('set_trip_koreksi_bulan', s.bulanKoreksi);
                     }
 
                     // Load Data Harian
