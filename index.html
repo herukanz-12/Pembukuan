@@ -3203,6 +3203,10 @@
         // menu Kelola Dompet, DAN oleh auto-seed dompet bawaan (lihat bawah).
         // Mengembalikan objek dompet yang baru dibuat.
         async function buatDompetBaru(nama) {
+            // Nama sudah ada di HP -> pakai yang itu, jangan dobel.
+            const namaBersih = (nama || '').trim().toLowerCase();
+            const sudahAdaLokal = dompetCustomList.find(d => (d.nama || '').trim().toLowerCase() === namaBersih);
+            if (sudahAdaLokal) return sudahAdaLokal;
             let dompetBaru;
             try {
                 if (isServerAktif()) {
@@ -3215,12 +3219,17 @@
                 dompetBaru = { id: 'dompet_' + new Date().getTime(), nama: nama, saldo: 0 };
             }
 
+            // Server mengembalikan dompet lama kalau namanya sudah ada (id sama): jangan di-push lagi.
+            const adaSama = dompetCustomList.find(d => d.id === dompetBaru.id || (d.nama || '').trim().toLowerCase() === namaBersih);
+            if (adaSama) return adaSama;
             dompetCustomList.push(dompetBaru);
             simpanDompetCustomLocal();
             return dompetBaru;
         }
 
+        let sedangTambahDompet = false;
         async function tambahDompetBaru() {
+            if (sedangTambahDompet) return; // cegah tap ganda
             const input = document.getElementById('input_dompet_baru');
             const nama = (input.value || '').trim();
             if (!nama) {
@@ -3228,11 +3237,12 @@
                 return;
             }
 
+            sedangTambahDompet = true;
             try {
                 await buatDompetBaru(nama);
             } catch (err) {
                 showToast(err.message || "Gagal menambah dompet ke server, disimpan lokal dulu.");
-            }
+            } finally { sedangTambahDompet = false; }
 
             input.value = '';
             renderKelolaDompet();
@@ -5168,6 +5178,27 @@
                     .catch((err) => console.log('[SW] Gagal daftar:', err));
             });
         }
+    </script>
+    <script>
+    // Layar tetap menyala selama aplikasi terbuka (Screen Wake Lock API).
+    // Lock otomatis dilepas browser saat aplikasi ke background / layar dikunci,
+    // jadi diminta lagi tiap aplikasi kembali tampil.
+    (function () {
+        let kunci = null;
+        async function minta() {
+            if (!('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+            if (kunci && !kunci.released) return;
+            try {
+                kunci = await navigator.wakeLock.request('screen');
+                kunci.addEventListener('release', function () { kunci = null; });
+            } catch (e) { /* mis. mode hemat baterai: dicoba lagi saat layar disentuh */ }
+        }
+        document.addEventListener('visibilitychange', minta);
+        window.addEventListener('focus', minta);
+        window.addEventListener('pageshow', minta);
+        ['touchstart', 'click', 'keydown'].forEach(function (ev) { document.addEventListener(ev, minta, { passive: true }); });
+        minta();
+    })();
     </script>
 </body>
 </html>
