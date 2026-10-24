@@ -1102,8 +1102,22 @@
             <!-- Rincian Dompet CUSTOM (tambahan, hasil dari menu Pengaturan) -->
             <div class="grid grid-cols-2 gap-3 mb-8 hidden" id="saldo-detail-grid-custom"></div>
 
+            <!-- Pemilih bulan untuk Rincian Pendapatan & Pengeluaran -->
+            <div class="flex items-center justify-between bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-2 mt-8">
+                <button type="button" id="btn-rincian-bulan-prev" onclick="geserRincianBulan(-1)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 flex items-center justify-center transition active:scale-95">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <div class="text-center">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rincian Bulan</p>
+                    <p id="rincian-bulan-label" class="text-sm font-extrabold text-slate-800 dark:text-white">-</p>
+                </div>
+                <button type="button" id="btn-rincian-bulan-next" onclick="geserRincianBulan(1)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 flex items-center justify-center transition active:scale-95">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
+            </div>
+
             <!-- Rincian Pendapatan -->
-            <div class="flex items-center justify-between mb-4 mt-8">
+            <div class="flex items-center justify-between mb-4 mt-6">
                 <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pendapatan</h3>
                 <span id="rincian-pendapatan-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
             </div>
@@ -2748,11 +2762,12 @@
             return Number(localStorage.getItem('set_trip_koreksi')) || 0;
         }
 
-        function computeTotals(rows, periode) {
+        function computeTotals(rows, periode, refDate) {
             const now = new Date();
+            const ref = refDate || now; // bulan/tahun acuan (default: sekarang)
             const todayStr = now.toDateString();
-            const bulanSekarang = now.getMonth();
-            const tahunSekarang = now.getFullYear();
+            const bulanSekarang = ref.getMonth();
+            const tahunSekarang = ref.getFullYear();
             const { start, end } = getWeekRange(now);
 
             let totalIn = 0;
@@ -2909,11 +2924,12 @@
         // "Pengeluaran Lainnya" (mis. "Beli Helm") jadi baris tersendiri di
         // Rincian Pengeluaran, bukan numpuk jadi satu "Lain-lain" atau
         // "Belum Terkategori".
-        function computeKategoriPengeluaran(periode) {
+        function computeKategoriPengeluaran(periode, refDate) {
             const now = new Date();
+            const ref = refDate || now; // bulan acuan (default: sekarang)
             const todayStr = now.toDateString();
-            const bulanSekarang = now.getMonth();
-            const tahunSekarang = now.getFullYear();
+            const bulanSekarang = ref.getMonth();
+            const tahunSekarang = ref.getFullYear();
             const { start, end } = getWeekRange(now);
             let kategoriTotal = {};
 
@@ -2936,11 +2952,12 @@
 
         // Sama seperti computeKategoriPengeluaran() tapi untuk sisi Pendapatan
         // (tipe 'Masuk'), dipakai buat Rincian Pendapatan.
-        function computeKategoriPendapatan(periode) {
+        function computeKategoriPendapatan(periode, refDate) {
             const now = new Date();
+            const ref = refDate || now; // bulan acuan (default: sekarang)
             const todayStr = now.toDateString();
-            const bulanSekarang = now.getMonth();
-            const tahunSekarang = now.getFullYear();
+            const bulanSekarang = ref.getMonth();
+            const tahunSekarang = ref.getFullYear();
             const { start, end } = getWeekRange(now);
             let kategoriTotal = {};
 
@@ -2959,6 +2976,56 @@
             });
 
             return kategoriTotal;
+        }
+
+        // ===== PEMILIH BULAN: Rincian Pendapatan & Pengeluaran =====
+        // offset 0 = bulan berjalan (otomatis ikut ganti bulan), -1 = bulan lalu, dst.
+        let rincianBulanOffset = 0;
+
+        function rincianBulanRef() {
+            const n = new Date();
+            return new Date(n.getFullYear(), n.getMonth() + rincianBulanOffset, 1);
+        }
+
+        // Batas mundur = bulan data paling awal yang pernah tercatat.
+        function rincianBulanOffsetMin() {
+            const n = new Date();
+            let awal = null;
+            const cek = (ts) => { const d = new Date(ts); if (!isNaN(d) && (awal === null || d < awal)) awal = d; };
+            (allSheetRows || []).forEach(r => cek(r['Timestamp']));
+            (allDetailTransaksi || []).forEach(r => cek(r['Timestamp']));
+            if (!awal) return 0;
+            return Math.min(0, (awal.getFullYear() - n.getFullYear()) * 12 + (awal.getMonth() - n.getMonth()));
+        }
+
+        function geserRincianBulan(delta) {
+            rincianBulanOffset += delta;
+            renderRincianBulanan();
+        }
+
+        function renderRincianBulanan() {
+            const min = rincianBulanOffsetMin();
+            if (rincianBulanOffset < min) rincianBulanOffset = min;
+            if (rincianBulanOffset > 0) rincianBulanOffset = 0;
+
+            const ref = rincianBulanRef();
+            const namaPanjang = ref.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+            const namaPendek = ref.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+            const setTeks = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+            setTeks('rincian-bulan-label', namaPanjang + (rincianBulanOffset === 0 ? ' (bulan ini)' : ''));
+            setTeks('rincian-pendapatan-periode-label', namaPendek);
+            setTeks('rincian-periode-label', namaPendek);
+
+            const prev = document.getElementById('btn-rincian-bulan-prev');
+            const next = document.getElementById('btn-rincian-bulan-next');
+            if (prev) { prev.disabled = rincianBulanOffset <= min; prev.classList.toggle('opacity-30', prev.disabled); }
+            if (next) { next.disabled = rincianBulanOffset >= 0; next.classList.toggle('opacity-30', next.disabled); }
+
+            const tot = computeTotals(allSheetRows, 'month', ref);
+            setTeks('total-rincian-pendapatan', formatRp(tot.totalIn));
+            setTeks('total-rincian-pengeluaran', formatRp(tot.totalOut));
+            renderRincianPendapatan(computeKategoriPendapatan('month', ref), tot.totalIn);
+            renderRincianPengeluaran(computeKategoriPengeluaran('month', ref), tot.totalOut);
         }
 
         function setPeriode(periode) {
@@ -3013,14 +3080,10 @@
                 ? "text-4xl font-extrabold tracking-tight drop-shadow-md text-brand-neon"
                 : "text-4xl font-extrabold tracking-tight drop-shadow-md text-red-400";
 
-            // Rincian Pendapatan & Rincian Pengeluaran SENGAJA dikunci Bulanan,
-            // gak ikut toggle Harian/Mingguan di atas (currentPeriode) -- biar
-            // gak reset tiap ganti hari.
-            const bulanIni = computeTotals(allSheetRows, 'month');
-            document.getElementById('total-rincian-pendapatan').innerText = formatRp(bulanIni.totalIn);
-            document.getElementById('total-rincian-pengeluaran').innerText = formatRp(bulanIni.totalOut);
-            renderRincianPendapatan(computeKategoriPendapatan('month'), bulanIni.totalIn);
-            renderRincianPengeluaran(computeKategoriPengeluaran('month'), bulanIni.totalOut);
+            // Rincian Pendapatan & Pengeluaran selalu per BULAN (gak ikut toggle
+            // Harian/Mingguan di atas). Bulannya bisa digeser lewat pemilih bulan
+            // di tab Keuangan > Saldo & Rincian.
+            renderRincianBulanan();
 
             const mon = computeTotals(allSheetRows, 'day');
             const bersihMon = mon.totalIn - mon.totalOut;
