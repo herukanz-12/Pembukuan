@@ -230,81 +230,25 @@
                 </div>
             </div>
 
-            <!-- Rata-rata per Trip Card -->
+            <!-- Trip Hari Ini Card (trip dihitung otomatis dari tiap order Bid/Argo yang dicatat) -->
             <div class="bg-white dark:bg-cardDark p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-glass mb-6">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fa-solid fa-route text-brand"></i> Trip Hari Ini</p>
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center"><i class="fa-solid fa-calculator"></i></div>
+                        <div class="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center"><i class="fa-solid fa-motorcycle"></i></div>
                         <div>
-                            <p class="text-xs text-slate-500 font-medium">Rata-rata / Trip Hari Ini</p>
-                            <p class="text-base font-bold text-slate-800 dark:text-white" id="dash-avg-trip">Rp 0</p>
+                            <p class="text-xs text-slate-500 font-medium">Total Trip</p>
+                            <p class="text-base font-bold text-slate-800 dark:text-white" id="dash-total-trip">0 Trip</p>
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="text-xs text-slate-500 font-medium">Total Trip</p>
-                        <p class="text-base font-bold text-slate-800 dark:text-white" id="dash-total-trip">0 Trip</p>
+                        <p class="text-xs text-slate-500 font-medium">Rata-rata / Trip</p>
+                        <p class="text-base font-bold text-slate-800 dark:text-white" id="dash-avg-trip">Rp 0</p>
                     </div>
                 </div>
                 <div class="mt-3 pt-3 border-t border-slate-100 dark:border-white/10 flex justify-between items-center">
                     <span class="text-xs font-bold text-slate-500 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-brand"></i> Total Trip Bulan Ini</span>
                     <span class="text-sm font-extrabold text-brand" id="dash-trip-bulan">0 Trip</span>
-                </div>
-            </div>
-
-            <!-- Kalkulasi Hari Ini & Alokasi Otomatis (dipindah dari tab Monitor) -- reset otomatis tiap pergantian tanggal -->
-            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mb-5 relative overflow-hidden">
-                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
-                
-                <h3 class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-widest relative z-10 flex items-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Kalkulasi Hari Ini
-                </h3>
-                
-                <div class="space-y-2 mb-6 relative z-10">
-                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
-                        <span class="text-xs font-bold text-slate-500">Total Masuk</span>
-                        <span id="mon-in" class="font-bold text-green-500">Rp 0</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
-                        <span class="text-xs font-bold text-slate-500">Total Keluar</span>
-                        <span id="mon-out" class="font-bold text-red-500">Rp 0</span>
-                    </div>
-                </div>
-                
-                <div class="pt-4 border-t border-slate-100 dark:border-white/10 flex justify-between items-end relative z-10">
-                    <span class="text-sm font-bold text-slate-800 dark:text-white">Hasil Bersih</span>
-                    <span id="mon-bersih" class="font-extrabold text-3xl text-brand drop-shadow-md">Rp 0</span>
-                </div>
-            </div>
-
-            <!-- Alokasi Otomatis (Smart Split) -->
-            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Alokasi Otomatis (Smart Split)</h3>
-            <div class="grid grid-cols-1 gap-4 mb-6">
-                <!-- Shodaqoh -->
-                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-pink-500"></div>
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-500/20 text-pink-500 flex items-center justify-center"><i class="fa-solid fa-hand-holding-heart text-[10px]"></i></div>
-                                Sedekah (2.5%)
-                            </span>
-                        </div>
-                        <span id="mon-shodaqoh" class="font-bold text-pink-500 text-lg">Rp 0</span>
-                    </div>
-                </div>
-
-                <!-- Tabungan Servis -->
-                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-500/20 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-piggy-bank text-[10px]"></i></div>
-                                Tabungan Servis (10%)
-                            </span>
-                        </div>
-                        <span id="mon-tabungan" class="font-bold text-blue-500 text-lg">Rp 0</span>
-                    </div>
                 </div>
             </div>
 
@@ -364,6 +308,63 @@
                             <p class="text-sm font-bold" id="dash-out-day">Rp 0</p>
                         </div>
                         <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-300 flex items-center justify-center"><i class="fa-solid fa-arrow-up text-xs"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kalkulasi Hari Ini & Alokasi Otomatis (dipindah dari tab Monitor) -- reset otomatis tiap pergantian tanggal -->
+            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mb-5 relative overflow-hidden">
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
+                
+                <h3 class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-widest relative z-10 flex items-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Kalkulasi Hari Ini
+                </h3>
+                
+                <div class="space-y-2 mb-6 relative z-10">
+                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                        <span class="text-xs font-bold text-slate-500">Total Masuk</span>
+                        <span id="mon-in" class="font-bold text-green-500">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                        <span class="text-xs font-bold text-slate-500">Total Keluar</span>
+                        <span id="mon-out" class="font-bold text-red-500">Rp 0</span>
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t border-slate-100 dark:border-white/10 flex justify-between items-end relative z-10">
+                    <span class="text-sm font-bold text-slate-800 dark:text-white">Hasil Bersih</span>
+                    <span id="mon-bersih" class="font-extrabold text-3xl text-brand drop-shadow-md">Rp 0</span>
+                </div>
+            </div>
+
+            <!-- Alokasi Otomatis (Smart Split) -->
+            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Alokasi Otomatis (Smart Split)</h3>
+            <div class="grid grid-cols-1 gap-4 mb-6">
+                <!-- Shodaqoh -->
+                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-pink-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-500/20 text-pink-500 flex items-center justify-center"><i class="fa-solid fa-hand-holding-heart text-[10px]"></i></div>
+                                Sedekah (2.5%)
+                            </span>
+                        </div>
+                        <span id="mon-shodaqoh" class="font-bold text-pink-500 text-lg">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Tabungan Servis -->
+                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-500/20 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-piggy-bank text-[10px]"></i></div>
+                                Tabungan Servis (10%)
+                            </span>
+                        </div>
+                        <span id="mon-tabungan" class="font-bold text-blue-500 text-lg">Rp 0</span>
                     </div>
                 </div>
             </div>
@@ -509,7 +510,7 @@
                         <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-500 text-lg shrink-0"><i class="fa-solid fa-route"></i></div>
                         <div class="flex-1">
                             <span class="block font-bold text-sm text-slate-800 dark:text-white">Total Trip Diselesaikan</span>
-                            <span class="block text-[11px] text-slate-400">Catat jumlah trip hari ini</span>
+                            <span class="block text-[11px] text-slate-400">Otomatis dari Bid/Argo, isi manual hanya untuk koreksi</span>
                         </div>
                         <i class="fa-solid fa-chevron-right text-slate-300 dark:text-slate-600"></i>
                     </button>
@@ -530,7 +531,8 @@
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-route"></i> Total Trip Diselesaikan</label>
                     </div>
-                    <input type="number" id="in_trip" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-2xl outline-none" placeholder="0">
+                    <input type="number" id="in_trip" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold text-2xl outline-none" placeholder="Otomatis">
+                    <p class="text-[10px] text-slate-400 mt-1.5">Biarkan kosong: trip otomatis dihitung dari tiap order yang kamu catat di Bid / Argo. Kalau 1x simpan berisi beberapa order, tulis nomor ordernya dipisah koma. Isi kolom ini hanya untuk koreksi manual.</p>
                 </div>
 
                 <!-- KM Motor Saat Ini -- diisi tiap akhir ngebid/malam, dipakai buat cek jadwal ganti oli per 2000 km -->
@@ -2631,6 +2633,70 @@
             return { start: senin, end: minggu };
         }
 
+        // ===== TRIP OTOMATIS DARI BID / ARGO =====
+        // 1 order Bid/Argo yang dicatat = 1 trip. Kalau kolom "No. Order" berisi beberapa
+        // nomor dipisah koma (mis. dari Pesanan Tunai), tiap nomor dihitung 1 trip.
+        function jumlahOrderDariKeterangan(ket) {
+            const n = (ket || '').toString().split(',').map(x => x.trim()).filter(Boolean).length;
+            return Math.max(1, n);
+        }
+
+        function kunciHari(ts) {
+            const d = new Date(ts);
+            if (isNaN(d)) return null;
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        }
+
+        // Trip dari isi form Input yang sedang diisi (belum disimpan).
+        // Kolom manual "Total Trip Diselesaikan" kalau diisi (>0) dipakai sebagai koreksi.
+        function hitungTripForm() {
+            const manual = getVal('in_trip');
+            if (manual > 0) return manual;
+            let n = 0;
+            if (getVal('in_bid') > 0) n += jumlahOrderDariKeterangan(getStr('in_bid_order'));
+            document.querySelectorAll('#manual-income-list > div').forEach(row => {
+                const desc = row.querySelector('.manual-in-desc').value.trim().toLowerCase();
+                const val = parseFloat(row.querySelector('.manual-in-val').value) || 0;
+                if (val > 0 && desc === 'bid') n += 1;
+            });
+            return n;
+        }
+
+        // Peta { hari(ms) : jumlah trip } dari data tersimpan. Per hari dipakai nilai yang
+        // lebih besar antara (a) jumlah kolom "Jumlah Trip" dan (b) jumlah order Bid di
+        // log DetailTransaksi -- jadi hari-hari lama yang trip-nya belum pernah diisi
+        // ikut terhitung, dan input manual tidak terhitung dobel.
+        function petaTripPerHari() {
+            const manual = {}, auto = {};
+            (allSheetRows || []).forEach(row => {
+                const k = kunciHari(row['Timestamp']);
+                if (k === null) return;
+                manual[k] = (manual[k] || 0) + (parseFloat(row['Jumlah Trip']) || 0);
+            });
+            (allDetailTransaksi || []).forEach(item => {
+                if (item['Tipe'] !== 'Masuk') return;
+                if ((item['Kategori'] || '').toString().trim().toLowerCase() !== 'bid') return;
+                if (!(Number(item['Nominal']) > 0)) return;
+                const k = kunciHari(item['Timestamp']);
+                if (k === null) return;
+                auto[k] = (auto[k] || 0) + jumlahOrderDariKeterangan(item['Keterangan']);
+            });
+            const hasil = {};
+            new Set(Object.keys(manual).concat(Object.keys(auto))).forEach(k => {
+                hasil[k] = Math.max(manual[k] || 0, auto[k] || 0);
+            });
+            return hasil;
+        }
+
+        function hitungTripRentang(peta, start, end) {
+            let total = 0;
+            Object.keys(peta).forEach(k => {
+                const t = Number(k);
+                if (t >= start.getTime() && t <= end.getTime()) total += peta[k];
+            });
+            return total;
+        }
+
         function computeTotals(rows, periode) {
             const now = new Date();
             const todayStr = now.toDateString();
@@ -2676,9 +2742,9 @@
                 if (ts >= start && ts <= end) {
                     totalIn += Number(row['Total Pemasukan']) || 0;
                     totalOut += Number(row['Total Pengeluaran']) || 0;
-                    trips += Number(row['Jumlah Trip']) || 0;
                 }
             });
+            trips = hitungTripRentang(petaTripPerHari(), start, end);
             return { totalIn, totalOut, trips };
         }
 
@@ -2966,19 +3032,16 @@
             }
 
             // Hitung Rata-rata per Trip Hari Ini
-            let totalTripHariIni = 0;
-            const now = new Date().toDateString();
-            allSheetRows.forEach(row => {
-                if (new Date(row['Timestamp']).toDateString() === now) {
-                    totalTripHariIni += parseFloat(row['Jumlah Trip']) || 0;
-                }
-            });
-            let liveTrip = parseFloat(document.getElementById('in_trip').value) || 0;
+            const petaTrip = petaTripPerHari();
+            const awalHariIni = new Date(); awalHariIni.setHours(0, 0, 0, 0);
+            const akhirHariIni = new Date(awalHariIni); akhirHariIni.setHours(23, 59, 59, 999);
+            let totalTripHariIni = hitungTripRentang(petaTrip, awalHariIni, akhirHariIni);
+            let liveTrip = hitungTripForm();
             let combinedTrip = totalTripHariIni + liveTrip;
             
             document.getElementById('dash-total-trip').innerText = combinedTrip + " Trip";
             if (combinedTrip > 0) {
-                let avgPerTrip = bersihDash / combinedTrip;
+                let avgPerTrip = bersihMon / combinedTrip; // rata-rata pendapatan bersih HARI INI per trip
                 document.getElementById('dash-avg-trip').innerText = formatRp(avgPerTrip >= 0 ? avgPerTrip : 0);
             } else {
                 document.getElementById('dash-avg-trip').innerText = "Rp 0";
@@ -2990,10 +3053,10 @@
             let bulanSekarang = new Date().getMonth();
             let tahunSekarang = new Date().getFullYear();
             let totalTripBulanIni = 0;
-            allSheetRows.forEach(row => {
-                let ts = new Date(row['Timestamp']);
-                if (ts.getMonth() === bulanSekarang && ts.getFullYear() === tahunSekarang) {
-                    totalTripBulanIni += parseFloat(row['Jumlah Trip']) || 0;
+            Object.keys(petaTrip).forEach(k => {
+                let tsHari = new Date(Number(k));
+                if (tsHari.getMonth() === bulanSekarang && tsHari.getFullYear() === tahunSekarang) {
+                    totalTripBulanIni += petaTrip[k];
                 }
             });
             // Termasuk input yang lagi diketik di form (belum disimpan), kalau form
@@ -4144,7 +4207,7 @@
                 in_tips: getVal('in_tips'),
                 in_lain: totalInLain,
                 in_lain_desc: listInDesc.join('\n'),
-                in_trip: getVal('in_trip'),
+                in_trip: hitungTripForm(),
                 pct_sedekah: localStorage.getItem('set_sedekah') || '2.5',
                 pct_tabungan: localStorage.getItem('set_tabungan') || '10',
                 
@@ -4289,6 +4352,7 @@
                     }, 2000);
                 } else {
                     resetForm();
+                    renderRekap(); // form sudah kosong -> hindari trip terhitung dobel di Beranda
                     switchTab('dashboard', 0);
                 }
 
