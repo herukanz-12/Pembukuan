@@ -583,7 +583,14 @@
                 <div id="panel-masuk-keluar" class="input-panel hidden">
 
                 <details class="mb-3 group">
-                    <summary class="cursor-pointer text-[11px] font-bold text-amber-600 dark:text-amber-400 py-2 px-1 list-none flex items-center gap-2"><i class="fa-solid fa-bolt"></i> Pintasan: Pesanan Tunai (GoFood / GoShop)</summary>
+                    <summary class="cursor-pointer list-none flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 active:scale-[0.99] transition [&::-webkit-details-marker]:hidden">
+                        <span class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500 shrink-0"><i class="fa-solid fa-bolt"></i></span>
+                        <span class="flex-1 min-w-0">
+                            <span class="block text-sm font-bold text-slate-800 dark:text-white">Pesanan Tunai (GoFood / GoShop)</span>
+                            <span class="block text-[11px] text-slate-500 dark:text-slate-400">Ketuk untuk isi cepat Tagih Tunai &amp; Talangan</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-amber-500 text-xs transition-transform group-open:rotate-180"></i>
+                    </summary>
                 <!-- SHORTCUT: Pesanan Tunai (GoFood / GoShop) -- 1x isi = Masuk (Cash) + Keluar (Talangan) sekaligus -->
                 <div class="bg-amber-50/60 dark:bg-amber-500/5 rounded-[2rem] border border-amber-200 dark:border-amber-500/20 p-5 mb-3 shadow-glass">
                     <h3 class="font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2 text-sm">
