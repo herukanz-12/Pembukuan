@@ -105,6 +105,16 @@
         }
 
         /* Animations */
+        /* Beranda: garis tengah jalan (kuning putus-putus) & cincin progres trip */
+        .jalan-garis {
+            background-image: repeating-linear-gradient(90deg, rgba(251, 191, 36, 0.75) 0 8px, transparent 8px 16px);
+        }
+        @property --p { syntax: '<number>'; inherits: false; initial-value: 0; }
+        .trip-ring {
+            background: conic-gradient(#10b981 calc(var(--p) * 1%), rgba(148, 163, 184, 0.22) 0);
+            transition: --p 1s ease-out;
+        }
+
         @keyframes fadeInSlide {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -168,7 +178,7 @@
         <!-- 1. DASHBOARD VIEW -->
         <!-- ========================================== -->
         <section id="view-dashboard" class="tab-content active">
-            
+
             <!-- Pengingat draf input yang belum disimpan (tidak memindahkan layar) -->
             <button type="button" id="banner-draf" onclick="bukaDrafInput()" class="hidden w-full mb-4 p-3 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 rounded-2xl text-xs font-bold flex items-center gap-3 text-left">
                 <i class="fa-solid fa-pen-to-square text-base"></i>
@@ -176,145 +186,119 @@
                 <i class="fa-solid fa-chevron-right text-[10px]"></i>
             </button>
 
-            <!-- Peringatan Pajak STNK & SIM Berkedip -->
-            <div id="alert-pajak" class="hidden mb-4 p-4 bg-red-600 text-white rounded-2xl animate-pulse text-sm font-bold shadow-float flex items-center gap-3">
-                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+            <!-- Peringatan pajak STNK & SIM -->
+            <div id="alert-pajak" class="hidden mb-4 p-4 bg-gradient-to-r from-red-600 to-rose-500 text-white rounded-2xl text-sm font-bold shadow-float flex items-center gap-3">
+                <span class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0 animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i></span>
                 <div class="flex-1">
                     <span id="alert-pajak-msg">Peringatan Pajak Aktif!</span>
                 </div>
             </div>
-            
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Halo, Pejuang Jalanan! 🛵</h2>
-                <p class="text-sm text-slate-500 dark:text-slate-400">Semoga trip hari ini lancar dan berkah.</p>
-                <div class="text-brand dark:text-brand-neon mt-2">
-                    <p dir="rtl" lang="ar" class="text-base font-semibold leading-snug text-left">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
-                    <p class="text-xs font-semibold">Bismillahirrahmanirrahim</p>
+
+            <!-- Sapaan -->
+            <div class="mb-6 px-1">
+                <p id="beranda-tanggal" class="text-xs font-semibold text-slate-400 dark:text-slate-500">&nbsp;</p>
+                <h2 class="mt-1 text-[28px] leading-[1.15] font-extrabold tracking-tight text-slate-900 dark:text-white">Halo, Pejuang Jalanan! 🛵</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Semoga trip hari ini lancar dan berkah.</p>
+                <div class="mt-3 border-l-2 border-brand/50 pl-3">
+                    <p dir="rtl" lang="ar" class="text-base font-semibold leading-snug text-left text-brand dark:text-brand-neon">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
+                    <p class="text-[11px] font-medium text-slate-400">Bismillahirrahmanirrahim</p>
                 </div>
             </div>
 
-            <!-- Target Progress Bar Indikator (1 Track, 2 Motor: Bersih & Kotor) -->
-            <div class="bg-white dark:bg-cardDark p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-glass mb-6">
-                <div class="flex justify-between items-center text-xs font-bold mb-2">
-                    <span class="text-slate-500 dark:text-slate-400 uppercase tracking-wider">Progres Target Pendapatan</span>
-                    <span class="text-slate-400 normal-case font-semibold">Target: <span id="target-setting-val" class="text-slate-600 dark:text-slate-300">Rp 0</span></span>
-                </div>
-
-                <!-- Track tunggal: kedua motor jalan di sini, otomatis motor Kotor (merah)
-                     ada di depan karena kotor selalu >= bersih -->
-                <div class="relative w-full pt-6 mb-1">
-                    <!-- Motor Kotor (belakang secara visual/z-index lebih rendah, tapi posisinya lebih depan di track) -->
-                    <div id="motor-progress-wrapper-kotor" class="absolute top-0 -ml-3 transition-all duration-1000 ease-out z-10" style="left: 0%;">
-                        <i class="fa-solid fa-motorcycle text-red-500 text-xl drop-shadow-md"></i>
-                        <span class="block text-center text-[8px] font-bold text-red-500 -mt-0.5">Kotor</span>
+            <!-- HASIL HARI INI: angka bersih + jalan menuju target.
+                 Motor hijau = Bersih (di atas jalur), motor merah = Kotor (di bawah jalur),
+                 jadi keduanya selalu kelihatan walau posisinya sama. -->
+            <div class="relative overflow-hidden rounded-[28px] bg-[#0f172a] text-white p-6 mb-6 border border-white/10 shadow-[0_20px_50px_-20px_rgba(16,185,129,0.45)]">
+                <div class="pointer-events-none absolute -top-24 -right-16 w-64 h-64 rounded-full bg-emerald-500/20 blur-3xl"></div>
+                <div class="relative z-10">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <p class="text-sm font-medium text-white/60">Hasil bersih hari ini</p>
+                        <p class="text-xs text-white/40"><i class="fa-solid fa-flag-checkered text-amber-300 mr-1"></i>Target <span id="target-setting-val" class="font-bold text-white/70">Rp 0</span></p>
                     </div>
-                    <!-- Motor Bersih -->
-                    <div id="motor-progress-wrapper" class="absolute top-0 -ml-3 transition-all duration-1000 ease-out z-20" style="left: 0%;">
-                        <i class="fa-solid fa-motorcycle text-emerald-500 text-xl drop-shadow-md"></i>
-                        <span class="block text-center text-[8px] font-bold text-emerald-500 -mt-0.5">Bersih</span>
-                    </div>
+                    <p id="mon-bersih" class="mt-2 text-[44px] leading-none font-extrabold tracking-tight tabular-nums whitespace-nowrap text-brand-neon">Rp 0</p>
 
-                    <div class="w-full bg-slate-100 dark:bg-bgDark rounded-full h-3 overflow-hidden shadow-inner border border-slate-200 dark:border-white/5 relative z-0">
-                        <!-- Fill Kotor jadi dasar (lebih terang/transparan) -->
-                        <div id="target-progress-bar-kotor" class="absolute inset-y-0 left-0 bg-red-300 dark:bg-red-500/40 h-3 rounded-full progress-bar-fill" style="width: 0%"></div>
-                        <!-- Fill Bersih di atasnya (selalu <= kotor) -->
-                        <div id="target-progress-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 to-emerald-500 h-3 rounded-full progress-bar-fill" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div class="flex justify-between items-center text-[10px] font-medium text-slate-400 mt-1">
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Bersih: <span id="target-bersih-val">Rp 0</span> (<span id="target-progress-text" class="text-emerald-500 font-bold">0%</span>)</span>
-                </div>
-                <div class="flex justify-between items-center text-[10px] font-medium text-slate-400 mt-1">
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span> Kotor: <span id="target-kotor-val">Rp 0</span> (<span id="target-progress-text-kotor" class="text-red-500 font-bold">0%</span>)</span>
-                </div>
-            </div>
-
-            <!-- Trip Hari Ini Card (trip dihitung otomatis dari tiap order Bid/Argo yang dicatat) -->
-            <div class="bg-white dark:bg-cardDark p-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-glass mb-6">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fa-solid fa-route text-brand"></i> Trip Hari Ini</p>
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-brand/10 text-brand flex items-center justify-center"><i class="fa-solid fa-motorcycle"></i></div>
-                        <div>
-                            <p class="text-xs text-slate-500 font-medium">Total Trip</p>
-                            <p class="text-base font-bold text-slate-800 dark:text-white" id="dash-total-trip">0 Trip</p>
+                    <div class="mt-5 flex items-stretch">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-white/50 flex items-center gap-1.5"><i class="fa-solid fa-arrow-down text-emerald-400 text-[10px]"></i>Masuk</p>
+                            <p id="mon-in" class="text-base font-bold tabular-nums">Rp 0</p>
+                        </div>
+                        <div class="w-px bg-white/10 mx-4"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-white/50 flex items-center gap-1.5"><i class="fa-solid fa-arrow-up text-red-400 text-[10px]"></i>Keluar</p>
+                            <p id="mon-out" class="text-base font-bold tabular-nums">Rp 0</p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-xs text-slate-500 font-medium">Rata-rata / Trip</p>
-                        <p class="text-base font-bold text-slate-800 dark:text-white" id="dash-avg-trip">Rp 0</p>
-                    </div>
-                </div>
-                <div class="mt-3 pt-3 border-t border-slate-100 dark:border-white/10 flex justify-between items-center">
-                    <span class="text-xs font-bold text-slate-500 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-brand"></i> Total Trip Bulan Ini</span>
-                    <span class="text-sm font-extrabold text-brand" id="dash-trip-bulan">0 Trip</span>
-                </div>
-                <div id="dash-trip-target-wrap" class="hidden mt-3">
-                    <div class="w-full bg-slate-100 dark:bg-bgDark rounded-full h-2 overflow-hidden">
-                        <div id="dash-trip-target-bar" class="bg-gradient-to-r from-brand to-brand-neon h-2 rounded-full progress-bar-fill" style="width: 0%"></div>
-                    </div>
-                    <p id="dash-trip-target-info" class="text-[10px] text-slate-400 mt-1.5"></p>
-                </div>
-            </div>
 
-            <!-- Kalkulasi Hari Ini & Alokasi Otomatis (dipindah dari tab Monitor) -- reset otomatis tiap pergantian tanggal -->
-            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mb-5 relative overflow-hidden">
-                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
-                
-                <h3 class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-widest relative z-10 flex items-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Kalkulasi Hari Ini
-                </h3>
-                
-                <div class="space-y-2 mb-6 relative z-10">
-                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
-                        <span class="text-xs font-bold text-slate-500">Total Masuk</span>
-                        <span id="mon-in" class="font-bold text-green-500">Rp 0</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
-                        <span class="text-xs font-bold text-slate-500">Total Keluar</span>
-                        <span id="mon-out" class="font-bold text-red-500">Rp 0</span>
-                    </div>
-                </div>
-                
-                <div class="pt-4 border-t border-slate-100 dark:border-white/10 flex justify-between items-end relative z-10">
-                    <span class="text-sm font-bold text-slate-800 dark:text-white">Hasil Bersih</span>
-                    <span id="mon-bersih" class="font-extrabold text-3xl text-brand drop-shadow-md">Rp 0</span>
-                </div>
-            </div>
-
-            <!-- Alokasi Otomatis (Smart Split) -->
-            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Alokasi Otomatis (Smart Split)</h3>
-            <div class="grid grid-cols-1 gap-4 mb-6">
-                <!-- Shodaqoh -->
-                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-pink-500"></div>
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-500/20 text-pink-500 flex items-center justify-center"><i class="fa-solid fa-hand-holding-heart text-[10px]"></i></div>
-                                Sedekah (2.5%)
-                            </span>
+                    <!-- Jalan -->
+                    <div class="mt-6">
+                        <div class="relative h-[60px]">
+                            <div id="motor-progress-wrapper" class="absolute top-0 -ml-3 transition-all duration-1000 ease-out z-20" style="left: 0%;">
+                                <i class="fa-solid fa-motorcycle text-white text-xl drop-shadow-[0_0_8px_rgba(0,220,130,0.8)]"></i>
+                            </div>
+                            <div class="absolute left-0 right-0 top-[26px] h-3 rounded-full bg-slate-800 ring-1 ring-white/10 overflow-hidden">
+                                <div id="target-progress-bar-kotor" class="absolute inset-y-0 left-0 rounded-full bg-red-400/50 progress-bar-fill" style="width: 0%"></div>
+                                <div id="target-progress-bar" class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-emerald-500 to-brand-neon progress-bar-fill" style="width: 0%"></div>
+                                <div class="jalan-garis absolute inset-x-2 top-1/2 -translate-y-1/2 h-[2px]"></div>
+                            </div>
+                            <div id="motor-progress-wrapper-kotor" class="absolute bottom-0 -ml-2.5 transition-all duration-1000 ease-out z-10" style="left: 0%;">
+                                <i class="fa-solid fa-motorcycle text-red-300 text-base"></i>
+                            </div>
                         </div>
-                        <span id="mon-shodaqoh" class="font-bold text-pink-500 text-lg">Rp 0</span>
-                    </div>
-                </div>
-
-                <!-- Tabungan Servis -->
-                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-500/20 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-piggy-bank text-[10px]"></i></div>
-                                Tabungan Servis (10%)
-                            </span>
+                        <div class="mt-2 grid grid-cols-2 gap-x-3 text-[11px]">
+                            <p class="flex flex-wrap items-center gap-x-1.5 text-white/60"><span class="w-2 h-2 rounded-full bg-brand-neon"></span>Bersih <span id="target-bersih-val" class="font-bold text-white">Rp 0</span> <span id="target-progress-text" class="font-bold text-brand-neon">0%</span></p>
+                            <p class="flex flex-wrap items-center gap-x-1.5 text-white/60"><span class="w-2 h-2 rounded-full bg-red-400"></span>Kotor <span id="target-kotor-val" class="font-bold text-white">Rp 0</span> <span id="target-progress-text-kotor" class="font-bold text-red-300">0%</span></p>
                         </div>
-                        <span id="mon-tabungan" class="font-bold text-blue-500 text-lg">Rp 0</span>
                     </div>
                 </div>
             </div>
 
+            <!-- TRIP -->
+            <h3 class="mb-2 px-1 text-sm font-bold text-slate-700 dark:text-slate-300">Trip</h3>
+            <div class="mb-6 rounded-3xl bg-white dark:bg-cardDark border border-slate-100 dark:border-white/5 divide-y divide-slate-100 dark:divide-white/5">
+                <div class="flex items-center gap-4 p-4">
+                    <div class="w-11 h-11 rounded-2xl bg-brand/10 text-brand flex items-center justify-center shrink-0"><i class="fa-solid fa-route"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-slate-800 dark:text-white">Trip hari ini</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Rata-rata <span id="dash-avg-trip" class="font-semibold text-slate-700 dark:text-slate-300">Rp 0</span> per trip</p>
+                    </div>
+                    <p id="dash-total-trip" class="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">0</p>
+                </div>
+                <div class="flex items-center gap-4 p-4">
+                    <div class="w-11 h-11 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-calendar-days"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-slate-800 dark:text-white">Trip bulan ini</p>
+                        <p class="text-xl font-extrabold tabular-nums leading-tight text-slate-900 dark:text-white"><span id="dash-trip-bulan">0</span><span id="dash-trip-target-num" class="text-sm font-bold text-slate-400"></span></p>
+                        <p id="dash-trip-target-info" class="text-xs leading-snug text-slate-500 dark:text-slate-400">Isi target trip di Pengaturan untuk melihat progres.</p>
+                    </div>
+                    <div id="dash-trip-ring-wrap" class="hidden relative w-14 h-14 shrink-0">
+                        <div id="dash-trip-ring" class="trip-ring absolute inset-0 rounded-full" style="--p: 0;"></div>
+                        <div class="absolute inset-[5px] rounded-full bg-white dark:bg-cardDark flex items-center justify-center">
+                            <span id="dash-trip-ring-text" class="text-[11px] font-extrabold tabular-nums text-brand">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALOKASI OTOMATIS -->
+            <h3 class="mb-2 px-1 text-sm font-bold text-slate-700 dark:text-slate-300">Alokasi otomatis</h3>
+            <div class="mb-4 rounded-3xl bg-white dark:bg-cardDark border border-slate-100 dark:border-white/5 divide-y divide-slate-100 dark:divide-white/5">
+                <div class="flex items-center gap-4 p-4">
+                    <div class="w-11 h-11 rounded-2xl bg-pink-500/10 text-pink-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-slate-800 dark:text-white">Sedekah</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400"><span id="mon-pct-sedekah">2.5%</span> dari pendapatan kotor</p>
+                    </div>
+                    <p id="mon-shodaqoh" class="text-lg font-extrabold tabular-nums text-pink-500">Rp 0</p>
+                </div>
+                <div class="flex items-center gap-4 p-4">
+                    <div class="w-11 h-11 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-piggy-bank"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-slate-800 dark:text-white">Tabungan servis</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400"><span id="mon-pct-tabungan">10%</span> dari pendapatan kotor</p>
+                    </div>
+                    <p id="mon-tabungan" class="text-lg font-extrabold tabular-nums text-blue-500">Rp 0</p>
+                </div>
+            </div>
         </section>
 
         <!-- ========================================== -->
@@ -323,8 +307,8 @@
         <section id="view-input" class="tab-content">
             <div class="flex justify-between items-end mb-6 sticky top-20 bg-slate-50/90 dark:bg-bgDark/90 backdrop-blur-md py-4 z-20 -mx-6 px-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Data Entry</h2>
-                    <p class="text-xs text-slate-500 mt-1">Catat semua arus kas hari ini</p>
+                    <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Catat</h2>
+                    <p class="text-xs text-slate-500 mt-1">Pilih yang mau dicatat sekarang</p>
                 </div>
                 <button onclick="resetForm()" class="text-xs font-bold text-slate-500 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-rotate-right"></i> Reset
@@ -339,45 +323,17 @@
                 </button>
 
                 <!-- =============== MENU INPUT (5 TOMBOL) =============== -->
-                <div id="input-menu-grid" class="space-y-3">
-                    <button type="button" onclick="showInputPanel('panel-dompet')" class="input-menu-btn w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-emerald-300 dark:hover:border-emerald-500/30 transition text-left">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-lg shrink-0"><i class="fa-solid fa-wallet"></i></div>
-                        <div class="flex-1">
-                            <span class="block font-bold text-sm text-slate-800 dark:text-white">Dompet (Auto Kalkulasi)</span>
-                            <span class="block text-[11px] text-slate-400">Isi saldo awal tiap dompet</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-slate-300 dark:text-slate-600"></i>
-                    </button>
+                <div id="input-menu-grid" class="space-y-4">
+<button type="button" onclick="showInputPanel('panel-masuk-keluar')" class="input-menu-btn w-full text-left bg-digital-card rounded-[2rem] p-6 text-white shadow-neon relative overflow-hidden active:scale-[0.99] transition">
+<div class="absolute -top-16 -right-12 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+<span class="relative z-10 flex items-center justify-between"><span><span class="block text-lg font-extrabold">Catat hari ini</span><span class="block text-xs text-white/75 mt-1">Pemasukan dan pengeluaran, termasuk pesanan tunai</span></span><span class="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center shrink-0"><i class="fa-solid fa-plus"></i></span></span></button>
+<div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-2 divide-y divide-slate-100 dark:divide-white/5">
+<button type="button" onclick="showInputPanel('panel-dompet')" class="input-menu-btn w-full flex items-center gap-4 p-3 text-left"><span class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-wallet"></i></span><span class="flex-1"><span class="block font-bold text-sm text-slate-800 dark:text-white">Saldo dompet</span><span class="block text-[11px] text-slate-400">Isi saldo awal tiap dompet, atau transfer antar dompet</span></span><i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i></button>
+<button type="button" onclick="showInputPanel('panel-trip')" class="input-menu-btn w-full flex items-center gap-4 p-3 text-left"><span class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-route"></i></span><span class="flex-1"><span class="block font-bold text-sm text-slate-800 dark:text-white">Trip dan KM motor</span><span class="block text-[11px] text-slate-400">Trip dihitung otomatis, isi manual hanya untuk koreksi</span></span><i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i></button>
+<button type="button" onclick="showInputPanel('panel-catat-maintenance')" class="input-menu-btn w-full flex items-center gap-4 p-3 text-left"><span class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-screwdriver-wrench"></i></span><span class="flex-1"><span class="block font-bold text-sm text-slate-800 dark:text-white">Servis motor</span><span class="block text-[11px] text-slate-400">Simpan riwayat servis untuk status di tab Monitor</span></span><i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i></button>
+</div></div>
 
-                    <button type="button" onclick="showInputPanel('panel-masuk-keluar')" class="input-menu-btn w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-brand/40 transition text-left">
-                        <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-brand text-lg shrink-0"><i class="fa-solid fa-right-left"></i></div>
-                        <div class="flex-1">
-                            <span class="block font-bold text-sm text-slate-800 dark:text-white">Input (Masuk dan Keluar)</span>
-                            <span class="block text-[11px] text-slate-400">Catat pendapatan &amp; pengeluaran</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-slate-300 dark:text-slate-600"></i>
-                    </button>
-
-                    <button type="button" onclick="showInputPanel('panel-trip')" class="input-menu-btn w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-blue-300 dark:hover:border-blue-500/30 transition text-left">
-                        <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-500 text-lg shrink-0"><i class="fa-solid fa-route"></i></div>
-                        <div class="flex-1">
-                            <span class="block font-bold text-sm text-slate-800 dark:text-white">Total Trip Diselesaikan</span>
-                            <span class="block text-[11px] text-slate-400">Otomatis dari Bid/Argo, isi manual hanya untuk koreksi</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-slate-300 dark:text-slate-600"></i>
-                    </button>
-
-                    <button type="button" onclick="showInputPanel('panel-catat-maintenance')" class="input-menu-btn w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-red-300 dark:hover:border-red-500/30 transition text-left">
-                        <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 text-lg shrink-0"><i class="fa-solid fa-clipboard-list"></i></div>
-                        <div class="flex-1">
-                            <span class="block font-bold text-sm text-slate-800 dark:text-white">Catat Maintenance Motor</span>
-                            <span class="block text-[11px] text-slate-400">Simpan riwayat servis motor</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-slate-300 dark:text-slate-600"></i>
-                    </button>
-                </div>
-
-                <div id="panel-trip" class="input-panel hidden">
+<div id="panel-trip" class="input-panel hidden">
                 <!-- Kotak Jumlah Trip (Netral/Aktivitas) -->
                 <div class="bg-blue-50/50 dark:bg-blue-500/5 rounded-2xl border border-blue-100 dark:border-blue-500/20 p-4 focus-within:border-blue-500 transition-all">
                     <div class="flex justify-between items-center mb-2">
@@ -543,233 +499,81 @@
                 <!-- Pesanan tunai dilipat -->
                 </details>
                 <div id="advanced-mk">
-                <!-- Container Tab Masuk & Keluar -->
-                <div class="relative">
-                    
-                    <!-- SECTION: MASUK -->
-                    <div id="section-input-masuk" class="block animate-fade-in">
-                        <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 flex flex-col h-full">
-                            <div class="relative mb-5">
-                                <select id="pilih-arus" onchange="switchInputTab(this.value)" class="pilih-arus w-full appearance-none text-sm font-bold bg-transparent text-brand border-b-2 border-brand/40 pl-4 pr-9 py-2 outline-none cursor-pointer">
-                                    <option value="masuk" selected>Arus Masuk (Pendapatan)</option>
-                                    <option value="keluar">Arus Keluar (Pengeluaran)</option>
-                                </select>
-                                <span class="absolute left-0 top-2 w-1.5 h-5 rounded-full bg-brand block pointer-events-none"></span>
-                                <i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
-                            </div>
-                            <div class="space-y-4 flex-1">
-                                <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-mobile-screen"></i> Bid / Argon</label>
-                                        <select id="dompet_in_bid" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="cash">Cash</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <p class="text-[9px] text-green-600/70 dark:text-green-400/70 -mt-1 mb-2">(Sama dengan "Tagih Tunai")</p>
-                                    <input type="number" id="in_bid" oninput="autoHitungPotonganGojek()" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none mb-2" placeholder="0">
-                                    <input type="text" id="in_bid_order" class="w-full bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none" placeholder="No. Order (Opsional)">
-                                    <div class="mt-2 pt-2 border-t border-dashed border-green-200 dark:border-green-500/20">
-                                        <label class="text-[9px] font-bold text-green-600/80 dark:text-green-400/80 uppercase flex items-center gap-1 mb-1"><i class="fa-solid fa-calculator"></i> Pendapatan Bersih (cek di app Gojek)</label>
-                                        <input type="number" id="in_bid_bersih" oninput="autoHitungPotonganGojek()" class="w-full bg-white dark:bg-cardDark border border-green-200 dark:border-green-500/20 rounded-lg p-2 text-sm text-slate-700 dark:text-slate-200 outline-none" placeholder="Opsional, khusus GoRide/Bid: isi ini biar Potongan Gojek otomatis">
-                                        <p id="hint_potongan_otomatis" class="text-[9px] text-slate-400 mt-1 hidden"></p>
-                                    </div>
-                                </div>
-                                <div class="bg-green-50/50 dark:bg-green-500/5 rounded-2xl border border-green-100 dark:border-green-500/20 p-4 focus-within:border-brand transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-hand-holding-dollar"></i> Tips</label>
-                                        <select id="dompet_in_tips" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="in_tips" class="w-full bg-transparent border-none p-0 text-brand font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-                    
-                                <!-- Dynamic Manual Income Entries -->
-                                <div class="border-t border-slate-100 dark:border-white/5 pt-4 mt-2">
-                                    <div class="flex justify-between items-center mb-3">
-                                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Pendapatan Lainnya</span>
-                                        <button type="button" onclick="addManualIncomeRow()" class="text-[10px] font-bold text-brand bg-brand/10 px-3 py-1.5 rounded-lg hover:bg-brand/20 transition flex items-center gap-1">
-                                            <i class="fa-solid fa-plus"></i> Tambah
-                                        </button>
-                                    </div>
-                                    <div id="manual-income-list" class="space-y-3">
-                                        <!-- Dynamic rows append here -->
-                                    </div>
-                                    <datalist id="daftar-kategori-masuk-lain"></datalist>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SECTION: KELUAR -->
-                    <div id="section-input-keluar" class="hidden animate-fade-in">
-                        <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 flex flex-col h-full">
-                            <div class="relative mb-5">
-                                <select id="pilih-arus-keluar" onchange="switchInputTab(this.value)" class="pilih-arus w-full appearance-none text-sm font-bold bg-transparent text-red-500 border-b-2 border-red-500/40 pl-4 pr-9 py-2 outline-none cursor-pointer">
-                                    <option value="masuk">Arus Masuk (Pendapatan)</option>
-                                    <option value="keluar" selected>Arus Keluar (Pengeluaran)</option>
-                                </select>
-                                <span class="absolute left-0 top-2 w-1.5 h-5 rounded-full bg-red-500 block pointer-events-none"></span>
-                                <i class="fa-solid fa-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-burger text-red-400"></i> Makan</label>
-                                        <select id="dompet_out_makan" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="out_makan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-mug-hot text-red-400"></i> Minum</label>
-                                        <select id="dompet_out_minum" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="out_minum" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-wifi text-red-400"></i> Kuota</label>
-                                        <select id="dompet_out_kuota" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="gopay">Gopay</option>
-                                            <option value="bca">BCA</option>
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="out_kuota" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-smoking text-red-400"></i> Rokok</label>
-                                        <select id="dompet_out_rokok" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="out_rokok" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-
-                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-gas-pump text-red-400"></i> Bensin</label>
-                                        <select id="dompet_out_bensin" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="out_bensin" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-
-                                <div c<div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-percent text-red-400"></i> Potongan Gojek</label>
-                                        <select id="dompet_out_potongan_gojek" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="cash">Cash</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="out_potongan_gojek" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none mb-2" placeholder="0">
-                                    <input type="text" id="out_potongan_gojek_order" class="w-full bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none" placeholder="No. Order (Opsional)">
-                                </div>
-                                </div>
-
-                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-oil-can text-red-400"></i> Ganti Oli Mesin</label>
-                                        <select id="dompet_out_ganti_oli_mesin" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="out_ganti_oli_mesin" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-
-                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-gears text-red-400"></i> Ganti Oli Gardan</label>
-                                        <select id="dompet_out_oli_gardan" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="out_oli_gardan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-
-                                <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-screwdriver-wrench text-red-400"></i> Servis Motor</label>
-                                        <select id="dompet_out_servis_motor" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <input type="number" id="out_servis_motor" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none" placeholder="0">
-                                </div>
-
-                               <div class="bg-slate-50 dark:bg-bgDark p-4 rounded-2xl border border-slate-200 dark:border-white/10 focus-within:border-red-400 transition-all">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <label class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5"><i class="fa-solid fa-basket-shopping text-red-400"></i> Talangan Pesanan</label>
-                                        <select id="dompet_out_talangan" class="text-[10px] font-bold bg-white dark:bg-cardDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1 outline-none focus:border-brand">
-                                            <option value="cash">Cash</option>
-                                            <option value="gopay_driver">Gopay Driver</option>
-                                            <option value="gopay">Gopay</option>
-                                            <option value="bca">BCA</option>
-                                        </select>
-                                    </div>
-                                    <p class="text-[9px] text-slate-400 -mt-1 mb-2">(Sama dengan "Gojek Deposit" yg dipotong)</p>
-                                    <input type="number" id="out_talangan" class="w-full bg-transparent border-none p-0 text-red-500 font-bold text-2xl outline-none mb-2" placeholder="0">
-                                    <input type="text" id="out_talangan_order" class="w-full bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none" placeholder="No. Order (Opsional)">
-                                </div>
-
-                                <!-- Dynamic Manual Expense Entries -->
-                                <div class="border-t border-slate-100 dark:border-white/5 pt-4 mt-2">
-                                    <div class="flex justify-between items-center mb-3">
-                                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Pengeluaran Lainnya</span>
-                                        <button type="button" onclick="addManualExpenseRow()" class="text-[10px] font-bold text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg hover:bg-red-500/20 transition flex items-center gap-1">
-                                            <i class="fa-solid fa-plus"></i> Tambah
-                                        </button>
-                                    </div>
-                                    <div id="manual-expense-list" class="space-y-3">
-                                        <!-- Dynamic rows append here -->
-                                    </div>
-                                    <datalist id="daftar-kategori-lain"></datalist>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                </div>
-                <!-- /advanced-mk -->
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5  grid grid-cols-3 divide-x divide-slate-100 dark:divide-white/5 mb-3 text-center py-3">
+<div><p class="text-[11px] text-slate-400">Masuk</p><p id="inp-sum-in" class="text-sm font-extrabold text-emerald-500 tabular-nums">Rp 0</p></div>
+<div><p class="text-[11px] text-slate-400">Keluar</p><p id="inp-sum-out" class="text-sm font-extrabold text-red-500 tabular-nums">Rp 0</p></div>
+<div><p class="text-[11px] text-slate-400">Selisih</p><p id="inp-sum-net" class="text-sm font-extrabold text-slate-800 dark:text-white tabular-nums">Rp 0</p></div></div>
+<div class="flex bg-slate-100 dark:bg-white/5 rounded-2xl p-1 mb-3 border border-slate-200 dark:border-white/10">
+<button type="button" data-arus="masuk" onclick="switchInputTab('masuk')" class="arus-tab flex-1 py-2.5 rounded-xl text-sm font-bold transition-all bg-white dark:bg-cardDark text-brand shadow-sm">Pemasukan</button>
+<button type="button" data-arus="keluar" onclick="switchInputTab('keluar')" class="arus-tab flex-1 py-2.5 rounded-xl text-sm font-bold transition-all text-slate-500 dark:text-slate-400">Pengeluaran</button></div>
+<div class="relative">
+<div id="section-input-masuk" class="block animate-fade-in"><div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5"><div class="divide-y divide-slate-100 dark:divide-white/5"><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-mobile-screen text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="in_bid" class="block text-[13px] font-bold text-slate-800 dark:text-white">Bid / Argo</label>
+<select id="dompet_in_bid" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="gopay_driver">Gopay Driver</option><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="in_bid" oninput="autoHitungPotonganGojek()" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-emerald-400 text-right p-0 pb-0.5 font-bold text-emerald-500 outline-none tabular-nums" placeholder="0"></div></div><p class="text-[11px] text-slate-400 mt-1.5 ml-12">Sama dengan "Tagih Tunai"</p><input type="text" id="in_bid_order" class="mt-2 ml-12 w-[calc(100%-3rem)] bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="No. order (opsional)"><div class="mt-2 ml-12"><label for="in_bid_bersih" class="block text-[11px] font-semibold text-slate-500 mb-1">Pendapatan bersih di app Gojek (opsional)</label><input type="number" inputmode="numeric" id="in_bid_bersih" oninput="autoHitungPotonganGojek()" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-brand" placeholder="Isi untuk menghitung Potongan Gojek otomatis"><p id="hint_potongan_otomatis" class="text-[11px] text-slate-400 mt-1 hidden"></p></div></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-hand-holding-heart text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="in_tips" class="block text-[13px] font-bold text-slate-800 dark:text-white">Tips</label>
+<select id="dompet_in_tips" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="in_tips" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-emerald-400 text-right p-0 pb-0.5 font-bold text-emerald-500 outline-none tabular-nums" placeholder="0"></div></div></div></div>
+<div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-white/5"><span class="text-sm font-bold text-slate-700 dark:text-slate-200">Pemasukan lainnya</span><button type="button" onclick="addManualIncomeRow()" class="text-xs font-bold text-brand bg-brand/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 active:scale-95 transition"><i class="fa-solid fa-plus text-[10px]"></i> Tambah</button></div><div id="manual-income-list" class="space-y-3 mt-3"></div><datalist id="daftar-kategori-masuk-lain"></datalist></div></div>
+<div id="section-input-keluar" class="hidden animate-fade-in"><div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5"><div class="divide-y divide-slate-100 dark:divide-white/5"><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-burger text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_makan" class="block text-[13px] font-bold text-slate-800 dark:text-white">Makan</label>
+<select id="dompet_out_makan" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_makan" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-mug-hot text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_minum" class="block text-[13px] font-bold text-slate-800 dark:text-white">Minum</label>
+<select id="dompet_out_minum" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_minum" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-wifi text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_kuota" class="block text-[13px] font-bold text-slate-800 dark:text-white">Kuota</label>
+<select id="dompet_out_kuota" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="gopay">Gopay</option><option value="cash">Cash</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_kuota" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-smoking text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_rokok" class="block text-[13px] font-bold text-slate-800 dark:text-white">Rokok</label>
+<select id="dompet_out_rokok" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_rokok" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-gas-pump text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_bensin" class="block text-[13px] font-bold text-slate-800 dark:text-white">Bensin</label>
+<select id="dompet_out_bensin" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_bensin" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-percent text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_potongan_gojek" class="block text-[13px] font-bold text-slate-800 dark:text-white">Potongan Gojek</label>
+<select id="dompet_out_potongan_gojek" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="gopay_driver">Gopay Driver</option><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_potongan_gojek" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div><input type="text" id="out_potongan_gojek_order" class="mt-2 ml-12 w-[calc(100%-3rem)] bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="No. order (opsional)"></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-oil-can text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_ganti_oli_mesin" class="block text-[13px] font-bold text-slate-800 dark:text-white">Ganti oli mesin</label>
+<select id="dompet_out_ganti_oli_mesin" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_ganti_oli_mesin" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-gears text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_oli_gardan" class="block text-[13px] font-bold text-slate-800 dark:text-white">Ganti oli gardan</label>
+<select id="dompet_out_oli_gardan" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_oli_gardan" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-screwdriver-wrench text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_servis_motor" class="block text-[13px] font-bold text-slate-800 dark:text-white">Servis motor</label>
+<select id="dompet_out_servis_motor" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_servis_motor" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div></div><div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-basket-shopping text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="out_talangan" class="block text-[13px] font-bold text-slate-800 dark:text-white">Talangan pesanan</label>
+<select id="dompet_out_talangan" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="out_talangan" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-red-400 text-right p-0 pb-0.5 font-bold text-red-500 outline-none tabular-nums" placeholder="0"></div></div><p class="text-[11px] text-slate-400 mt-1.5 ml-12">Sama dengan "Gojek Deposit" yang dipotong</p><input type="text" id="out_talangan_order" class="mt-2 ml-12 w-[calc(100%-3rem)] bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="No. order (opsional)"></div></div>
+<div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-white/5"><span class="text-sm font-bold text-slate-700 dark:text-slate-200">Pengeluaran lainnya</span><button type="button" onclick="addManualExpenseRow()" class="text-xs font-bold text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 active:scale-95 transition"><i class="fa-solid fa-plus text-[10px]"></i> Tambah</button></div><div id="manual-expense-list" class="space-y-3 mt-3"></div><datalist id="daftar-kategori-lain"></datalist></div></div>
+</div>
+</div>
+<!-- /advanced-mk -->
                 </div>
                 <!-- /panel-masuk-keluar -->
 
@@ -935,86 +739,67 @@
         <!-- 3. MONITORING VIEW -->
         <!-- ========================================== -->
         <section id="view-monitor" class="tab-content">
-            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Pusat Monitor</h2>
-            <p class="text-xs text-slate-500 mb-6">Status kendaraan &amp; jadwal servis</p>
+            <div class="mb-5">
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Pusat Monitor</h2>
+                <p class="text-xs text-slate-500 mt-1">Pendapatan dan kondisi motor dalam satu layar</p>
+            </div>
 
-            <!-- Pendapatan Bersih (dipindah dari Beranda) -->
-            <div class="bg-digital-card rounded-[2rem] p-6 text-white shadow-neon mb-8 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 group-hover:opacity-10 transition-opacity duration-700"></div>
-                <div class="absolute bottom-0 left-0 w-40 h-40 bg-brand-neon opacity-20 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
-                
-                <div class="relative z-10 flex justify-between items-start mb-5">
-                    <div>
-                        <p class="text-xs font-semibold text-white/80 uppercase tracking-widest mb-1 flex items-center gap-2">
-                            <i class="fa-solid fa-wallet text-brand-neon"></i> Pendapatan Bersih
-                        </p>
-                        <h2 class="text-4xl font-extrabold tracking-tight drop-shadow-md text-brand-neon" id="dash-bersih">Rp 0</h2>
-                        <p class="text-xs font-semibold text-white/60 mt-1 flex items-center gap-1.5">
-                            <i class="fa-solid fa-sack-dollar text-white/50"></i> Kotor: <span class="font-bold text-white/80" id="dash-kotor">Rp 0</span>
-                        </p>
-                    </div>
-                    <div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-                        <i class="fa-solid fa-bolt text-brand-neon"></i>
-                    </div>
+            <!-- Pendapatan bersih -->
+            <div class="bg-digital-card rounded-[2rem] p-6 text-white shadow-neon mb-4 relative overflow-hidden">
+                <div class="absolute -top-20 -right-16 w-56 h-56 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10">
+                    <p class="text-xs font-semibold text-white/75 mb-1">Pendapatan bersih</p>
+                    <h2 class="text-[2.6rem] leading-none font-extrabold tracking-tight text-brand-neon tabular-nums" id="dash-bersih">Rp 0</h2>
+                    <p class="text-xs text-white/65 mt-2">Kotor <span class="font-bold text-white/90 tabular-nums" id="dash-kotor">Rp 0</span></p>
                 </div>
 
-                <!-- Filter Periode: Harian / Mingguan / Bulanan / Tahunan -->
-                <div class="relative z-10 flex bg-black/20 rounded-2xl p-1 mb-3 border border-white/10">
-                    <button type="button" onclick="setPeriode('day')" id="btn-periode-day" class="periode-btn flex-1 text-[10px] font-bold py-2 rounded-xl transition-all bg-white/25 text-white">
-                        Harian
-                    </button>
-                    <button type="button" onclick="setPeriode('week')" id="btn-periode-week" class="periode-btn flex-1 text-[10px] font-bold py-2 rounded-xl transition-all text-white/60">
-                        Mingguan
-                    </button>
-                    <button type="button" onclick="setPeriode('month')" id="btn-periode-month" class="periode-btn flex-1 text-[10px] font-bold py-2 rounded-xl transition-all text-white/60">
-                        Bulanan
-                    </button>
-                    <button type="button" onclick="setPeriode('year')" id="btn-periode-year" class="periode-btn flex-1 text-[10px] font-bold py-2 rounded-xl transition-all text-white/60">
-                        Tahunan
-                    </button>
+                <div class="relative z-10 flex bg-black/20 rounded-2xl p-1 mt-5 border border-white/10">
+                    <button type="button" onclick="setPeriode('day')" id="btn-periode-day" class="periode-btn flex-1 text-[11px] font-bold py-2 rounded-xl transition-all bg-white/25 text-white">Harian</button>
+                    <button type="button" onclick="setPeriode('week')" id="btn-periode-week" class="periode-btn flex-1 text-[11px] font-bold py-2 rounded-xl transition-all text-white/60">Mingguan</button>
+                    <button type="button" onclick="setPeriode('month')" id="btn-periode-month" class="periode-btn flex-1 text-[11px] font-bold py-2 rounded-xl transition-all text-white/60">Bulanan</button>
+                    <button type="button" onclick="setPeriode('year')" id="btn-periode-year" class="periode-btn flex-1 text-[11px] font-bold py-2 rounded-xl transition-all text-white/60">Tahunan</button>
                 </div>
 
-                <!-- Lihat Detail: buka rincian per-periode (mis. per minggu/bulan/tahun sebelumnya) -->
-                <button type="button" onclick="openModalDetailPendapatan()" class="relative z-10 w-full text-center text-[10px] font-bold text-white/70 hover:text-white py-1 mb-2 transition-colors">
-                    Lihat Detail <i class="fa-solid fa-chevron-right text-[9px] ml-0.5"></i>
-                </button>
-                
-                <div class="mt-4 flex justify-between items-center z-10 relative bg-black/10 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-300 flex items-center justify-center"><i class="fa-solid fa-arrow-down text-xs"></i></div>
+                <div class="relative z-10 mt-5">
+                    <div class="flex justify-between items-end mb-2">
                         <div>
-                            <p class="text-[10px] text-white/60 font-medium uppercase">Total Masuk</p>
-                            <p class="text-sm font-bold" id="dash-in-day">Rp 0</p>
+                            <p class="text-[11px] text-white/65">Masuk</p>
+                            <p class="text-base font-bold tabular-nums" id="dash-in-day">Rp 0</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[11px] text-white/65">Keluar</p>
+                            <p class="text-base font-bold tabular-nums" id="dash-out-day">Rp 0</p>
                         </div>
                     </div>
-                    <div class="w-px h-8 bg-white/20"></div>
-                    <div class="flex items-center gap-3">
-                        <div class="text-right">
-                            <p class="text-[10px] text-white/60 font-medium uppercase">Total Keluar</p>
-                            <p class="text-sm font-bold" id="dash-out-day">Rp 0</p>
-                        </div>
-                        <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-300 flex items-center justify-center"><i class="fa-solid fa-arrow-up text-xs"></i></div>
+                    <div class="h-2 rounded-full bg-white/25 overflow-hidden">
+                        <div id="mon-bar-keluar" class="h-full rounded-full bg-red-300 progress-bar-fill" style="width:0%"></div>
+                    </div>
+                    <div class="flex justify-between items-center mt-2">
+                        <span id="mon-rasio" class="text-[11px] text-white/65">Belum ada pemasukan di periode ini</span>
+                        <button type="button" onclick="openModalDetailPendapatan()" class="text-[11px] font-bold text-white/85 hover:text-white flex items-center gap-1">Lihat rincian <i class="fa-solid fa-chevron-right text-[9px]"></i></button>
                     </div>
                 </div>
             </div>
 
-            
-            <!-- Monitoring Servis -->
-            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Status Kendaraan</h3>
-            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden mb-8">
-                
-                <div class="relative z-10 mb-5">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Update Speedometer (KM Saat Ini)</label>
-                    <div class="relative flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand transition-all">
-                        <input type="number" id="km_sekarang" oninput="updateKmSekarang(this.value)" class="w-full bg-transparent border-none p-2 pl-3 text-slate-800 dark:text-white font-bold text-lg focus:ring-0 outline-none tracking-widest" placeholder="16500">
-                        <span class="bg-white dark:bg-cardDark px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 shadow-sm mr-1">KM</span>
-                    </div>
+            <!-- Kondisi motor -->
+            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-bold text-slate-800 dark:text-white">Kondisi motor</h3>
+                    <i class="fa-solid fa-motorcycle text-brand"></i>
                 </div>
-                
-                <!-- Kartu Maintenance Motor: status tiap jenis servis vs KM Sekarang -->
-                <div id="maintenance-status-list" class="space-y-3 relative z-10">
-                    <!-- Diisi oleh renderMaintenanceStatus() -->
-                </div>
+
+                <!-- Odometer: ketuk angka untuk memperbarui -->
+                <label for="km_sekarang" class="block rounded-2xl bg-slate-900 dark:bg-black/40 border border-slate-800 dark:border-white/10 px-4 py-3 focus-within:border-brand transition-colors cursor-text">
+                    <span class="block text-[11px] text-slate-400">Speedometer sekarang, ketuk untuk mengubah</span>
+                    <span class="flex items-baseline gap-2">
+                        <input type="number" inputmode="numeric" id="km_sekarang" oninput="updateKmSekarang(this.value)" class="w-full bg-transparent border-none p-0 pt-1 text-white font-extrabold text-3xl tabular-nums tracking-wider outline-none placeholder:text-slate-600" placeholder="16500">
+                        <span class="text-sm font-bold text-brand shrink-0">km</span>
+                    </span>
+                </label>
+
+                <p id="maint-summary" class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400 mt-4 mb-1"></p>
+
+                <div id="maintenance-status-list" class="divide-y divide-slate-100 dark:divide-white/5 mt-2"></div>
             </div>
         </section>
 
@@ -1024,9 +809,15 @@
         <section id="view-hutang" class="tab-content">
             <!-- MENU KEUANGAN: tambah pilihan baru cukup menambah 1 objek di KEUANGAN_MENU (JS) -->
             <div id="keuangan-menu">
-                <div class="mb-6">
+                <div class="mb-5">
                     <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Keuangan</h2>
-                    <p class="text-xs text-slate-500 mt-1">Pilih catatan yang mau dibuka</p>
+                    <p class="text-xs text-slate-500 mt-1">Saldo, cicilan, dan rincian bulanan</p>
+                </div>
+                <div class="bg-digital-card rounded-[2rem] p-6 text-white shadow-neon mb-4 relative overflow-hidden">
+                    <div class="absolute -top-20 -right-16 w-56 h-56 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+                    <p class="relative z-10 text-xs font-semibold text-white/75 mb-1">Total saldo semua dompet</p>
+                    <h3 id="keu-total-saldo" class="relative z-10 text-[2.6rem] leading-none font-extrabold tracking-tight text-brand-neon tabular-nums">Rp 0</h3>
+                    <p id="keu-sisa-cicilan" class="relative z-10 text-xs text-white/65 mt-2">Tidak ada cicilan berjalan</p>
                 </div>
                 <div id="keuangan-menu-list" class="space-y-3"></div>
             </div>
@@ -1057,50 +848,17 @@
             <button type="button" onclick="keuanganBuka('menu')" class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2.5 rounded-xl mb-5 hover:border-brand/40 transition">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Keuangan
             </button>
-            <!-- Saldo Instan -->
-            <div class="flex items-center justify-between mb-1">
-                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Saldo Saat Ini</h3>
-            </div>
-            <p class="text-[10px] text-slate-400 mb-4">Hasil kalkulasi otomatis dari Saldo Akhir di tab Input. Ketuk kartu di bawah untuk lihat rincian per dompet.</p>
-
-            <!-- Kartu Total Saldo (klik untuk expand/collapse rincian) -->
-            <button type="button" onclick="toggleSaldoDetail()" id="btn-saldo-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center"><i class="fa-solid fa-wallet"></i></div>
+            <button type="button" onclick="toggleSaldoDetail()" id="btn-saldo-total" class="w-full bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 text-left transition-all active:scale-[0.99]">
+                <div class="flex items-center justify-between gap-3">
                     <div>
-                        <p class="text-[10px] text-slate-500 font-medium uppercase">Total Saldo</p>
-                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="dash-saldo-total">Rp 0</p>
+                        <p class="text-xs text-slate-500">Total saldo</p>
+                        <p class="text-3xl font-extrabold tabular-nums text-slate-800 dark:text-white mt-0.5" id="dash-saldo-total">Rp 0</p>
                     </div>
+                    <span class="flex items-center gap-2 text-[11px] font-bold text-slate-400">Per dompet <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-saldo-total"></i></span>
                 </div>
-                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-saldo-total"></i>
             </button>
-
-            <!-- Rincian 4 Saldo (tersembunyi sampai kartu Total Saldo diklik) -->
-            <div class="grid grid-cols-2 gap-3 mb-8 hidden" id="saldo-detail-grid">
-                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2"><i class="fa-solid fa-motorcycle"></i></div>
-                    <p class="text-xs text-slate-500 font-medium mb-1">Gopay Driver</p>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay-driver">Rp 0</p>
-                </div>
-                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2"><i class="fa-solid fa-wallet"></i></div>
-                    <p class="text-xs text-slate-500 font-medium mb-1">Gopay</p>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay">Rp 0</p>
-                </div>
-                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400 flex items-center justify-center mb-2"><i class="fa-solid fa-money-bill-wave"></i></div>
-                    <p class="text-xs text-slate-500 font-medium mb-1">Cash</p>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-cash">Rp 0</p>
-                </div>
-                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2"><i class="fa-solid fa-building-columns"></i></div>
-                    <p class="text-xs text-slate-500 font-medium mb-1">BCA</p>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-bca">Rp 0</p>
-                </div>
-            </div>
-
-            <!-- Rincian Dompet CUSTOM (tambahan, hasil dari menu Pengaturan) -->
-            <div class="grid grid-cols-2 gap-3 mb-8 hidden" id="saldo-detail-grid-custom"></div>
+            <div class="hidden mt-3 bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-2 divide-y divide-slate-100 dark:divide-white/5" id="saldo-detail-grid"><div class="flex items-center gap-3 px-3 py-3"><span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-motorcycle text-sm"></i></span><span class="flex-1 text-[13px] font-bold text-slate-700 dark:text-slate-200">Gopay Driver</span><span id="dash-saldo-gopay-driver" class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">Rp 0</span></div><div class="flex items-center gap-3 px-3 py-3"><span class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-wallet text-sm"></i></span><span class="flex-1 text-[13px] font-bold text-slate-700 dark:text-slate-200">Gopay</span><span id="dash-saldo-gopay" class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">Rp 0</span></div><div class="flex items-center gap-3 px-3 py-3"><span class="w-9 h-9 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-money-bill-wave text-sm"></i></span><span class="flex-1 text-[13px] font-bold text-slate-700 dark:text-slate-200">Cash</span><span id="dash-saldo-cash" class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">Rp 0</span></div><div class="flex items-center gap-3 px-3 py-3"><span class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-building-columns text-sm"></i></span><span class="flex-1 text-[13px] font-bold text-slate-700 dark:text-slate-200">BCA</span><span id="dash-saldo-bca" class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">Rp 0</span></div></div>
+            <div class="hidden mt-3 bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-2 divide-y divide-slate-100 dark:divide-white/5" id="saldo-detail-grid-custom"></div>
 
             <!-- Pemilih bulan untuk Rincian Pendapatan & Pengeluaran -->
             <div class="flex items-center justify-between bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-2 mt-8">
@@ -1108,7 +866,7 @@
                     <i class="fa-solid fa-chevron-left text-xs"></i>
                 </button>
                 <div class="text-center">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rincian Bulan</p>
+                    <p class="text-[11px] font-semibold text-slate-400">Rincian bulan</p>
                     <p id="rincian-bulan-label" class="text-sm font-extrabold text-slate-800 dark:text-white">-</p>
                 </div>
                 <button type="button" id="btn-rincian-bulan-next" onclick="geserRincianBulan(1)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 flex items-center justify-center transition active:scale-95">
@@ -1118,8 +876,8 @@
 
             <!-- Rincian Pendapatan -->
             <div class="flex items-center justify-between mb-4 mt-6">
-                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pendapatan</h3>
-                <span id="rincian-pendapatan-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
+                <h3 class="text-base font-bold text-slate-800 dark:text-white">Rincian Pendapatan</h3>
+                <span id="rincian-pendapatan-periode-label" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
             </div>
 
             <!-- Kartu Total Pendapatan (klik untuk expand/collapse rincian per kategori) -->
@@ -1143,8 +901,8 @@
 
             <!-- Rincian Pengeluaran -->
             <div class="flex items-center justify-between mb-4 mt-8">
-                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pengeluaran</h3>
-                <span id="rincian-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
+                <h3 class="text-base font-bold text-slate-800 dark:text-white">Rincian Pengeluaran</h3>
+                <span id="rincian-periode-label" class="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
             </div>
 
             <!-- Kartu Total Pengeluaran (klik untuk expand/collapse rincian per kategori) -->
@@ -1174,23 +932,9 @@
         <!-- ========================================== -->
         <section id="view-riwayat" class="tab-content">
             <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Riwayat</h2>
-            <p class="text-xs text-slate-500 mb-6">Ringkasan laporan & log transaksi granular</p>
+            <p class="text-xs text-slate-500 mb-6">Laporan harian, transaksi, sedekah, dan tabungan</p>
 
-            <!-- Sub-tab: Riwayat Laporan / Log Transaksi / Riwayat Sedekah / Riwayat Tabungan Servis -->
-            <div class="grid grid-cols-2 gap-1 bg-slate-100 dark:bg-white/5 rounded-2xl p-1 mb-6 border border-slate-200 dark:border-white/10">
-                <button type="button" onclick="setRiwayatSubTab('laporan')" id="btn-riwayat-laporan" class="riwayat-subtab-btn text-xs font-bold py-2.5 rounded-xl transition-all">
-                    <i class="fa-solid fa-file-lines mr-1"></i> Riwayat Laporan
-                </button>
-                <button type="button" onclick="setRiwayatSubTab('log')" id="btn-riwayat-log" class="riwayat-subtab-btn text-xs font-bold py-2.5 rounded-xl transition-all">
-                    <i class="fa-solid fa-list-ul mr-1"></i> Log Transaksi
-                </button>
-                <button type="button" onclick="setRiwayatSubTab('sedekah')" id="btn-riwayat-sedekah" class="riwayat-subtab-btn text-xs font-bold py-2.5 rounded-xl transition-all">
-                    <i class="fa-solid fa-hand-holding-heart mr-1"></i> Riwayat Sedekah
-                </button>
-                <button type="button" onclick="setRiwayatSubTab('tabungan')" id="btn-riwayat-tabungan" class="riwayat-subtab-btn text-xs font-bold py-2.5 rounded-xl transition-all">
-                    <i class="fa-solid fa-piggy-bank mr-1"></i> Riwayat Tabungan
-                </button>
-            </div>
+            <div class="flex gap-1 bg-slate-100 dark:bg-white/5 rounded-2xl p-1 mb-5 border border-slate-200 dark:border-white/10"><button type="button" onclick="setRiwayatSubTab('laporan')" id="btn-riwayat-laporan" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">Laporan</button><button type="button" onclick="setRiwayatSubTab('log')" id="btn-riwayat-log" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">Transaksi</button><button type="button" onclick="setRiwayatSubTab('sedekah')" id="btn-riwayat-sedekah" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">Sedekah</button><button type="button" onclick="setRiwayatSubTab('tabungan')" id="btn-riwayat-tabungan" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">Tabungan</button></div>
 
             <!-- Panel: Riwayat Laporan (total per simpan, dari sheet DataHarian) -->
             <div id="riwayat-laporan-panel">
@@ -1209,7 +953,7 @@
             <!-- Panel: Riwayat Sedekah (kolom "Shodaqoh" tiap baris DataHarian yang > 0) -->
             <div id="riwayat-sedekah-panel" class="hidden">
                 <div class="bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl p-5 mb-4 shadow-glass text-white">
-                    <span class="text-[10px] font-bold uppercase tracking-wide opacity-80 flex items-center gap-1.5"><i class="fa-solid fa-hand-holding-heart"></i> Total Sedekah</span>
+                    <span class="text-xs font-semibold opacity-90 flex items-center gap-1.5"><i class="fa-solid fa-hand-holding-heart"></i> Total Sedekah</span>
                     <span id="riwayat-sedekah-total" class="text-2xl font-extrabold block mt-1">Rp 0</span>
                 </div>
                 <div id="riwayat-sedekah-list-container" class="space-y-3 mb-8">
@@ -1220,7 +964,7 @@
             <!-- Panel: Riwayat Tabungan Servis (kolom "Tabungan Servis" tiap baris DataHarian yang > 0) -->
             <div id="riwayat-tabungan-panel" class="hidden">
                 <div class="bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl p-5 mb-4 shadow-glass text-white">
-                    <span class="text-[10px] font-bold uppercase tracking-wide opacity-80 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Total Tabungan Servis</span>
+                    <span class="text-xs font-semibold opacity-90 flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank"></i> Total Tabungan Servis</span>
                     <span id="riwayat-tabungan-total" class="text-2xl font-extrabold block mt-1">Rp 0</span>
                 </div>
                 <div id="riwayat-tabungan-list-container" class="space-y-3 mb-8">
@@ -1780,6 +1524,13 @@
             });
             secMasuk.classList.toggle('hidden', !masuk);
             secKeluar.classList.toggle('hidden', masuk);
+            document.querySelectorAll('.arus-tab').forEach(b => {
+                const on = b.dataset.arus === (masuk ? 'masuk' : 'keluar');
+                ['bg-white', 'dark:bg-cardDark', 'shadow-sm'].forEach(c => b.classList.toggle(c, on));
+                b.classList.toggle('text-brand', on && b.dataset.arus === 'masuk');
+                b.classList.toggle('text-red-500', on && b.dataset.arus === 'keluar');
+                b.classList.toggle('text-slate-500', !on); b.classList.toggle('dark:text-slate-400', !on);
+            });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -2192,8 +1943,23 @@
 
             // Simpan state secara global agar saat disave, nilai akhir yang terkirim
             window.currentFinalSaldo = finalSaldo;
+            updateInputSummary();
 
             cekOli();
+        }
+
+        function updateInputSummary() {
+            const elIn = document.getElementById('inp-sum-in'); if (!elIn) return;
+            let tin = getVal('in_bid') + getVal('in_tips'), tout = 0;
+            document.querySelectorAll('#manual-income-list .manual-in-val').forEach(e => tin += parseFloat(e.value) || 0);
+            ['out_makan','out_minum','out_kuota','out_rokok','out_bensin','out_potongan_gojek','out_talangan','out_ganti_oli_mesin','out_oli_gardan','out_servis_motor','out_servis','out_oli','out_sparepart'].forEach(id => tout += getVal(id));
+            document.querySelectorAll('#manual-expense-list .manual-out-val').forEach(e => tout += parseFloat(e.value) || 0);
+            const net = tin - tout;
+            elIn.innerText = formatRp(tin);
+            document.getElementById('inp-sum-out').innerText = formatRp(tout);
+            const n = document.getElementById('inp-sum-net');
+            n.innerText = formatRp(net);
+            n.className = 'text-sm font-extrabold tabular-nums ' + (net < 0 ? 'text-red-500' : 'text-slate-800 dark:text-white');
         }
 
         // Daftar jenis servis yang dipantau di kartu "Maintenance Motor" (Tab Monitor).
@@ -2239,64 +2005,91 @@
 
         function renderMaintenanceStatus() {
             if (typeof jadwalkanSnapshot === 'function') jadwalkanSnapshot();
-            let container = document.getElementById('maintenance-status-list');
-            if (!container) return;
+            const box = document.getElementById('maintenance-status-list');
+            if (!box) return;
 
-            let kmSekarang = getVal('km_sekarang');
-            let terakhir = window.maintenanceTerakhir || {};
+            const fmt = n => Number(n).toLocaleString('id-ID');
+            const km = getVal('km_sekarang');
+            const terakhir = window.maintenanceTerakhir || {};
+            const urutan = { danger: 0, warn: 1, ok: 2, info: 3, none: 4 };
 
-            let html = '';
-            JENIS_SERVIS_MONITOR.forEach(item => {
-                let data = terakhir[item.jenis];
-                let badgeHtml = '';
-                let bodyHtml = '';
+            const rows = JENIS_SERVIS_MONITOR.map(item => {
+                const data = terakhir[item.jenis];
+                const ambang = BATAS_SERVIS_MONITOR[item.jenis];
+                const r = { item, status: 'none', pct: 0, bar: false, text: 'Belum ada riwayat', sub: 'Catat servis pertama di menu Input' };
+                if (!data || !data.kmAkhir) return r;
 
-                if (!data || !data.kmAkhir) {
-                    bodyHtml = `<span class="text-slate-400 text-[11px] font-medium">Belum ada riwayat servis.</span>`;
-                } else {
-                    let kmAkhir = Number(data.kmAkhir) || 0;
-                    let tglText = '';
-                    if (data.tanggal) {
-                        let d = new Date(data.tanggal);
-                        if (!isNaN(d)) tglText = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                    }
-
-                    if (kmSekarang > 0) {
-                        let selisih = kmSekarang - kmAkhir;
-                        if (selisih < 0) {
-                            bodyHtml = `<span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Terakhir di ${kmAkhir.toLocaleString('id-ID')} km${tglText ? ' · ' + tglText : ''}</span>`;
-                        } else {
-                            bodyHtml = `<span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Terakhir di ${kmAkhir.toLocaleString('id-ID')} km${tglText ? ' · ' + tglText : ''}</span><br><span class="text-[10px] text-slate-400">Sudah ${selisih.toLocaleString('id-ID')} km berjalan</span>`;
-
-                            let ambang = BATAS_SERVIS_MONITOR[item.jenis];
-                            if (ambang) {
-                                let aksiText = ambang.mode === 'cek' ? 'Segera Cek' : 'Segera Ganti';
-                                if (selisih >= ambang.batas) {
-                                    badgeHtml = `<span class="animate-pulse bg-red-500 text-white text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full shrink-0">⚠️ ${aksiText}!</span>`;
-                                } else if (selisih >= ambang.batas - ambang.dini) {
-                                    badgeHtml = `<span class="bg-orange-500/15 text-orange-500 text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-full shrink-0">⚠️ Mendekati Batas</span>`;
-                                }
-                            }
-                        }
-                    } else {
-                        bodyHtml = `<span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Terakhir di ${kmAkhir.toLocaleString('id-ID')} km${tglText ? ' · ' + tglText : ''}</span>`;
-                    }
+                const kmAkhir = Number(data.kmAkhir) || 0;
+                let tgl = '';
+                if (data.tanggal) {
+                    const d = new Date(data.tanggal);
+                    if (!isNaN(d)) tgl = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                 }
+                r.sub = 'Terakhir di ' + fmt(kmAkhir) + ' km' + (tgl ? ', ' + tgl : '');
+                r.status = 'info';
+                r.text = ambang ? 'Isi KM motor' : 'Cek sesuai kondisi';
+                if (!ambang || km <= 0 || km < kmAkhir) return r;
 
-                html += `
-                <div class="bg-slate-50 dark:bg-bgDark p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-9 h-9 rounded-xl bg-white dark:bg-cardDark flex items-center justify-center text-${item.color}-500 shadow-sm shrink-0"><i class="fa-solid ${item.icon}"></i></div>
-                        <div class="min-w-0">
-                            <span class="text-xs font-bold text-slate-800 dark:text-white block mb-0.5">${item.jenis}</span>
-                            ${bodyHtml}
-                        </div>
-                    </div>
-                    ${badgeHtml}
-                </div>`;
+                const selisih = km - kmAkhir;
+                const sisa = ambang.batas - selisih;
+                r.bar = true;
+                r.pct = Math.min(100, Math.round(selisih / ambang.batas * 100));
+                if (sisa <= 0) {
+                    r.status = 'danger';
+                    r.text = sisa < 0 ? 'Lewat ' + fmt(-sisa) + ' km' : (ambang.mode === 'cek' ? 'Cek sekarang' : 'Ganti sekarang');
+                } else {
+                    r.status = sisa <= ambang.dini ? 'warn' : 'ok';
+                    r.text = fmt(sisa) + ' km lagi';
+                }
+                return r;
             });
 
-            container.innerHTML = html;
+            rows.sort((a, b) => (urutan[a.status] - urutan[b.status]) || (b.pct - a.pct));
+
+            const warna = {
+                danger: { t: 'text-red-500', b: 'bg-red-500', i: 'bg-red-500/10 text-red-500' },
+                warn:   { t: 'text-amber-500', b: 'bg-amber-500', i: 'bg-amber-500/10 text-amber-500' },
+                ok:     { t: 'text-emerald-500', b: 'bg-emerald-500', i: 'bg-emerald-500/10 text-emerald-500' },
+                info:   { t: 'text-slate-500 dark:text-slate-400', b: 'bg-slate-300', i: 'bg-slate-100 dark:bg-white/5 text-slate-400' },
+                none:   { t: 'text-slate-400', b: 'bg-slate-300', i: 'bg-slate-100 dark:bg-white/5 text-slate-400' }
+            };
+
+            box.innerHTML = rows.map(r => {
+                const w = warna[r.status];
+                return `
+                <div class="py-3.5 first:pt-1 last:pb-1 flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-xl ${w.i} flex items-center justify-center shrink-0"><i class="fa-solid ${r.item.icon} text-sm"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline justify-between gap-2">
+                            <span class="text-[13px] font-bold text-slate-800 dark:text-white truncate">${r.item.jenis}</span>
+                            <span class="text-xs font-extrabold ${w.t} shrink-0 ${r.status === 'danger' ? 'animate-pulse' : ''}">${r.text}</span>
+                        </div>
+                        ${r.bar ? `<div class="mt-1.5 h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden"><div class="h-full rounded-full ${w.b} progress-bar-fill" style="width:${r.pct}%"></div></div>` : ''}
+                        <p class="mt-1 text-[11px] text-slate-400 truncate">${r.sub}</p>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const sum = document.getElementById('maint-summary');
+            if (sum) {
+                if (km <= 0) {
+                    sum.innerHTML = 'Isi speedometer di atas supaya status servis terhitung.';
+                } else {
+                    const n = s => rows.filter(r => r.status === s).length;
+                    const dot = (c, j, t) => `<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full ${c}"></span>${j} ${t}</span>`;
+                    sum.innerHTML = dot('bg-red-500', n('danger'), 'perlu tindakan') + dot('bg-amber-500', n('warn'), 'mendekati') + dot('bg-emerald-500', n('ok'), 'aman');
+                }
+            }
+        }
+
+        // Bar perbandingan Keluar vs Masuk di kartu Pendapatan Bersih (tab Monitor)
+        function updateMonitorExtras(totalIn, totalOut) {
+            const bar = document.getElementById('mon-bar-keluar');
+            const txt = document.getElementById('mon-rasio');
+            if (!bar || !txt) return;
+            const p = totalIn > 0 ? Math.min(100, (totalOut / totalIn) * 100) : 0;
+            bar.style.width = p + '%';
+            txt.innerText = totalIn > 0 ? 'Pengeluaran ' + Math.round(p) + '% dari pemasukan' : 'Belum ada pemasukan di periode ini';
         }
 
         // Menampilkan preview "Jarak Tempuh" (KM Akhir - KM Awal) secara realtime
@@ -2594,11 +2387,7 @@
             });
 
             containerDash.innerHTML = dompetCustomList.map(d => `
-                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2"><i class="fa-solid fa-wallet"></i></div>
-                    <p class="text-xs text-slate-500 font-medium mb-1 truncate w-full">${d.nama}</p>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-custom-${d.id}">Rp 0</p>
-                </div>
+                <div class="flex items-center gap-3 px-3 py-3"><span class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-wallet text-sm"></i></span><span class="flex-1 text-[13px] font-bold text-slate-700 dark:text-slate-200 truncate">${d.nama}</span><span id="dash-saldo-custom-${d.id}" class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">Rp 0</span></div>
             `).join('');
         }
         let currentPeriode = 'day'; 
@@ -3052,13 +2841,20 @@
             renderRekap();
         }
 
+        function perbaruiSapaanBeranda() {
+            const el = document.getElementById('beranda-tanggal');
+            if (el) el.innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
         function renderRekap() {
+            perbaruiSapaanBeranda();
             if (typeof jadwalkanSnapshot === 'function') jadwalkanSnapshot();
             const dash = computeTotals(allSheetRows, currentPeriode);
             const bersihDash = dash.totalIn - dash.totalOut;
 
             document.getElementById('dash-in-day').innerText = formatRp(dash.totalIn);
             document.getElementById('dash-out-day').innerText = formatRp(dash.totalOut);
+            updateMonitorExtras(dash.totalIn, dash.totalOut);
 
             // Pendapatan Kotor (Hasil Jasa Murni) = Total Masuk dikurangi Talangan
             // Pesanan (GoFood) dan Potongan Gojek (Bid/GoRide) -- dua-duanya uang
@@ -3094,8 +2890,8 @@
             let elBersih = document.getElementById('mon-bersih');
             elBersih.innerText = formatRp(bersihMon);
             elBersih.className = bersihMon >= 0
-                ? "font-extrabold text-3xl text-brand drop-shadow-md"
-                : "font-extrabold text-3xl text-red-500 drop-shadow-md";
+                ? "mt-2 text-[44px] leading-none font-extrabold tracking-tight tabular-nums whitespace-nowrap text-brand-neon"
+                : "mt-2 text-[44px] leading-none font-extrabold tracking-tight tabular-nums whitespace-nowrap text-red-400";
 
             // Mengambil persentase alokasi dari settings (localStorage) atau default
             let pctSedekah = parseFloat(localStorage.getItem('set_sedekah')) || 2.5;
@@ -3111,15 +2907,18 @@
             let shodaqoh = kotorMon > 0 ? kotorMon * (pctSedekah / 100) : 0;
             let tabungan = kotorMon > 0 ? kotorMon * (pctTabungan / 100) : 0;
             document.getElementById('mon-shodaqoh').innerText = formatRp(shodaqoh);
+            document.getElementById('mon-pct-sedekah').innerText = pctSedekah + '%';
+            document.getElementById('mon-pct-tabungan').innerText = pctTabungan + '%';
             document.getElementById('mon-tabungan').innerText = formatRp(tabungan);
 
-            // Update Progress Bar Target Pendapatan
+            // Update Progress Bar Target Pendapatan (target harian -> selalu pakai total HARI INI,
+            // tidak ikut toggle Harian/Mingguan/Bulanan di tab Monitor)
             let targetPendapatan = parseFloat(localStorage.getItem('set_target')) || 0;
             document.getElementById('target-setting-val').innerText = formatRp(targetPendapatan);
-            document.getElementById('target-bersih-val').innerText = formatRp(bersihDash);
+            document.getElementById('target-bersih-val').innerText = formatRp(bersihMon);
             
             if (targetPendapatan > 0) {
-                let progressPercent = Math.max(0, Math.min(100, (bersihDash / targetPendapatan) * 100));
+                let progressPercent = Math.max(0, Math.min(100, (bersihMon / targetPendapatan) * 100));
                 document.getElementById('target-progress-bar').style.width = progressPercent + "%";
                 document.getElementById('target-progress-text').innerText = Math.round(progressPercent) + "%";
                 document.getElementById('motor-progress-wrapper').style.left = progressPercent + "%";
@@ -3131,11 +2930,11 @@
 
             // Update Progress Bar Target Pendapatan Kotor (Total Pemasukan sebelum
             // dikurangi pengeluaran) -- motor kedua, terpisah dari yang Bersih di atas.
-            let kotorDash = dash.totalIn - (dash.kategoriTotal['Keluar Talangan Pesanan'] || 0);
-            document.getElementById('target-kotor-val').innerText = formatRp(kotorDash);
+            let kotorMon2 = mon.totalIn - (mon.kategoriTotal['Keluar Talangan Pesanan'] || 0);
+            document.getElementById('target-kotor-val').innerText = formatRp(kotorMon2);
 
             if (targetPendapatan > 0) {
-                let progressPercentKotor = Math.max(0, Math.min(100, (kotorDash / targetPendapatan) * 100));
+                let progressPercentKotor = Math.max(0, Math.min(100, (kotorMon2 / targetPendapatan) * 100));
                 document.getElementById('target-progress-bar-kotor').style.width = progressPercentKotor + "%";
                 document.getElementById('target-progress-text-kotor').innerText = Math.round(progressPercentKotor) + "%";
                 document.getElementById('motor-progress-wrapper-kotor').style.left = progressPercentKotor + "%";
@@ -3153,7 +2952,7 @@
             let liveTrip = hitungTripForm();
             let combinedTrip = totalTripHariIni + liveTrip;
             
-            document.getElementById('dash-total-trip').innerText = combinedTrip + " Trip";
+            document.getElementById('dash-total-trip').innerText = combinedTrip;
             if (combinedTrip > 0) {
                 let avgPerTrip = bersihMon / combinedTrip; // rata-rata pendapatan bersih HARI INI per trip
                 document.getElementById('dash-avg-trip').innerText = formatRp(avgPerTrip >= 0 ? avgPerTrip : 0);
@@ -3178,23 +2977,29 @@
             totalTripBulanIni += liveTrip + tripKoreksiBulanIni();
             let elTripBulan = document.getElementById('dash-trip-bulan');
             let targetTrip = parseFloat(localStorage.getItem('set_target_trip')) || 0;
-            if (elTripBulan) elTripBulan.innerText = targetTrip > 0 ? (totalTripBulanIni + " / " + targetTrip + " Trip") : (totalTripBulanIni + " Trip");
-            const wrapTarget = document.getElementById('dash-trip-target-wrap');
-            if (wrapTarget) {
-                if (targetTrip > 0) {
-                    wrapTarget.classList.remove('hidden');
-                    const persenTrip = Math.max(0, Math.min(100, (totalTripBulanIni / targetTrip) * 100));
-                    document.getElementById('dash-trip-target-bar').style.width = persenTrip + '%';
-                    const sisaTrip = Math.max(0, targetTrip - totalTripBulanIni);
-                    const sekarang = new Date();
-                    const hariTerakhir = new Date(sekarang.getFullYear(), sekarang.getMonth() + 1, 0).getDate();
-                    const sisaHari = hariTerakhir - sekarang.getDate() + 1; // termasuk hari ini
-                    document.getElementById('dash-trip-target-info').innerText = sisaTrip === 0
-                        ? 'Target trip bulan ini tercapai! 🎉'
-                        : 'Tercapai ' + Math.round(persenTrip) + '% · sisa ' + sisaTrip + ' trip · perlu ±' + Math.ceil(sisaTrip / sisaHari) + ' trip/hari (' + sisaHari + ' hari lagi)';
-                } else {
-                    wrapTarget.classList.add('hidden');
-                }
+            if (elTripBulan) elTripBulan.innerText = totalTripBulanIni;
+            const elTargetNum = document.getElementById('dash-trip-target-num');
+            const ringWrap = document.getElementById('dash-trip-ring-wrap');
+            const infoTrip = document.getElementById('dash-trip-target-info');
+            if (targetTrip > 0) {
+                const persenTrip = Math.max(0, Math.min(100, (totalTripBulanIni / targetTrip) * 100));
+                const sisaTrip = Math.max(0, targetTrip - totalTripBulanIni);
+                const sekarang = new Date();
+                const hariTerakhir = new Date(sekarang.getFullYear(), sekarang.getMonth() + 1, 0).getDate();
+                const sisaHari = hariTerakhir - sekarang.getDate() + 1; // termasuk hari ini
+                if (elTargetNum) elTargetNum.innerText = ' / ' + targetTrip;
+                if (ringWrap) ringWrap.classList.remove('hidden');
+                const ring = document.getElementById('dash-trip-ring');
+                if (ring) ring.style.setProperty('--p', persenTrip.toFixed(1));
+                const ringTeks = document.getElementById('dash-trip-ring-text');
+                if (ringTeks) ringTeks.innerText = Math.round(persenTrip) + '%';
+                if (infoTrip) infoTrip.innerText = sisaTrip === 0
+                    ? 'Target trip bulan ini tercapai! 🎉'
+                    : 'Sisa ' + sisaTrip + ' trip, perlu ±' + Math.ceil(sisaTrip / sisaHari) + ' per hari (' + sisaHari + ' hari lagi)';
+            } else {
+                if (elTargetNum) elTargetNum.innerText = '';
+                if (ringWrap) ringWrap.classList.add('hidden');
+                if (infoTrip) infoTrip.innerText = 'Isi target trip di Pengaturan untuk melihat progres.';
             }
 
             // Jalankan fungsi cek berkala STNK & SIM
@@ -3552,41 +3357,55 @@
         function renderRiwayatList() {
             const container = document.getElementById('riwayat-list-container');
             if (!container) return;
-            container.innerHTML = '';
-
-            if (allSheetRows.length === 0) {
-                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada riwayat data.</p>`;
+            if (!allSheetRows.length) {
+                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada laporan. Simpan catatan pertama dari tab Input.</p>`;
                 return;
             }
-
-            // Urutkan riwayat dari tanggal paling baru ke terlama
-            let sortedRows = [...allSheetRows].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
-
-            sortedRows.forEach(row => {
-                let tgl = new Date(row['Timestamp']).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-                let bruto = row['Total Pemasukan'] || 0;
-                let netto = row['Pendapatan Bersih'] !== undefined ? row['Pendapatan Bersih'] : (bruto - (row['Total Pengeluaran'] || 0));
-                let trip = row['Jumlah Trip'] || 0;
-
-                container.innerHTML += `
-                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 animate-fade-in">
-                        <div class="flex justify-between items-center mb-2 border-b border-slate-100 dark:border-white/5 pb-2">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300"><i class="fa-regular fa-calendar mr-1 text-brand"></i> ${tgl}</span>
-                            <span class="text-[10px] font-extrabold bg-brand/10 text-brand px-2 py-0.5 rounded-full">${trip} Trip</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Uang Masuk</span>
-                                <span class="font-bold text-slate-800 dark:text-white">${formatRp(bruto)}</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Hasil Bersih</span>
-                                <span class="font-extrabold text-brand">${formatRp(netto)}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
+            const peta = petaTripPerHari();
+            const hari = {};
+            allSheetRows.forEach(row => {
+                const k = kunciHari(row['Timestamp']);
+                if (k === null) return;
+                const h = hari[k] || (hari[k] = { masuk: 0, keluar: 0 });
+                h.masuk += Number(row['Total Pemasukan']) || 0;
+                h.keluar += Number(row['Total Pengeluaran']) || 0;
             });
+            const bulan = [];
+            Object.keys(hari).map(Number).sort((a, b) => b - a).forEach(k => {
+                const h = hari[k];
+                if (h.masuk === 0 && h.keluar === 0) return;
+                const d = new Date(k);
+                const mk = d.getFullYear() * 12 + d.getMonth();
+                let b = bulan[bulan.length - 1];
+                if (!b || b.mk !== mk) { b = { mk, nama: d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }), bersih: 0, trip: 0, rows: [] }; bulan.push(b); }
+                const trip = peta[k] || 0;
+                b.bersih += h.masuk - h.keluar; b.trip += trip;
+                b.rows.push({ d, masuk: h.masuk, bersih: h.masuk - h.keluar, trip });
+            });
+            container.innerHTML = bulan.map(b => `
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 !p-5 animate-fade-in">
+                    <div class="flex items-end justify-between gap-3 mb-2">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800 dark:text-white">${b.nama}</h3>
+                            <p class="text-[11px] text-slate-400">${b.rows.length} hari · ${b.trip} trip</p>
+                        </div>
+                        <p class="text-lg font-extrabold tabular-nums ${b.bersih >= 0 ? 'text-brand' : 'text-red-500'}">${formatRp(b.bersih)}</p>
+                    </div>
+                    <div class="divide-y divide-slate-100 dark:divide-white/5">
+                        ${b.rows.map(r => `
+                        <div class="flex items-center gap-3 py-3">
+                            <div class="w-11 text-center shrink-0">
+                                <p class="text-lg font-extrabold leading-none tabular-nums text-slate-800 dark:text-white">${r.d.getDate()}</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">${r.d.toLocaleDateString('id-ID', { weekday: 'short' })}</p>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Masuk <span class="font-bold text-slate-700 dark:text-slate-200 tabular-nums">${formatRp(r.masuk)}</span></p>
+                                <p class="text-[11px] text-slate-400">${r.trip} trip</p>
+                            </div>
+                            <p class="text-sm font-extrabold tabular-nums ${r.bersih >= 0 ? 'text-brand' : 'text-red-500'}">${formatRp(r.bersih)}</p>
+                        </div>`).join('')}
+                    </div>
+                </div>`).join('');
         }
 
         // --- Toggle Sub-tab Riwayat: "Riwayat Laporan" (total per simpan),
@@ -3660,136 +3479,84 @@
             return hasil;
         }
 
-        // --- Render Isi Tab "Riwayat Sedekah": 1 kartu per tanggal (semua tanggal,
-        // termasuk yang Rp 0), terbaru dulu, plus total keseluruhan. ---
-        function renderRiwayatSedekahList() {
-            const container = document.getElementById('riwayat-sedekah-list-container');
-            const totalEl = document.getElementById('riwayat-sedekah-total');
+        function renderRiwayatAlokasi(kolom, containerId, totalId, warna, ikon, kosong) {
+            const container = document.getElementById(containerId);
+            const totalEl = document.getElementById(totalId);
             if (!container || !totalEl) return;
-            container.innerHTML = '';
-
-            // Form di-reset setiap selesai simpan, jadi tiap baris Shodaqoh hanya bagian
-            // dari 1 simpanan -> dijumlahkan per tanggal (sama dengan kartu Monitor).
-            let harian = susunRiwayatHarian('Shodaqoh');
-
-            if (harian.length === 0) {
-                totalEl.innerText = formatRp(0);
-                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada riwayat sedekah.</p>`;
-                return;
-            }
-
-            let total = harian.reduce((sum, h) => sum + h.total, 0);
-            totalEl.innerText = formatRp(total);
-
+            const harian = susunRiwayatHarian(kolom);
+            totalEl.innerText = formatRp(harian.reduce((t, h) => t + h.total, 0));
+            if (!harian.length) { container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">${kosong}</p>`; return; }
+            const bulan = [];
             harian.forEach(h => {
-                let tgl = new Date(h.timestamp).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-                container.innerHTML += `
-                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between animate-fade-in ${h.total > 0 ? '' : 'opacity-60'}">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500 shrink-0"><i class="fa-solid fa-hand-holding-heart"></i></div>
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${tgl}</span>
-                        </div>
-                        <span class="font-extrabold text-pink-500 text-sm shrink-0">${formatRp(h.total)}</span>
-                    </div>
-                `;
+                const d = new Date(h.timestamp);
+                const mk = d.getFullYear() * 12 + d.getMonth();
+                let b = bulan[bulan.length - 1];
+                if (!b || b.mk !== mk) { b = { mk, nama: d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }), total: 0, rows: [] }; bulan.push(b); }
+                b.total += h.total; b.rows.push({ d, total: h.total });
             });
-        }
-
-        // --- Render Isi Tab "Riwayat Tabungan": kolom "Tabungan Servis" tiap
-        // baris DataHarian, dikelompokkan & dijumlah per tanggal (1 hari = 1
-        // kartu, bukan 1 kartu per kali "Simpan"), diurutkan terbaru dulu, plus
-        // total keseluruhan. ---
-        function renderRiwayatTabunganList() {
-            const container = document.getElementById('riwayat-tabungan-list-container');
-            const totalEl = document.getElementById('riwayat-tabungan-total');
-            if (!container || !totalEl) return;
-            container.innerHTML = '';
-
-            // Sama seperti Riwayat Sedekah: dijumlahkan per tanggal, semua tanggal tampil.
-            let harian = susunRiwayatHarian('Tabungan Servis');
-
-            if (harian.length === 0) {
-                totalEl.innerText = formatRp(0);
-                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada riwayat tabungan servis.</p>`;
-                return;
-            }
-
-            let total = harian.reduce((sum, h) => sum + h.total, 0);
-            totalEl.innerText = formatRp(total);
-
-            harian.forEach(h => {
-                let tgl = new Date(h.timestamp).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-                container.innerHTML += `
-                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between animate-fade-in ${h.total > 0 ? '' : 'opacity-60'}">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0"><i class="fa-solid fa-piggy-bank"></i></div>
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${tgl}</span>
-                        </div>
-                        <span class="font-extrabold text-blue-500 text-sm shrink-0">${formatRp(h.total)}</span>
+            container.innerHTML = bulan.map(b => `
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 animate-fade-in">
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-base font-bold text-slate-800 dark:text-white">${b.nama}</h3>
+                        <p class="text-base font-extrabold tabular-nums text-${warna}-500">${formatRp(b.total)}</p>
                     </div>
-                `;
-            });
+                    <div class="divide-y divide-slate-100 dark:divide-white/5">
+                        ${b.rows.map(r => `
+                        <div class="flex items-center gap-3 py-2.5 ${r.total > 0 ? '' : 'opacity-40'}">
+                            <span class="w-8 h-8 rounded-lg bg-${warna}-500/10 text-${warna}-500 flex items-center justify-center shrink-0"><i class="fa-solid ${ikon} text-xs"></i></span>
+                            <span class="flex-1 text-xs font-semibold text-slate-600 dark:text-slate-300">${r.d.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short' })}</span>
+                            <span class="text-sm font-bold tabular-nums text-slate-800 dark:text-white">${formatRp(r.total)}</span>
+                        </div>`).join('')}
+                    </div>
+                </div>`).join('');
         }
+        function renderRiwayatSedekahList() { renderRiwayatAlokasi('Shodaqoh', 'riwayat-sedekah-list-container', 'riwayat-sedekah-total', 'pink', 'fa-hand-holding-heart', 'Belum ada riwayat sedekah.'); }
+        function renderRiwayatTabunganList() { renderRiwayatAlokasi('Tabungan Servis', 'riwayat-tabungan-list-container', 'riwayat-tabungan-total', 'blue', 'fa-piggy-bank', 'Belum ada riwayat tabungan servis.'); }
 
         // --- Render Isi Tab Log Transaksi (granular, dari sheet DetailTransaksi) ---
         function renderLogTransaksiList() {
             const container = document.getElementById('log-transaksi-list-container');
             if (!container) return;
-            container.innerHTML = '';
-
             if (!Array.isArray(allDetailTransaksi) || allDetailTransaksi.length === 0) {
-                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada log transaksi.</p>`;
+                container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada transaksi. Catat dari tab Input.</p>`;
                 return;
             }
-
             const dompetLabelMap = { cash: 'Cash', gopay: 'Gopay', gopay_driver: 'Gopay Driver', bca: 'BCA' };
             dompetCustomList.forEach(d => { dompetLabelMap[d.id] = d.nama; });
-
-            // Urutkan dari yang paling baru
-            let sorted = [...allDetailTransaksi].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
-
-            // Kelompokkan per tanggal biar nggak berulang-ulang nampilin tanggal yang sama
-            let grouped = {};
-            let urutanTanggal = [];
+            const sorted = [...allDetailTransaksi].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+            const grup = [];
             sorted.forEach(item => {
-                let tglKey = new Date(item['Timestamp']).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-                if (!grouped[tglKey]) {
-                    grouped[tglKey] = [];
-                    urutanTanggal.push(tglKey);
-                }
-                grouped[tglKey].push(item);
+                const d = new Date(item['Timestamp']);
+                const k = kunciHari(item['Timestamp']);
+                let g = grup[grup.length - 1];
+                if (!g || g.k !== k) { g = { k, d, net: 0, items: [] }; grup.push(g); }
+                const n = Number(item['Nominal']) || 0;
+                g.net += item['Tipe'] === 'Masuk' ? n : -n;
+                g.items.push(item);
             });
-
-            urutanTanggal.forEach(tglKey => {
-                let itemsHtml = grouped[tglKey].map(item => {
-                    let isMasuk = item['Tipe'] === 'Masuk';
-                    let jam = new Date(item['Timestamp']).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                    let dompetLabel = dompetLabelMap[item['Dompet']] || item['Dompet'] || '-';
-                    let keterangan = item['Keterangan'] ? ` <span class="font-normal text-slate-400">- ${item['Keterangan']}</span>` : '';
-
-                    return `
-                        <div class="flex items-center justify-between py-2.5 border-b border-slate-100 dark:border-white/5 last:border-0">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-9 h-9 rounded-xl ${isMasuk ? 'bg-brand/10 text-brand' : 'bg-red-100 dark:bg-red-500/10 text-red-500'} flex items-center justify-center shrink-0">
-                                    <i class="fa-solid ${isMasuk ? 'fa-arrow-down' : 'fa-arrow-up'} text-xs"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs font-bold text-slate-800 dark:text-white truncate">${item['Kategori']}${keterangan}</p>
-                                    <p class="text-[10px] text-slate-400">${jam} &middot; ${dompetLabel}</p>
-                                </div>
-                            </div>
-                            <span class="text-xs font-extrabold ${isMasuk ? 'text-brand' : 'text-red-500'} shrink-0 ml-2">${isMasuk ? '+' : '-'} ${formatRp(Number(item['Nominal']) || 0)}</span>
-                        </div>
-                    `;
-                }).join('');
-
-                container.innerHTML += `
-                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 animate-fade-in">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2"><i class="fa-regular fa-calendar text-brand"></i> ${tglKey}</p>
-                        ${itemsHtml}
+            container.innerHTML = grup.map(g => `
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 animate-fade-in">
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-white">${g.d.toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</h3>
+                        <span class="text-sm font-extrabold tabular-nums ${g.net >= 0 ? 'text-brand' : 'text-red-500'}">${g.net >= 0 ? '+' : '-'} ${formatRp(Math.abs(g.net))}</span>
                     </div>
-                `;
-            });
+                    <div class="divide-y divide-slate-100 dark:divide-white/5">
+                        ${g.items.map(item => {
+                            const masuk = item['Tipe'] === 'Masuk';
+                            const jam = new Date(item['Timestamp']).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                            const dompet = dompetLabelMap[item['Dompet']] || item['Dompet'] || '-';
+                            const ket = item['Keterangan'] ? `<span class="font-normal text-slate-400"> · ${item['Keterangan']}</span>` : '';
+                            return `<div class="flex items-center gap-3 py-2.5">
+                                <span class="w-9 h-9 rounded-xl ${masuk ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-500'} flex items-center justify-center shrink-0"><i class="fa-solid ${masuk ? 'fa-arrow-down' : 'fa-arrow-up'} text-xs"></i></span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[13px] font-bold text-slate-800 dark:text-white truncate">${item['Kategori']}${ket}</p>
+                                    <p class="text-[11px] text-slate-400">${jam} · ${dompet}</p>
+                                </div>
+                                <span class="text-[13px] font-extrabold tabular-nums shrink-0 ${masuk ? 'text-brand' : 'text-red-500'}">${masuk ? '+' : '-'} ${formatRp(Number(item['Nominal']) || 0)}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`).join('');
         }
 
         // Sama seperti renderRincianPengeluaran() tapi buat sisi Pendapatan.
@@ -4533,7 +4300,7 @@
                 key: 'saldo', icon: 'fa-wallet', warna: 'brand', judul: 'Saldo & Rincian',
                 info: () => {
                     const el = document.getElementById('dash-saldo-total');
-                    return 'Total Saldo ' + (el ? el.innerText : 'Rp 0') + ' · Rincian pendapatan & pengeluaran';
+                    return 'Saldo per dompet, pendapatan dan pengeluaran bulanan';
                 }
             },
             {
@@ -4549,12 +4316,21 @@
         ];
 
         function keuanganRenderMenu() {
+            const tot = document.getElementById('dash-saldo-total');
+            const elTot = document.getElementById('keu-total-saldo');
+            if (elTot && tot) elTot.innerText = tot.innerText;
+            const elSisa = document.getElementById('keu-sisa-cicilan');
+            if (elSisa) {
+                const aktif = hutangData.filter(h => (h.totalAwal - h.terbayar) > 0);
+                const sisa = aktif.reduce((t, h) => t + (h.totalAwal - h.terbayar), 0);
+                elSisa.innerText = aktif.length ? 'Sisa cicilan ' + formatRp(sisa) + ' di ' + aktif.length + ' catatan' : 'Tidak ada cicilan berjalan';
+            }
             const el = document.getElementById('keuangan-menu-list');
             if (!el) return;
             el.innerHTML = KEUANGAN_MENU.map(m => {
                 let info = '';
                 try { info = m.info ? m.info() : ''; } catch (e) {}
-                return `<button type="button" onclick="keuanganBuka('${m.key}')" class="w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 hover:border-brand/40 transition text-left">
+                return `<button type="button" onclick="keuanganBuka('${m.key}')" class="w-full flex items-center gap-4 bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 active:scale-[0.99] transition text-left">
                     <span class="w-11 h-11 rounded-xl bg-brand/10 flex items-center justify-center shrink-0"><i class="fa-solid ${m.icon} text-brand"></i></span>
                     <span class="flex-1 min-w-0">
                         <span class="block font-bold text-sm text-slate-800 dark:text-white">${m.judul}</span>
@@ -4591,54 +4367,43 @@
             }
 
             hutangData.forEach(item => {
-                let sisa = item.totalAwal - item.terbayar;
-                let progress = item.totalAwal > 0 ? (item.terbayar / item.totalAwal) * 100 : 0;
-                let isLunas = sisa <= 0;
-
-                let historyHtml = item.history.slice(-3).map(h => 
-                    `<div class="flex justify-between items-center text-[10px] text-slate-500 border-t border-slate-100 dark:border-white/5 pt-1 mt-1">
-                        <span>${h.tanggal}${h.keterangan ? ` <span class="italic">- ${h.keterangan}</span>` : ''}</span>
-                        <span class="font-bold text-brand">+ ${formatRp(h.nominal)}</span>
+                const sisa = item.totalAwal - item.terbayar;
+                const progress = item.totalAwal > 0 ? Math.min(100, (item.terbayar / item.totalAwal) * 100) : 0;
+                const isLunas = sisa <= 0;
+                const historyHtml = item.history.slice(-3).reverse().map(h =>
+                    `<div class="flex justify-between items-center text-[11px] py-1.5">
+                        <span class="text-slate-500 truncate pr-2">${h.tanggal}${h.keterangan ? ` · ${h.keterangan}` : ''}</span>
+                        <span class="font-bold text-brand shrink-0 tabular-nums">+ ${formatRp(h.nominal)}</span>
                     </div>`
                 ).join('');
 
                 container.innerHTML += `
-                    <div class="bg-white dark:bg-cardDark rounded-[2rem] p-5 shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden transition-all hover:border-brand/50">
-                        ${isLunas ? `<div class="absolute top-0 right-0 bg-brand text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10">LUNAS</div>` : ''}
-                        
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="font-bold text-slate-800 dark:text-white text-lg flex items-center gap-2">
-                                    <i class="fa-solid fa-user-tag text-slate-400 text-sm"></i> ${item.nama}
-                                </h3>
-                                <!-- MENAMPILKAN TANGGAL DI BAWAH NAMA -->
-                                <p class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar text-slate-300"></i> ${item.tanggal || 'Tanggal tidak tersedia'}</p>
+                    <div class="bg-white dark:bg-cardDark rounded-[2rem] p-5 shadow-glass border border-slate-100 dark:border-white/5">
+                        <div class="flex justify-between items-start gap-3">
+                            <div class="min-w-0">
+                                <h3 class="font-bold text-base text-slate-800 dark:text-white truncate">${item.nama}</h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Sejak ${item.tanggal || '-'}</p>
                             </div>
+                            ${isLunas ? `<span class="bg-brand/10 text-brand text-[11px] font-bold px-3 py-1 rounded-full shrink-0">Lunas</span>` : ''}
+                        </div>
+                        ${item.keterangan ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-3">${item.keterangan}</p>` : ''}
+
+                        <p class="text-xs text-slate-500 mt-4">Sisa hutang</p>
+                        <p class="text-3xl font-extrabold tabular-nums tracking-tight ${isLunas ? 'text-brand' : 'text-slate-800 dark:text-white'}">${formatRp(Math.max(0, sisa))}</p>
+
+                        <div class="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2 mt-3 overflow-hidden">
+                            <div class="bg-gradient-to-r from-brand to-brand-neon h-2 rounded-full progress-bar-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[11px] text-slate-500 mt-1.5">
+                            <span>Terbayar ${formatRp(item.terbayar)}</span>
+                            <span>${Math.round(progress)}% dari ${formatRp(item.totalAwal)}</span>
                         </div>
 
-                        ${item.keterangan ? `<p class="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/5 rounded-xl p-2 mb-3 flex items-start gap-2"><i class="fa-solid fa-note-sticky text-slate-400 mt-0.5"></i> <span>${item.keterangan}</span></p>` : ''}
-                        
-                        <div class="flex justify-between items-end mb-3 mt-2">
-                            <div>
-                                <p class="text-[10px] text-slate-500 uppercase font-bold">Sisa Hutang</p>
-                                <p class="text-2xl font-extrabold ${isLunas ? 'text-brand' : 'text-red-500'} tracking-tight">${formatRp(Math.max(0, sisa))}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[10px] text-slate-500 uppercase font-bold">Total Pinjaman</p>
-                                <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${formatRp(item.totalAwal)}</p>
-                            </div>
-                        </div>
-
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-slate-100 dark:bg-bgDark rounded-full h-2 mb-4 overflow-hidden">
-                            <div class="bg-gradient-to-r from-brand to-brand-neon h-2 rounded-full transition-all duration-1000" style="width: ${progress}%"></div>
-                        </div>
-
-                        ${historyHtml ? `<div class="mb-4 bg-slate-50 dark:bg-bgDark p-2 rounded-xl">${historyHtml}</div>` : ''}
+                        ${historyHtml ? `<div class="mt-4 pt-2 border-t border-slate-100 dark:border-white/5 divide-y divide-slate-100 dark:divide-white/5">${historyHtml}</div>` : ''}
 
                         ${!isLunas ? `
-                        <button onclick="openModalBayarHutang('${item.id}', '${item.nama}')" class="w-full py-3 bg-brand/10 hover:bg-brand text-brand hover:text-white font-bold text-sm rounded-xl transition-colors flex justify-center items-center gap-2 border border-brand/20">
-                            <i class="fa-solid fa-money-bill-transfer"></i> Bayar Cicilan Hari Ini
+                        <button onclick="openModalBayarHutang('${item.id}', '${item.nama}')" class="w-full mt-4 py-3 bg-brand text-white font-bold text-sm rounded-xl active:scale-[0.98] transition flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-money-bill-transfer"></i> Bayar cicilan
                         </button>` : ''}
                     </div>
                 `;
