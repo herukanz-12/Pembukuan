@@ -315,100 +315,6 @@
                 </div>
             </div>
 
-            <!-- Saldo Instan -->
-            <div class="flex items-center justify-between mb-1">
-                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Saldo Saat Ini</h3>
-            </div>
-            <p class="text-[10px] text-slate-400 mb-4">Hasil kalkulasi otomatis dari Saldo Akhir di tab Input. Ketuk kartu di bawah untuk lihat rincian per dompet.</p>
-
-            <!-- Kartu Total Saldo (klik untuk expand/collapse rincian) -->
-            <button type="button" onclick="toggleSaldoDetail()" id="btn-saldo-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center"><i class="fa-solid fa-wallet"></i></div>
-                    <div>
-                        <p class="text-[10px] text-slate-500 font-medium uppercase">Total Saldo</p>
-                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="dash-saldo-total">Rp 0</p>
-                    </div>
-                </div>
-                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-saldo-total"></i>
-            </button>
-
-            <!-- Rincian 4 Saldo (tersembunyi sampai kartu Total Saldo diklik) -->
-            <div class="grid grid-cols-2 gap-3 mb-8 hidden" id="saldo-detail-grid">
-                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2"><i class="fa-solid fa-motorcycle"></i></div>
-                    <p class="text-xs text-slate-500 font-medium mb-1">Gopay Driver</p>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay-driver">Rp 0</p>
-                </div>
-                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2"><i class="fa-solid fa-wallet"></i></div>
-                    <p class="text-xs text-slate-500 font-medium mb-1">Gopay</p>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay">Rp 0</p>
-                </div>
-                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400 flex items-center justify-center mb-2"><i class="fa-solid fa-money-bill-wave"></i></div>
-                    <p class="text-xs text-slate-500 font-medium mb-1">Cash</p>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-cash">Rp 0</p>
-                </div>
-                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
-                    <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2"><i class="fa-solid fa-building-columns"></i></div>
-                    <p class="text-xs text-slate-500 font-medium mb-1">BCA</p>
-                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-bca">Rp 0</p>
-                </div>
-            </div>
-
-            <!-- Rincian Dompet CUSTOM (tambahan, hasil dari menu Pengaturan) -->
-            <div class="grid grid-cols-2 gap-3 mb-8 hidden" id="saldo-detail-grid-custom"></div>
-
-            <!-- Rincian Pendapatan -->
-            <div class="flex items-center justify-between mb-4 mt-8">
-                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pendapatan</h3>
-                <span id="rincian-pendapatan-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
-            </div>
-
-            <!-- Kartu Total Pendapatan (klik untuk expand/collapse rincian per kategori) -->
-            <button type="button" onclick="toggleRincianDetail('pendapatan')" id="btn-rincian-pendapatan-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-500 flex items-center justify-center"><i class="fa-solid fa-coins"></i></div>
-                    <div>
-                        <p class="text-[10px] text-slate-500 font-medium uppercase">Total Pendapatan</p>
-                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="total-rincian-pendapatan">Rp 0</p>
-                    </div>
-                </div>
-                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-rincian-pendapatan"></i>
-            </button>
-
-            <div id="rincian-pendapatan-list" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 space-y-5 hidden">
-                <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
-                    <i class="fa-solid fa-coins text-2xl text-slate-300 dark:text-white/10"></i>
-                    Belum ada pendapatan tercatat.
-                </div>
-            </div>
-
-            <!-- Rincian Pengeluaran -->
-            <div class="flex items-center justify-between mb-4 mt-8">
-                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pengeluaran</h3>
-                <span id="rincian-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
-            </div>
-
-            <!-- Kartu Total Pengeluaran (klik untuk expand/collapse rincian per kategori) -->
-            <button type="button" onclick="toggleRincianDetail('pengeluaran')" id="btn-rincian-pengeluaran-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 text-red-500 flex items-center justify-center"><i class="fa-solid fa-receipt"></i></div>
-                    <div>
-                        <p class="text-[10px] text-slate-500 font-medium uppercase">Total Pengeluaran</p>
-                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="total-rincian-pengeluaran">Rp 0</p>
-                    </div>
-                </div>
-                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-rincian-pengeluaran"></i>
-            </button>
-
-            <div id="rincian-pengeluaran-list" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 space-y-5 hidden">
-                <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
-                    <i class="fa-solid fa-receipt text-2xl text-slate-300 dark:text-white/10"></i>
-                    Belum ada pengeluaran tercatat.
-                </div>
-            </div>
         </section>
 
         <!-- ========================================== -->
@@ -1146,6 +1052,107 @@
             </div>
             </div>
             <!-- /keuangan-cicilan -->
+            <!-- SUB-HALAMAN: SALDO & RINCIAN (dipindah dari Beranda) -->
+            <div id="keuangan-saldo" style="display:none">
+            <button type="button" onclick="keuanganBuka('menu')" class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2.5 rounded-xl mb-5 hover:border-brand/40 transition">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Keuangan
+            </button>
+            <!-- Saldo Instan -->
+            <div class="flex items-center justify-between mb-1">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Saldo Saat Ini</h3>
+            </div>
+            <p class="text-[10px] text-slate-400 mb-4">Hasil kalkulasi otomatis dari Saldo Akhir di tab Input. Ketuk kartu di bawah untuk lihat rincian per dompet.</p>
+
+            <!-- Kartu Total Saldo (klik untuk expand/collapse rincian) -->
+            <button type="button" onclick="toggleSaldoDetail()" id="btn-saldo-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center"><i class="fa-solid fa-wallet"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-500 font-medium uppercase">Total Saldo</p>
+                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="dash-saldo-total">Rp 0</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-saldo-total"></i>
+            </button>
+
+            <!-- Rincian 4 Saldo (tersembunyi sampai kartu Total Saldo diklik) -->
+            <div class="grid grid-cols-2 gap-3 mb-8 hidden" id="saldo-detail-grid">
+                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2"><i class="fa-solid fa-motorcycle"></i></div>
+                    <p class="text-xs text-slate-500 font-medium mb-1">Gopay Driver</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay-driver">Rp 0</p>
+                </div>
+                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2"><i class="fa-solid fa-wallet"></i></div>
+                    <p class="text-xs text-slate-500 font-medium mb-1">Gopay</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-gopay">Rp 0</p>
+                </div>
+                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400 flex items-center justify-center mb-2"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    <p class="text-xs text-slate-500 font-medium mb-1">Cash</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-cash">Rp 0</p>
+                </div>
+                <div class="bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 text-center flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2"><i class="fa-solid fa-building-columns"></i></div>
+                    <p class="text-xs text-slate-500 font-medium mb-1">BCA</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate w-full" id="dash-saldo-bca">Rp 0</p>
+                </div>
+            </div>
+
+            <!-- Rincian Dompet CUSTOM (tambahan, hasil dari menu Pengaturan) -->
+            <div class="grid grid-cols-2 gap-3 mb-8 hidden" id="saldo-detail-grid-custom"></div>
+
+            <!-- Rincian Pendapatan -->
+            <div class="flex items-center justify-between mb-4 mt-8">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pendapatan</h3>
+                <span id="rincian-pendapatan-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
+            </div>
+
+            <!-- Kartu Total Pendapatan (klik untuk expand/collapse rincian per kategori) -->
+            <button type="button" onclick="toggleRincianDetail('pendapatan')" id="btn-rincian-pendapatan-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-500 flex items-center justify-center"><i class="fa-solid fa-coins"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-500 font-medium uppercase">Total Pendapatan</p>
+                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="total-rincian-pendapatan">Rp 0</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-rincian-pendapatan"></i>
+            </button>
+
+            <div id="rincian-pendapatan-list" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 space-y-5 hidden">
+                <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-coins text-2xl text-slate-300 dark:text-white/10"></i>
+                    Belum ada pendapatan tercatat.
+                </div>
+            </div>
+
+            <!-- Rincian Pengeluaran -->
+            <div class="flex items-center justify-between mb-4 mt-8">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Rincian Pengeluaran</h3>
+                <span id="rincian-periode-label" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">Bulanan</span>
+            </div>
+
+            <!-- Kartu Total Pengeluaran (klik untuk expand/collapse rincian per kategori) -->
+            <button type="button" onclick="toggleRincianDetail('pengeluaran')" id="btn-rincian-pengeluaran-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 text-red-500 flex items-center justify-center"><i class="fa-solid fa-receipt"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-500 font-medium uppercase">Total Pengeluaran</p>
+                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="total-rincian-pengeluaran">Rp 0</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-rincian-pengeluaran"></i>
+            </button>
+
+            <div id="rincian-pengeluaran-list" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 space-y-5 hidden">
+                <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-receipt text-2xl text-slate-300 dark:text-white/10"></i>
+                    Belum ada pengeluaran tercatat.
+                </div>
+            </div>
+            </div>
+            <!-- /keuangan-saldo -->
         </section>
 
         <!-- ========================================== -->
@@ -4459,6 +4466,13 @@
         // ===== TAB KEUANGAN (menu pilihan) =====
         // Tambah pilihan baru: tambah 1 objek di sini + 1 sub-halaman <div id="keuangan-xxx">.
         const KEUANGAN_MENU = [
+            {
+                key: 'saldo', icon: 'fa-wallet', warna: 'brand', judul: 'Saldo & Rincian',
+                info: () => {
+                    const el = document.getElementById('dash-saldo-total');
+                    return 'Total Saldo ' + (el ? el.innerText : 'Rp 0') + ' · Rincian pendapatan & pengeluaran';
+                }
+            },
             {
                 key: 'cicilan', icon: 'fa-handshake-angle', warna: 'brand', judul: 'Catatan Cicilan',
                 info: () => {
