@@ -169,6 +169,13 @@
         <!-- ========================================== -->
         <section id="view-dashboard" class="tab-content active">
             
+            <!-- Pengingat draf input yang belum disimpan (tidak memindahkan layar) -->
+            <button type="button" id="banner-draf" onclick="bukaDrafInput()" class="hidden w-full mb-4 p-3 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 rounded-2xl text-xs font-bold flex items-center gap-3 text-left">
+                <i class="fa-solid fa-pen-to-square text-base"></i>
+                <span class="flex-1">Ada input yang belum disimpan. Ketuk untuk melanjutkan.</span>
+                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
+
             <!-- Peringatan Pajak STNK & SIM Berkedip -->
             <div id="alert-pajak" class="hidden mb-4 p-4 bg-red-600 text-white rounded-2xl animate-pulse text-sm font-bold shadow-float flex items-center gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-xl"></i>
@@ -2216,7 +2223,7 @@
                     const v = row.querySelector('.manual-out-val').value, ds = row.querySelector('.manual-out-desc').value;
                     if (v !== '' || ds !== '') { adaIsi = true; d.mo.push({ d: ds, w: row.querySelector('.manual-out-dompet').value, v }); }
                 });
-                if (!adaIsi) { localStorage.removeItem(DRAFT_KEY); return; }
+                if (!adaIsi) { hapusDraftForm(); return; }
                 const panel = Array.from(document.querySelectorAll('.input-panel')).find(el => el.style.display === 'block');
                 d.panel = panel ? panel.id : 'panel-masuk-keluar';
                 d.keluar = !document.getElementById('section-input-keluar').classList.contains('hidden');
@@ -2224,8 +2231,17 @@
             } catch (e) { /* localStorage penuh/diblokir: abaikan */ }
         }
 
+        function bukaDrafInput() {
+            try {
+                switchTab('input', 2);
+                showInputPanel(window.__drafPanel || 'panel-masuk-keluar');
+                if (!window.__drafPanel || window.__drafPanel === 'panel-masuk-keluar') switchInputTab(window.__drafKeluar ? 'keluar' : 'masuk');
+            } catch (e) {}
+        }
+
         function hapusDraftForm() {
             try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+            const bannerDraf = document.getElementById('banner-draf'); if (bannerDraf) bannerDraf.classList.add('hidden');
         }
 
         // Kembalikan true kalau ada draf yang dipulihkan.
@@ -2258,16 +2274,12 @@
                 if (Array.from(sel.options).some(o => o.value === r.w)) sel.value = r.w;
             });
 
-            // Buka lagi layar input yang tadi dipakai (window.onload akan memaksa
-            // ke Dashboard di 100ms pertama, jadi ini dijalankan sedikit setelahnya).
-            setTimeout(() => {
-                try {
-                    switchTab('input', 2);
-                    showInputPanel(d.panel || 'panel-masuk-keluar');
-                    if (d.panel === 'panel-masuk-keluar' || !d.panel) switchInputTab(d.keluar ? 'keluar' : 'masuk');
-                    showToast('Draf input yang belum disimpan dipulihkan');
-                } catch (e) {}
-            }, 400);
+            // Isi form dipulihkan, tapi layar TIDAK dipindah paksa ke Data Entry.
+            // Aplikasi tetap terbuka di Beranda; ada pengingat yang bisa diketuk.
+            window.__drafPanel = d.panel || 'panel-masuk-keluar';
+            window.__drafKeluar = !!d.keluar;
+            const banner = document.getElementById('banner-draf');
+            if (banner) banner.classList.remove('hidden');
             return true;
         }
 
