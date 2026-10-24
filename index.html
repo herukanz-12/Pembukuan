@@ -4900,6 +4900,9 @@
                     const mod = ber.reduce((t, a) => t + Number(a.modal), 0), nil = ber.reduce((t, a) => t + (Number(a.nilai) || 0), 0);
                     urEl.innerHTML = 'Untung/rugi ' + labelUR(nil - mod, mod, false) + ` <span class="text-slate-400 font-medium">dari modal ${formatRp(Math.round(mod))}</span>`;
                     urEl.classList.remove('hidden');
+                } else if (asetData.length) {
+                    urEl.innerHTML = '<span class="text-slate-400 font-medium">Isi Modal di tiap aset untuk melihat untung/rugi</span>';
+                    urEl.classList.remove('hidden');
                 } else urEl.classList.add('hidden');
             }
             document.getElementById('aset-info').innerText = asetData.length ? asetData.length + ' aset · tidak dihitung dalam Total saldo' : 'Tidak dihitung dalam Total saldo';
