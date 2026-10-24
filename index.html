@@ -2543,6 +2543,7 @@
         // Kirim 1 catatan servis baru ke sheet MaintenanceMotor (action:
         // 'simpan_maintenance'), TERPISAH dari simpanData() / sheet DataHarian.
         async function simpanMaintenanceServis() {
+            if (window.__sedangSimpanServis) { showToast("Sedang menyimpan, tunggu sebentar..."); return; }
             const btnText = document.getElementById('text-simpan-maint');
             const btnIcon = document.getElementById('icon-simpan-maint');
 
@@ -2577,6 +2578,7 @@
                 keterangan: keterangan
             };
 
+            window.__sedangSimpanServis = true;
             btnText.innerText = "Menyimpan...";
             btnIcon.className = "fa-solid fa-spinner fa-spin text-base";
 
@@ -2621,6 +2623,7 @@
                 showToast(error.message || "Gagal menyimpan catatan servis!");
                 console.error(error);
             } finally {
+                window.__sedangSimpanServis = false;
                 btnText.innerText = "Simpan Servis";
                 btnIcon.className = "fa-solid fa-wrench text-base";
             }
@@ -4313,6 +4316,9 @@
 
         // --- Menyimpan Data Form ke Google Sheet ---
         async function simpanData(saldoOnly = false) {
+            // Cegah tekan dua kali: waktu sinyal lambat tombol terasa "tidak merespons", lalu
+            // ditekan lagi -> data tercatat dobel. Selama masih menyimpan, tekanan berikutnya diabaikan.
+            if (window.__sedangSimpanData) { showToast("Sedang menyimpan, tunggu sebentar..."); return; }
             const btnText = document.getElementById(saldoOnly ? 'text-simpan-saldo-awal' : 'text-simpan');
             const btnIcon = document.getElementById(saldoOnly ? 'icon-simpan-saldo-awal' : 'icon-simpan');
             const teksAsliTombol = btnText ? btnText.innerText : '';
@@ -4471,6 +4477,7 @@
                 return;
             }
 
+            window.__sedangSimpanData = true;
             btnText.innerText = "Menyimpan...";
             btnIcon.className = "fa-solid fa-spinner fa-spin text-xl";
 
@@ -4558,6 +4565,7 @@
                 showToast(error.message || "Gagal menyambung ke Spreadsheet!");
                 console.error(error);
             } finally {
+                window.__sedangSimpanData = false;
                 if (!saldoOnly) {
                     btnText.innerText = "Simpan Laporan";
                     btnIcon.className = "fa-solid fa-cloud-arrow-up text-xl";
@@ -4787,7 +4795,7 @@
                 document.getElementById('input_bayar_nominal').value = '';
                 document.getElementById('input_bayar_tanggal').value = '';
                 document.getElementById('input_bayar_keterangan').value = '';
-                document.getElementById('btn-proses-bayar').innerHTML = '<span>Bayar Sekarang</span>';
+                document.getElementById('btn-proses-bayar').innerHTML = '<span>Bayar Sekarang</span>'; document.getElementById('btn-proses-bayar').dataset.sibuk = '0';
             }, 300);
         }
 
@@ -4939,6 +4947,8 @@
             
             let namaKreditur = hutangData[hutangIndex].nama;
 
+            if (btn.dataset.sibuk === '1') return; // sudah diproses, abaikan tekan ganda
+            btn.dataset.sibuk = '1';
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
 
             try {
@@ -5026,6 +5036,7 @@
                 setTimeout(fetchRekapData, 1500);
 
             } catch (e) {
+                btn.dataset.sibuk = '0';
                 // Karena sekarang respons server benar-benar dibaca, pesan error ini akurat
                 // (bukan asumsi berhasil seperti sebelumnya saat masih pakai no-cors)
                 showToast(e.message || "Gagal menyimpan pembayaran ke server.");
