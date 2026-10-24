@@ -4256,6 +4256,27 @@
                 detail: detailTransaksi
             };
 
+            // MODE SALDO SAJA (Transfer Saldo / Simpan Saldo Awal): yang dikirim cuma
+            // angka Saldo Awal di field dompet. Isian Masuk/Keluar yang masih nunggu
+            // "Simpan Laporan" TIDAK ikut terkirim -- kalau ikut, transfer saldo malah
+            // tercatat jadi pemasukan/pengeluaran (dan masuk Pendapatan Bersih).
+            if (saldoOnly) {
+                const baseVal = id => { const el = document.getElementById(id); return el ? (parseFloat(el.value) || 0) : 0; };
+                data.saldo_gopay_driver = baseVal('saldo_gopay_driver');
+                data.saldo_gopay = baseVal('saldo_gopay');
+                data.saldo_cash = baseVal('saldo_cash');
+                data.saldo_bca = baseVal('saldo_bca');
+                let mapCustom = {};
+                dompetCustomList.forEach(d => { mapCustom[d.id] = baseVal('saldo_custom_' + d.id); });
+                data.saldoCustom = mapCustom;
+                ['in_bid','in_tips','in_lain','in_trip','out_makan','out_minum','out_kuota','out_rokok','out_bensin',
+                 'out_potongan_gojek','out_talangan','out_ganti_oli_mesin','out_oli_gardan','out_servis_motor','out_lain',
+                 'out_servis','out_oli','km_oli','out_sparepart','km_sparepart','km_sekarang'].forEach(k => { data[k] = 0; });
+                data.in_lain_desc = '';
+                data.out_lain_desc = '';
+                detailTransaksi.length = 0; // data.detail menunjuk array yang sama
+            }
+
             let validationIn = data.in_bid + data.in_tips + data.in_lain;
             let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_bensin + data.out_potongan_gojek + data.out_talangan + data.out_ganti_oli_mesin + data.out_oli_gardan + data.out_servis_motor + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
 
@@ -4321,11 +4342,16 @@
                 // Bid/Tips/pengeluaran. Kalau tidak, resetForm() bakal hitung ulang
                 // saldo dari base LAMA + delta 0, jadi "Saldo Saat Ini" keliatan balik
                 // ke angka sebelum transaksi walau datanya sudah bener kesimpen di sheet.
-                document.getElementById('saldo_gopay_driver').value = window.currentFinalSaldo.gopay_driver;
-                document.getElementById('saldo_gopay').value = window.currentFinalSaldo.gopay;
-                document.getElementById('saldo_cash').value = window.currentFinalSaldo.cash;
-                document.getElementById('saldo_bca').value = window.currentFinalSaldo.bca;
+                // (Mode saldoOnly: base sudah persis angka yang dikirim, jadi TIDAK dikunci ke
+                // saldo akhir -- saldo akhir sudah mengandung isian form yang belum disimpan.)
+                if (!saldoOnly) {
+                    document.getElementById('saldo_gopay_driver').value = window.currentFinalSaldo.gopay_driver;
+                    document.getElementById('saldo_gopay').value = window.currentFinalSaldo.gopay;
+                    document.getElementById('saldo_cash').value = window.currentFinalSaldo.cash;
+                    document.getElementById('saldo_bca').value = window.currentFinalSaldo.bca;
+                }
                 simpanSaldoLocal();
+                if (saldoOnly) calculateRealtime();
 
                 if (saldoOnly) {
                     // Jangan pindah tab -- biarin user tetep di panel Dompet dan
@@ -4586,11 +4612,23 @@
         // yang sama seperti tombol "Simpan Saldo Awal Sekarang" (saldoOnly=true),
         // supaya tidak menyentuh Total Pemasukan/Pengeluaran/Pendapatan Bersih sama
         // sekali.
+        // True kalau di form Input masih ada nominal Masuk/Keluar yang belum disimpan.
+        function adaTransaksiBelumDisimpan() {
+            const ids = ['in_bid','in_tips','out_makan','out_minum','out_kuota','out_rokok','out_bensin','out_potongan_gojek',
+                         'out_talangan','out_ganti_oli_mesin','out_oli_gardan','out_servis_motor','out_servis','out_oli','out_sparepart'];
+            if (ids.some(id => getVal(id) > 0)) return true;
+            let ada = false;
+            document.querySelectorAll('#manual-income-list .manual-in-val, #manual-expense-list .manual-out-val').forEach(el => {
+                if ((parseFloat(el.value) || 0) > 0) ada = true;
+            });
+            return ada;
+        }
+
         function openModalTransferSaldo() {
             // Pastikan Saldo Awal (base) SUDAH sinkron dengan Saldo Akhir yang
             // sedang tampil sekarang, supaya nominal yang dipotong/ditambah pas
             // dengan saldo yang user lihat di dashboard, bukan base lama.
-            if (window.currentFinalSaldo) {
+            if (window.currentFinalSaldo && !adaTransaksiBelumDisimpan()) {
                 document.getElementById('saldo_gopay_driver').value = window.currentFinalSaldo.gopay_driver;
                 document.getElementById('saldo_gopay').value = window.currentFinalSaldo.gopay;
                 document.getElementById('saldo_cash').value = window.currentFinalSaldo.cash;
