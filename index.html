@@ -3892,7 +3892,12 @@
                     }
                     renderMaintenanceStatus();
 
-                    if (Array.isArray(json.dataAset)) { asetData = json.dataAset; simpanAsetLocal(); renderAsetList(); }
+                    if (Array.isArray(json.dataAset)) {
+                        // Kalau di HP ada perubahan aset yang BELUM berhasil sampai ke server,
+                        // jangan ditimpa data server (yang bisa kosong/lama). Kirim ulang dulu.
+                        if (asetDirty()) { dorongAsetKeServer(); renderAsetList(); }
+                        else { asetData = json.dataAset; simpanAsetLocal(); renderAsetList(); }
+                    }
 
                     // Sinkron Dompet Custom (tambahan) & Kategori Custom dari server,
                     // supaya dompet/kategori baru yang ditambah dari HP lain juga muncul.
@@ -4869,6 +4874,11 @@
         try { asetData = JSON.parse(localStorage.getItem('asetData')) || []; } catch (e) { asetData = []; }
         const ASET_IKON = { Kendaraan: 'fa-motorcycle', Emas: 'fa-coins', 'Reksa Dana': 'fa-chart-line', Properti: 'fa-house', Elektronik: 'fa-mobile-screen', Piutang: 'fa-hand-holding-dollar', Lainnya: 'fa-box' };
         function totalAset() { return asetData.reduce((t, a) => t + (Number(a.nilai) || 0), 0); }
+        function asetDirty() { try { return localStorage.getItem('asetDirty') === '1'; } catch (e) { return false; } }
+        function setAsetDirty(v) { try { if (v) localStorage.setItem('asetDirty', '1'); else localStorage.removeItem('asetDirty'); } catch (e) {} }
+        async function dorongAsetKeServer() {
+            try { const h = await kirimKeServer({ action: 'simpan_aset', data: asetData }); if (!(h && h.queued)) setAsetDirty(false); } catch (e) {}
+        }
         function simpanAsetLocal() { try { localStorage.setItem('asetData', JSON.stringify(asetData)); } catch (e) {} }
         function escAset(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
@@ -4933,11 +4943,13 @@
         }
         async function kirimAsetKeServer(pesan) {
             simpanAsetLocal();
+            setAsetDirty(true); // dianggap belum sampai server sampai ada konfirmasi sukses
             renderAsetList();
             keuanganRenderMenu();
             if (!isServerAktif()) { showToast(pesan); return; }
             try {
                 const h = await kirimKeServer({ action: 'simpan_aset', data: asetData });
+                if (!(h && h.queued)) setAsetDirty(false);
                 showToast(h && h.queued ? pesan + ' Dikirim otomatis saat online.' : pesan);
             } catch (err) { showToast('Tersimpan di HP, tapi gagal sinkron ke server: ' + err.message); }
         }
