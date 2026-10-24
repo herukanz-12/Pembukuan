@@ -251,6 +251,63 @@
                 </div>
             </div>
 
+            <!-- Kalkulasi Hari Ini & Alokasi Otomatis (dipindah dari tab Monitor) -- reset otomatis tiap pergantian tanggal -->
+            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mb-5 relative overflow-hidden">
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
+                
+                <h3 class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-widest relative z-10 flex items-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Kalkulasi Hari Ini
+                </h3>
+                
+                <div class="space-y-2 mb-6 relative z-10">
+                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                        <span class="text-xs font-bold text-slate-500">Total Masuk</span>
+                        <span id="mon-in" class="font-bold text-green-500">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                        <span class="text-xs font-bold text-slate-500">Total Keluar</span>
+                        <span id="mon-out" class="font-bold text-red-500">Rp 0</span>
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t border-slate-100 dark:border-white/10 flex justify-between items-end relative z-10">
+                    <span class="text-sm font-bold text-slate-800 dark:text-white">Hasil Bersih</span>
+                    <span id="mon-bersih" class="font-extrabold text-3xl text-brand drop-shadow-md">Rp 0</span>
+                </div>
+            </div>
+
+            <!-- Alokasi Otomatis (Smart Split) -->
+            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Alokasi Otomatis (Smart Split)</h3>
+            <div class="grid grid-cols-1 gap-4 mb-6">
+                <!-- Shodaqoh -->
+                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-pink-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-500/20 text-pink-500 flex items-center justify-center"><i class="fa-solid fa-hand-holding-heart text-[10px]"></i></div>
+                                Sedekah (2.5%)
+                            </span>
+                        </div>
+                        <span id="mon-shodaqoh" class="font-bold text-pink-500 text-lg">Rp 0</span>
+                    </div>
+                </div>
+
+                <!-- Tabungan Servis -->
+                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-500/20 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-piggy-bank text-[10px]"></i></div>
+                                Tabungan Servis (10%)
+                            </span>
+                        </div>
+                        <span id="mon-tabungan" class="font-bold text-blue-500 text-lg">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Digital Wallet Card -->
             <div class="bg-digital-card rounded-[2rem] p-6 text-white shadow-neon mb-8 relative overflow-hidden group">
                 <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 group-hover:opacity-10 transition-opacity duration-700"></div>
@@ -1025,64 +1082,8 @@
         <!-- ========================================== -->
         <section id="view-monitor" class="tab-content">
             <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight mb-2">Pusat Monitor</h2>
-            <p class="text-xs text-slate-500 mb-6">Analisis keuangan & kendaraan</p>
+            <p class="text-xs text-slate-500 mb-6">Status kendaraan &amp; jadwal servis</p>
             
-            <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 mb-5 relative overflow-hidden">
-                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] opacity-50"></div>
-                
-                <h3 class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-widest relative z-10 flex items-center gap-2">
-                    <i class="fa-solid fa-calculator"></i> Kalkulasi Hari Ini
-                </h3>
-                
-                <div class="space-y-2 mb-6 relative z-10">
-                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
-                        <span class="text-xs font-bold text-slate-500">Total Masuk</span>
-                        <span id="mon-in" class="font-bold text-green-500">Rp 0</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-50 dark:bg-bgDark p-3 rounded-xl border border-slate-100 dark:border-white/5">
-                        <span class="text-xs font-bold text-slate-500">Total Keluar</span>
-                        <span id="mon-out" class="font-bold text-red-500">Rp 0</span>
-                    </div>
-                </div>
-                
-                <div class="pt-4 border-t border-slate-100 dark:border-white/10 flex justify-between items-end relative z-10">
-                    <span class="text-sm font-bold text-slate-800 dark:text-white">Hasil Bersih</span>
-                    <span id="mon-bersih" class="font-extrabold text-3xl text-brand drop-shadow-md">Rp 0</span>
-                </div>
-            </div>
-
-            <!-- Alokasi Otomatis (Smart Split) -->
-            <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Alokasi Otomatis (Smart Split)</h3>
-            <div class="grid grid-cols-1 gap-4 mb-6">
-                <!-- Shodaqoh -->
-                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-pink-500"></div>
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-md bg-pink-100 dark:bg-pink-500/20 text-pink-500 flex items-center justify-center"><i class="fa-solid fa-hand-holding-heart text-[10px]"></i></div>
-                                Sedekah (2.5%)
-                            </span>
-                        </div>
-                        <span id="mon-shodaqoh" class="font-bold text-pink-500 text-lg">Rp 0</span>
-                    </div>
-                </div>
-
-                <!-- Tabungan Servis -->
-                <div class="bg-white dark:bg-cardDark p-5 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-500/20 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-piggy-bank text-[10px]"></i></div>
-                                Tabungan Servis (10%)
-                            </span>
-                        </div>
-                        <span id="mon-tabungan" class="font-bold text-blue-500 text-lg">Rp 0</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Monitoring Servis -->
             <h3 class="text-[10px] font-bold text-slate-500 mb-3 uppercase tracking-widest ml-2">Status Kendaraan</h3>
             <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-6 relative overflow-hidden mb-8">
@@ -3418,45 +3419,53 @@
             }
         }
 
-        // --- Render Isi Tab "Riwayat Sedekah": tiap baris DataHarian yang
-        // kolom "Shodaqoh"-nya > 0, diurutkan terbaru dulu, plus total keseluruhan. ---
+        // Susun riwayat harian LENGKAP untuk 1 kolom (mis. 'Shodaqoh' / 'Tabungan Servis'):
+        // semua baris di tanggal yang sama dijumlahkan, lalu SEMUA tanggal dari data
+        // paling awal sampai hari ini ditampilkan -- termasuk hari tanpa ngebid
+        // (total Rp 0). Hasil diurutkan dari tanggal terbaru.
+        function susunRiwayatHarian(kolom) {
+            if (!Array.isArray(allSheetRows) || allSheetRows.length === 0) return [];
+            const perHari = {};
+            let awal = null;
+            let akhir = null;
+            allSheetRows.forEach(row => {
+                const d = new Date(row['Timestamp']);
+                if (isNaN(d)) return;
+                const hari = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                perHari[hari.getTime()] = (perHari[hari.getTime()] || 0) + (Number(row[kolom]) || 0);
+                if (awal === null || hari < awal) awal = hari;
+                if (akhir === null || hari > akhir) akhir = hari;
+            });
+            if (!awal) return [];
+            const sekarang = new Date();
+            const hariIni = new Date(sekarang.getFullYear(), sekarang.getMonth(), sekarang.getDate());
+            if (hariIni > akhir) akhir = hariIni;
+
+            const hasil = [];
+            for (let d = new Date(awal); d <= akhir; d.setDate(d.getDate() + 1)) {
+                hasil.push({ timestamp: new Date(d).toISOString(), total: perHari[d.getTime()] || 0 });
+            }
+            hasil.reverse();
+            return hasil;
+        }
+
+        // --- Render Isi Tab "Riwayat Sedekah": 1 kartu per tanggal (semua tanggal,
+        // termasuk yang Rp 0), terbaru dulu, plus total keseluruhan. ---
         function renderRiwayatSedekahList() {
             const container = document.getElementById('riwayat-sedekah-list-container');
             const totalEl = document.getElementById('riwayat-sedekah-total');
             if (!container || !totalEl) return;
             container.innerHTML = '';
 
-            let rows = allSheetRows.filter(row => (Number(row['Shodaqoh']) || 0) > 0);
+            // Form di-reset setiap selesai simpan, jadi tiap baris Shodaqoh hanya bagian
+            // dari 1 simpanan -> dijumlahkan per tanggal (sama dengan kartu Monitor).
+            let harian = susunRiwayatHarian('Shodaqoh');
 
-            if (rows.length === 0) {
+            if (harian.length === 0) {
                 totalEl.innerText = formatRp(0);
                 container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada riwayat sedekah.</p>`;
                 return;
             }
-
-            // Dalam 1 hari bisa ada beberapa kali "Simpan" (tiap kali narik/ngebid
-            // update saldo), dan nilai Shodaqoh di tiap baris itu KUMULATIF hari
-            // itu (2.5% dari pendapatan bersih hari berjalan) -- bukan tambahan
-            // sejak simpan terakhir. Makanya yang dipakai cuma nilai dari sesi
-            // "Simpan" PALING TERAKHIR di hari itu (paling update), bukan dijumlah
-            // semua sesi simpan hari itu (itu akan double count).
-            let perTanggal = {};
-            let urutanTanggal = [];
-            rows.forEach(row => {
-                let tglKey = new Date(row['Timestamp']).toDateString();
-                if (!perTanggal[tglKey]) {
-                    perTanggal[tglKey] = { timestamp: row['Timestamp'], total: Number(row['Shodaqoh']) || 0 };
-                    urutanTanggal.push(tglKey);
-                } else if (new Date(row['Timestamp']) > new Date(perTanggal[tglKey].timestamp)) {
-                    // Sesi simpan lebih baru ditemukan di hari yang sama -> pakai
-                    // nilai ini (timpa yang lama), karena ini yang paling update.
-                    perTanggal[tglKey].timestamp = row['Timestamp'];
-                    perTanggal[tglKey].total = Number(row['Shodaqoh']) || 0;
-                }
-            });
-
-            let harian = urutanTanggal.map(key => perTanggal[key]);
-            harian.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
             let total = harian.reduce((sum, h) => sum + h.total, 0);
             totalEl.innerText = formatRp(total);
@@ -3464,7 +3473,7 @@
             harian.forEach(h => {
                 let tgl = new Date(h.timestamp).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
                 container.innerHTML += `
-                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between animate-fade-in">
+                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between animate-fade-in ${h.total > 0 ? '' : 'opacity-60'}">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-9 h-9 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500 shrink-0"><i class="fa-solid fa-hand-holding-heart"></i></div>
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${tgl}</span>
@@ -3485,33 +3494,14 @@
             if (!container || !totalEl) return;
             container.innerHTML = '';
 
-            let rows = allSheetRows.filter(row => (Number(row['Tabungan Servis']) || 0) > 0);
+            // Sama seperti Riwayat Sedekah: dijumlahkan per tanggal, semua tanggal tampil.
+            let harian = susunRiwayatHarian('Tabungan Servis');
 
-            if (rows.length === 0) {
+            if (harian.length === 0) {
                 totalEl.innerText = formatRp(0);
                 container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada riwayat tabungan servis.</p>`;
                 return;
             }
-
-            // Sama seperti Riwayat Sedekah: nilai "Tabungan Servis" tiap baris itu
-            // KUMULATIF hari itu (10% dari pendapatan bersih hari berjalan), jadi
-            // yang dipakai cuma nilai dari sesi "Simpan" PALING TERAKHIR di hari
-            // itu -- bukan dijumlah semua sesi simpan (itu akan double count).
-            let perTanggal = {};
-            let urutanTanggal = [];
-            rows.forEach(row => {
-                let tglKey = new Date(row['Timestamp']).toDateString();
-                if (!perTanggal[tglKey]) {
-                    perTanggal[tglKey] = { timestamp: row['Timestamp'], total: Number(row['Tabungan Servis']) || 0 };
-                    urutanTanggal.push(tglKey);
-                } else if (new Date(row['Timestamp']) > new Date(perTanggal[tglKey].timestamp)) {
-                    perTanggal[tglKey].timestamp = row['Timestamp'];
-                    perTanggal[tglKey].total = Number(row['Tabungan Servis']) || 0;
-                }
-            });
-
-            let harian = urutanTanggal.map(key => perTanggal[key]);
-            harian.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
             let total = harian.reduce((sum, h) => sum + h.total, 0);
             totalEl.innerText = formatRp(total);
@@ -3519,7 +3509,7 @@
             harian.forEach(h => {
                 let tgl = new Date(h.timestamp).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
                 container.innerHTML += `
-                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between animate-fade-in">
+                    <div class="bg-white dark:bg-cardDark rounded-2xl p-4 shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between animate-fade-in ${h.total > 0 ? '' : 'opacity-60'}">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0"><i class="fa-solid fa-piggy-bank"></i></div>
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${tgl}</span>
