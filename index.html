@@ -163,6 +163,18 @@
         </div>
     </header>
 
+    <!-- LAYAR KUNCI: muncul di perangkat yang belum memasukkan kunci akses -->
+    <div id="layar-kunci" class="hidden fixed inset-0 z-[120] bg-slate-50 dark:bg-bgDark flex items-center justify-center px-6">
+        <div class="w-full max-w-sm text-center">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-brand to-teal-400 flex items-center justify-center text-white shadow-neon mb-5"><i class="fa-solid fa-lock text-2xl"></i></div>
+            <h2 class="text-xl font-bold text-slate-800 dark:text-white">Buku OjolKu</h2>
+            <p class="text-sm text-slate-500 mt-1 mb-5">Masukkan kunci akses untuk membuka data.</p>
+            <input type="password" id="input-kunci" autocomplete="current-password" onkeydown="if(event.key==='Enter')kirimKunci()" class="w-full bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 rounded-xl p-3.5 text-center text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="Kunci akses">
+            <p id="kunci-pesan" class="hidden text-xs font-semibold text-red-500 mt-2"></p>
+            <button type="button" id="btn-kirim-kunci" onclick="kirimKunci()" class="w-full mt-4 py-3.5 rounded-xl bg-brand text-white font-bold text-sm shadow-neon active:scale-[0.98] transition">Buka</button>
+        </div>
+    </div>
+
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-slate-900/90 dark:bg-white/90 backdrop-blur-md text-white dark:text-slate-900 px-6 py-3 rounded-2xl shadow-float z-50 hidden opacity-0 transition-all duration-300 flex items-center gap-3 text-sm font-bold border border-white/10">
         <div class="w-6 h-6 rounded-full bg-brand flex items-center justify-center text-white">
@@ -818,6 +830,7 @@
                     <p class="relative z-10 text-xs font-semibold text-white/75 mb-1">Total saldo semua dompet</p>
                     <h3 id="keu-total-saldo" class="relative z-10 text-[2.6rem] leading-none font-extrabold tracking-tight text-brand-neon tabular-nums">Rp 0</h3>
                     <p id="keu-sisa-cicilan" class="relative z-10 text-xs text-white/65 mt-2">Tidak ada cicilan berjalan</p>
+                    <p id="keu-aset-line" class="relative z-10 text-xs text-white/65 mt-0.5"></p>
                 </div>
                 <div id="keuangan-menu-list" class="space-y-3"></div>
             </div>
@@ -925,6 +938,25 @@
             </div>
             </div>
             <!-- /keuangan-saldo -->
+            <!-- SUB-HALAMAN: ASET (di luar saldo) -->
+            <div id="keuangan-aset" style="display:none">
+                <button type="button" onclick="keuanganBuka('menu')" class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2.5 rounded-xl mb-5 hover:border-brand/40 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Keuangan
+                </button>
+                <div class="flex justify-between items-end mb-5">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Aset</h2>
+                        <p class="text-xs text-slate-500 mt-1">Harta di luar saldo dompet</p>
+                    </div>
+                    <button onclick="openModalAset()" class="text-xs font-bold text-brand bg-brand/10 border border-brand/20 px-4 py-2 rounded-xl hover:bg-brand/20 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Tambah</button>
+                </div>
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 mb-4">
+                    <p class="text-xs text-slate-500">Total aset</p>
+                    <p id="aset-total" class="text-3xl font-extrabold tabular-nums text-slate-800 dark:text-white mt-0.5">Rp 0</p>
+                    <p id="aset-info" class="text-[11px] text-slate-400 mt-1">Tidak dihitung dalam Total saldo</p>
+                </div>
+                <div id="aset-list-container" class="space-y-4 mb-8"></div>
+            </div>
         </section>
 
         <!-- ========================================== -->
@@ -1105,6 +1137,29 @@
         </div>
     </div>
 
+    <!-- Modal Aset -->
+    <div id="modal-aset" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-6 opacity-0 transition-opacity">
+        <div class="bg-white dark:bg-cardDark rounded-[2rem] w-full max-w-sm p-6 shadow-float transform scale-95 transition-transform duration-300" id="modal-aset-content">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4" id="aset-modal-title">Tambah aset</h3>
+            <input type="hidden" id="aset_id">
+            <div class="space-y-4">
+                <div><label class="text-xs font-semibold text-slate-500 mb-1 block">Nama aset</label>
+                <input type="text" id="aset_nama" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="Contoh: Motor Beat 2019"></div>
+                <div><label class="text-xs font-semibold text-slate-500 mb-1 block">Nilai saat ini</label>
+                <div class="flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand"><span class="pl-3 text-slate-400 text-sm font-bold">Rp</span><input type="number" inputmode="numeric" id="aset_nilai" class="w-full bg-transparent border-none p-2 text-slate-800 dark:text-white font-bold text-xl outline-none" placeholder="0"></div></div>
+                <div><label class="text-xs font-semibold text-slate-500 mb-1 block">Kategori</label>
+                <select id="aset_kategori" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none"><option>Kendaraan</option><option>Emas</option><option>Properti</option><option>Elektronik</option><option>Piutang</option><option selected>Lainnya</option></select></div>
+                <div><label class="text-xs font-semibold text-slate-500 mb-1 block">Keterangan (opsional)</label>
+                <input type="text" id="aset_ket" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="Contoh: harga pasar, bukan harga beli"></div>
+                <div class="flex gap-3 mt-2">
+                    <button type="button" id="btn-hapus-aset" onclick="hapusAset()" class="hidden px-4 py-3 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm"><i class="fa-solid fa-trash-can"></i></button>
+                    <button type="button" onclick="closeModalAset()" class="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-sm">Batal</button>
+                    <button type="button" onclick="simpanAset()" class="flex-1 py-3 rounded-xl bg-brand text-white font-bold text-sm shadow-neon">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Pengaturan (Settings) -->
     <div id="modal-settings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-6 opacity-0 transition-opacity">
         <div class="bg-white dark:bg-cardDark rounded-[2rem] w-full max-w-sm p-6 shadow-float transform scale-95 transition-transform duration-300" id="modal-settings-content">
@@ -1251,10 +1306,13 @@
         // ==========================================================
         const ANTRIAN_KEY = 'antrian_kirim_v1';
         const ANTRIAN_DITOLAK_KEY = 'antrian_ditolak_v1';
-        const AKSI_BISA_ANTRI = ['simpan_harian', 'bayar_cicilan', 'tambah_hutang', 'simpan_maintenance', 'simpan_settings'];
+        const AKSI_BISA_ANTRI = ['simpan_harian', 'bayar_cicilan', 'tambah_hutang', 'simpan_maintenance', 'simpan_settings', 'simpan_aset'];
         const TIMEOUT_KIRIM_MS = 20000;
 
         class ErrJaringan extends Error {}
+        class ErrKunci extends ErrJaringan {}
+        const KUNCI_KEY = 'app_key_v1';
+        function ambilKunci() { try { return localStorage.getItem(KUNCI_KEY) || ''; } catch (e) { return ''; } }
 
         function bacaAntrian(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch (e) { return []; } }
         function tulisAntrian(key, arr) { try { localStorage.setItem(key, JSON.stringify(arr)); } catch (e) { console.error('Gagal simpan antrian', e); } }
@@ -1275,7 +1333,7 @@
                 res = await fetchDenganTimeout(GAS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(Object.assign({}, payload, { key: ambilKunci() }))
                 }, TIMEOUT_KIRIM_MS);
             } catch (networkErr) {
                 throw new ErrJaringan("Tidak bisa menghubungi server. Cek koneksi internet.");
@@ -1287,6 +1345,7 @@
             let json;
             try { json = await res.json(); }
             catch (parseErr) { throw new ErrJaringan("Respons server tidak valid (sinyal putus-nyambung?)."); }
+            if (json.kode === 'AUTH') { tampilkanLayarKunci('Kunci salah atau belum diisi.'); throw new ErrKunci('Kunci salah. Data tetap tersimpan di HP.'); }
             if (json.status !== 'success') throw new Error(json.message || "Server menolak permintaan.");
             return json;
         }
@@ -3732,14 +3791,16 @@
 
         async function fetchRekapData() {
             if (!isServerAktif()) return false;
+            if (!ambilKunci()) { tampilkanLayarKunci(); return false; }
             // Data offline yang belum terkirim harus naik dulu. Kalau masih ada yang
             // tertinggal, JANGAN timpa tampilan dengan data server (server belum punya
             // data itu) -- tetap pakai data di HP.
             const antrianBersih = await flushAntrian();
             if (!antrianBersih) return false;
             try {
-                const res = await fetchDenganTimeout(GAS_URL, { cache: 'no-store' }, 25000);
+                const res = await fetchDenganTimeout(GAS_URL + '?key=' + encodeURIComponent(ambilKunci()), { cache: 'no-store' }, 25000);
                 const json = await res.json();
+                if (json.kode === 'AUTH') { tampilkanLayarKunci('Kunci salah atau belum diisi.'); return false; }
                 if (json.status === 'success') {
                     // Load Data Pengaturan LEBIH DULU, supaya waktu renderRekap()/cekPajakKendaran()
                     // jalan (dipanggil dari blok dataHarian di bawah), nilainya sudah yang terbaru
@@ -3800,6 +3861,8 @@
                         window.maintenanceTerakhir = json.dataMaintenanceTerakhir;
                     }
                     renderMaintenanceStatus();
+
+                    if (Array.isArray(json.dataAset)) { asetData = json.dataAset; simpanAsetLocal(); renderAsetList(); }
 
                     // Sinkron Dompet Custom (tambahan) & Kategori Custom dari server,
                     // supaya dompet/kategori baru yang ditambah dari HP lain juga muncul.
@@ -4304,6 +4367,10 @@
                 }
             },
             {
+                key: 'aset', icon: 'fa-gem', warna: 'brand', judul: 'Aset',
+                info: () => asetData.length ? formatRp(totalAset()) + ' · ' + asetData.length + ' aset, tidak dihitung sebagai saldo' : 'Catat motor, emas, dan harta lain di luar saldo'
+            },
+            {
                 key: 'cicilan', icon: 'fa-handshake-angle', warna: 'brand', judul: 'Catatan Cicilan',
                 info: () => {
                     if (!hutangData.length) return 'Belum ada catatan';
@@ -4319,6 +4386,8 @@
             const tot = document.getElementById('dash-saldo-total');
             const elTot = document.getElementById('keu-total-saldo');
             if (elTot && tot) elTot.innerText = tot.innerText;
+            const elAs = document.getElementById('keu-aset-line');
+            if (elAs) elAs.innerText = asetData.length ? 'Aset ' + formatRp(totalAset()) + ' (di luar saldo)' : 'Belum ada aset tercatat';
             const elSisa = document.getElementById('keu-sisa-cicilan');
             if (elSisa) {
                 const aktif = hutangData.filter(h => (h.totalAwal - h.terbayar) > 0);
@@ -4349,6 +4418,7 @@
             });
             if (key === 'menu') keuanganRenderMenu();
             if (key === 'cicilan') renderHutangList();
+            if (key === 'aset') renderAsetList();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -4762,6 +4832,125 @@
             }
         }
 
+        // ==========================================================
+        // ASET (di luar saldo): disimpan di HP + disinkronkan ke sheet "Aset"
+        // ==========================================================
+        let asetData = [];
+        try { asetData = JSON.parse(localStorage.getItem('asetData')) || []; } catch (e) { asetData = []; }
+        const ASET_IKON = { Kendaraan: 'fa-motorcycle', Emas: 'fa-coins', Properti: 'fa-house', Elektronik: 'fa-mobile-screen', Piutang: 'fa-hand-holding-dollar', Lainnya: 'fa-box' };
+        function totalAset() { return asetData.reduce((t, a) => t + (Number(a.nilai) || 0), 0); }
+        function simpanAsetLocal() { try { localStorage.setItem('asetData', JSON.stringify(asetData)); } catch (e) {} }
+        function escAset(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+        function renderAsetList() {
+            const box = document.getElementById('aset-list-container');
+            if (!box) return;
+            document.getElementById('aset-total').innerText = formatRp(totalAset());
+            document.getElementById('aset-info').innerText = asetData.length ? asetData.length + ' aset · tidak dihitung dalam Total saldo' : 'Tidak dihitung dalam Total saldo';
+            if (!asetData.length) {
+                box.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada aset. Tekan Tambah untuk mencatat motor, emas, atau harta lain.</p>`;
+                return;
+            }
+            const grup = {};
+            asetData.forEach(a => { (grup[a.kategori || 'Lainnya'] = grup[a.kategori || 'Lainnya'] || []).push(a); });
+            box.innerHTML = Object.keys(grup).map(k => {
+                const sub = grup[k].reduce((t, a) => t + (Number(a.nilai) || 0), 0);
+                return `<div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5">
+                    <div class="flex items-center justify-between mb-1"><h3 class="text-base font-bold text-slate-800 dark:text-white">${escAset(k)}</h3><span class="text-sm font-extrabold tabular-nums text-brand">${formatRp(sub)}</span></div>
+                    <div class="divide-y divide-slate-100 dark:divide-white/5">${grup[k].map(a => `
+                        <button type="button" onclick="openModalAset('${a.id}')" class="w-full flex items-center gap-3 py-3 text-left">
+                            <span class="w-9 h-9 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0"><i class="fa-solid ${ASET_IKON[a.kategori] || 'fa-box'} text-sm"></i></span>
+                            <span class="flex-1 min-w-0"><span class="block text-[13px] font-bold text-slate-800 dark:text-white truncate">${escAset(a.nama)}</span>${a.keterangan ? `<span class="block text-[11px] text-slate-400 truncate">${escAset(a.keterangan)}</span>` : ''}</span>
+                            <span class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white shrink-0">${formatRp(Number(a.nilai) || 0)}</span>
+                        </button>`).join('')}</div></div>`;
+            }).join('');
+        }
+
+        function openModalAset(id) {
+            const a = id ? asetData.find(x => x.id === id) : null;
+            document.getElementById('aset-modal-title').innerText = a ? 'Ubah aset' : 'Tambah aset';
+            document.getElementById('aset_id').value = a ? a.id : '';
+            document.getElementById('aset_nama').value = a ? a.nama : '';
+            document.getElementById('aset_nilai').value = a ? a.nilai : '';
+            document.getElementById('aset_kategori').value = a ? (a.kategori || 'Lainnya') : 'Lainnya';
+            document.getElementById('aset_ket').value = a ? (a.keterangan || '') : '';
+            document.getElementById('btn-hapus-aset').classList.toggle('hidden', !a);
+            const m = document.getElementById('modal-aset'), c = document.getElementById('modal-aset-content');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+        }
+        function closeModalAset() {
+            const m = document.getElementById('modal-aset'), c = document.getElementById('modal-aset-content');
+            m.classList.add('opacity-0'); c.classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+        async function kirimAsetKeServer(pesan) {
+            simpanAsetLocal();
+            renderAsetList();
+            keuanganRenderMenu();
+            if (!isServerAktif()) { showToast(pesan); return; }
+            try {
+                const h = await kirimKeServer({ action: 'simpan_aset', data: asetData });
+                showToast(h && h.queued ? pesan + ' Dikirim otomatis saat online.' : pesan);
+            } catch (err) { showToast('Tersimpan di HP, tapi gagal sinkron ke server: ' + err.message); }
+        }
+        async function simpanAset() {
+            const nama = getStr('aset_nama'), nilai = getVal('aset_nilai');
+            if (!nama || nilai <= 0) { showToast('Nama dan nilai aset harus diisi'); return; }
+            const id = getStr('aset_id');
+            const item = { id: id || Date.now().toString(), nama, nilai, kategori: getStr('aset_kategori'), keterangan: getStr('aset_ket'), tanggal: new Date().toISOString().split('T')[0] };
+            const i = asetData.findIndex(x => x.id === id);
+            if (id && i >= 0) { item.tanggal = asetData[i].tanggal || item.tanggal; asetData[i] = item; } else asetData.push(item);
+            closeModalAset();
+            await kirimAsetKeServer('Aset tersimpan.');
+        }
+        async function hapusAset() {
+            const id = getStr('aset_id');
+            const a = asetData.find(x => x.id === id);
+            if (!a || !confirm('Hapus aset "' + a.nama + '"?')) return;
+            asetData = asetData.filter(x => x.id !== id);
+            closeModalAset();
+            await kirimAsetKeServer('Aset dihapus.');
+        }
+
+        // --- Layar kunci akses ---
+        function tampilkanLayarKunci(pesan) {
+            const el = document.getElementById('layar-kunci');
+            if (!el) return;
+            el.classList.remove('hidden');
+            const p = document.getElementById('kunci-pesan');
+            p.innerText = pesan || '';
+            p.classList.toggle('hidden', !pesan);
+            setTimeout(() => { const i = document.getElementById('input-kunci'); if (i) i.focus(); }, 100);
+        }
+        async function kirimKunci() {
+            const input = document.getElementById('input-kunci');
+            const btn = document.getElementById('btn-kirim-kunci');
+            const p = document.getElementById('kunci-pesan');
+            const k = input.value.trim();
+            if (!k) return;
+            btn.innerText = 'Memeriksa...';
+            try {
+                const res = await fetchDenganTimeout(GAS_URL + '?key=' + encodeURIComponent(k), { cache: 'no-store' }, 25000);
+                const json = await res.json();
+                if (json.status === 'success') {
+                    localStorage.setItem(KUNCI_KEY, k);
+                    input.value = '';
+                    p.classList.add('hidden');
+                    document.getElementById('layar-kunci').classList.add('hidden');
+                    muatUlangData(true);
+                    flushAntrian();
+                } else {
+                    p.innerText = 'Kunci salah. Coba lagi.';
+                    p.classList.remove('hidden');
+                }
+            } catch (e) {
+                p.innerText = 'Tidak bisa menghubungi server. Cek koneksi internet.';
+                p.classList.remove('hidden');
+            }
+            btn.innerText = 'Buka';
+        }
+
         // --- Fungsi Tombol Refresh ---
         // silent=true dipakai untuk auto-load pertama kali saat app dibuka,
         // supaya tidak menampilkan toast "Memuat ulang..." yang terkesan
@@ -4782,6 +4971,7 @@
 
         // --- Inisialisasi Saat Aplikasi Dimuat ---
         window.onload = async () => {
+            if (!ambilKunci()) tampilkanLayarKunci();
             // Muat dulu daftar Dompet Custom & Kategori Custom dari backup lokal
             // (localStorage), SEBELUM muatSaldoLocal()/calculateRealtime(), supaya
             // input Saldo Awal & pilihan dompet custom sudah kerender duluan
