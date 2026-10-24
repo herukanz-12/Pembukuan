@@ -4261,6 +4261,7 @@
             // "Simpan Laporan" TIDAK ikut terkirim -- kalau ikut, transfer saldo malah
             // tercatat jadi pemasukan/pengeluaran (dan masuk Pendapatan Bersih).
             if (saldoOnly) {
+                data.saldoOnly = true; // server: cukup update saldo, jangan tambah baris DataHarian
                 const baseVal = id => { const el = document.getElementById(id); return el ? (parseFloat(el.value) || 0) : 0; };
                 data.saldo_gopay_driver = baseVal('saldo_gopay_driver');
                 data.saldo_gopay = baseVal('saldo_gopay');
