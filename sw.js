@@ -4,7 +4,7 @@
  * Tambahan: - internet jelek/lambat (>4 detik) -> langsung pakai salinan tersimpan, tidak menggantung
  *           - CSS/JS/font dari CDN (Tailwind, Font Awesome, Google Fonts) ikut disimpan -> tampilan utuh offline
  *           - install tidak gagal total kalau satu file belum ada */
-const CACHE_NAME = 'ojolku-cache-v3.7.6'; // NAIKKAN tiap kali index.html/manifest.json/sw.js berubah
+const CACHE_NAME = 'ojolku-cache-v3.7.9'; // NAIKKAN tiap kali index.html/manifest.json/sw.js berubah
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json',
