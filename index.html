@@ -979,6 +979,8 @@
 
             <!-- Panel: Log Transaksi (per-item granular, dari sheet DetailTransaksi) -->
             <div id="riwayat-log-panel" class="hidden">
+                <input type="text" id="log-cari" oninput="renderLogTransaksiList()" placeholder="Cari kode, kategori, atau keterangan..." class="w-full mb-3 bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand">
+                <p class="text-[11px] text-slate-400 mb-3">Ketuk transaksi untuk edit atau batalkan. Transaksi yang dibatalkan tetap tampil sebagai jejak, tidak dihitung.</p>
                 <div id="log-transaksi-list-container" class="space-y-4 mb-8">
                     <!-- Rendered dynamically via JS -->
                 </div>
@@ -1164,6 +1166,36 @@
         </div>
     </div>
 
+    <!-- Modal Detail / Edit / Batalkan Transaksi (berdasarkan Kode) -->
+    <div id="modal-transaksi" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-6 opacity-0 transition-opacity">
+        <div class="bg-white dark:bg-cardDark rounded-[2rem] w-full max-w-sm p-6 shadow-float transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="modal-transaksi-content">
+            <div class="flex items-center justify-between mb-1">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white" id="trx-judul">Detail Transaksi</h3>
+                <span id="trx-tipe" class="text-[10px] font-bold px-2 py-1 rounded-lg"></span>
+            </div>
+            <p class="text-xs text-slate-500 mb-1">Kode: <span id="trx-kode" class="font-mono font-bold text-slate-700 dark:text-slate-200"></span></p>
+            <p class="text-[11px] text-slate-400 mb-4" id="trx-waktu"></p>
+            <input type="hidden" id="trx-kode-val">
+            <div class="space-y-3">
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Kategori</label>
+                <input type="text" id="trx-kategori" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Keterangan</label>
+                <input type="text" id="trx-ket" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Nominal</label>
+                <div class="flex items-center bg-slate-50 dark:bg-bgDark rounded-xl border border-slate-200 dark:border-white/10 p-1 focus-within:border-brand"><span class="pl-3 text-slate-400 text-sm font-bold">Rp</span><input type="number" inputmode="decimal" id="trx-nominal" class="w-full bg-transparent border-none p-2 text-slate-800 dark:text-white font-bold text-xl outline-none"></div></div>
+                <div><label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Dompet</label>
+                <select id="trx-dompet" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white outline-none focus:border-brand"></select></div>
+                <p id="trx-catatan" class="text-[11px] text-slate-400 hidden"></p>
+                <p class="text-[11px] text-slate-400" id="trx-info">Mengubah nominal atau dompet otomatis mengoreksi saldo dompet dan laporan harian.</p>
+                <div class="flex gap-3 pt-1" id="trx-aksi">
+                    <button type="button" onclick="batalkanTransaksi()" class="flex-1 py-3 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm border border-red-500/20">Batalkan</button>
+                    <button type="button" id="btn-simpan-trx" onclick="simpanEditTransaksi()" class="flex-1 py-3 rounded-xl bg-brand text-white font-bold text-sm shadow-neon">Simpan</button>
+                </div>
+                <button type="button" onclick="tutupDetailTransaksi()" class="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-bold text-sm">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Aset -->
     <div id="modal-aset" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-6 opacity-0 transition-opacity">
         <div class="bg-white dark:bg-cardDark rounded-[2rem] w-full max-w-sm p-6 shadow-float transform scale-95 transition-transform duration-300" id="modal-aset-content">
@@ -1336,7 +1368,7 @@
         // ==========================================================
         const ANTRIAN_KEY = 'antrian_kirim_v1';
         const ANTRIAN_DITOLAK_KEY = 'antrian_ditolak_v1';
-        const AKSI_BISA_ANTRI = ['simpan_harian', 'bayar_cicilan', 'tambah_hutang', 'simpan_maintenance', 'simpan_settings', 'simpan_aset'];
+        const AKSI_BISA_ANTRI = ['simpan_harian', 'bayar_cicilan', 'tambah_hutang', 'simpan_maintenance', 'simpan_settings', 'simpan_aset', 'edit_transaksi', 'batalkan_transaksi'];
         const TIMEOUT_KIRIM_MS = 20000;
 
         class ErrJaringan extends Error {}
@@ -1505,7 +1537,7 @@
             if (snapMemulihkan) return;
             clearTimeout(snapTimer);
             snapTimer = setTimeout(() => {
-                idbSet('snapshot', { t: Date.now(), rows: allSheetRows, detail: allDetailTransaksi, maint: allMaintenanceData, maintTerakhir: window.maintenanceTerakhir }).catch(() => {});
+                idbSet('snapshot', { t: Date.now(), rows: allSheetRows, detail: allDetailSemua, maint: allMaintenanceData, maintTerakhir: window.maintenanceTerakhir }).catch(() => {});
             }, 800);
         }
         async function muatSnapshotLokal() {
@@ -1514,7 +1546,7 @@
                 if (!snap) return false;
                 snapMemulihkan = true;
                 allSheetRows = snap.rows || [];
-                allDetailTransaksi = snap.detail || [];
+                setDetailSemua(snap.detail || []);
                 allMaintenanceData = snap.maint || [];
                 window.maintenanceTerakhir = snap.maintTerakhir || {};
                 renderRekap();
@@ -2319,7 +2351,28 @@
 
         // --- Data & Filter Periode ---
         let allSheetRows = [];      
-        let allDetailTransaksi = [];
+        let allDetailTransaksi = [];   // hanya transaksi AKTIF (dipakai semua rekap/rincian)
+        let allDetailSemua = [];       // semua transaksi termasuk yang Dibatalkan (untuk Log Transaksi)
+        function detailAktif(i) { return (i && i['Status'] || 'Aktif') !== 'Dibatalkan'; }
+        function setDetailSemua(arr) {
+            allDetailSemua = Array.isArray(arr) ? arr : [];
+            allDetailTransaksi = allDetailSemua.filter(detailAktif);
+        }
+        // Kode transaksi: M-yyMMdd-XXXX (masuk) / K-yyMMdd-XXXX (keluar). Dibuat di HP supaya unik walau offline.
+        const ABJAD_KODE = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        const kodeBaruDibuat = new Set();
+        function buatKodeTransaksi(tipe) {
+            const d = new Date();
+            const tgl = String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+            let kode;
+            do {
+                let acak = '';
+                for (let i = 0; i < 4; i++) acak += ABJAD_KODE.charAt(Math.floor(Math.random() * ABJAD_KODE.length));
+                kode = (tipe === 'Masuk' ? 'M' : 'K') + '-' + tgl + '-' + acak;
+            } while (kodeBaruDibuat.has(kode) || allDetailSemua.some(x => x['Kode'] === kode));
+            kodeBaruDibuat.add(kode);
+            return kode;
+        }
 
         // ==================================================================
         // FITUR "TAMBAH DOMPET / KATEGORI DARI HP" (tanpa perlu buka laptop)
@@ -3616,21 +3669,26 @@
         function renderLogTransaksiList() {
             const container = document.getElementById('log-transaksi-list-container');
             if (!container) return;
-            if (!Array.isArray(allDetailTransaksi) || allDetailTransaksi.length === 0) {
+            if (!Array.isArray(allDetailSemua) || allDetailSemua.length === 0) {
                 container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Belum ada transaksi. Catat dari tab Input.</p>`;
                 return;
             }
-            const dompetLabelMap = { cash: 'Cash', gopay: 'Gopay', gopay_driver: 'Gopay Driver', bca: 'BCA' };
-            dompetCustomList.forEach(d => { dompetLabelMap[d.id] = d.nama; });
-            const sorted = [...allDetailTransaksi].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+            const dompetLabelMap = namaDompetMap();
+            const cari = ((document.getElementById('log-cari') || {}).value || '').trim().toLowerCase();
+            const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            let sorted = [...allDetailSemua].sort((a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
+            if (cari) sorted = sorted.filter(i => [i['Kode'], i['Kategori'], i['Keterangan']].some(v => String(v || '').toLowerCase().includes(cari)));
+            if (sorted.length === 0) { container.innerHTML = `<p class="text-center text-sm text-slate-500 mt-10">Tidak ada transaksi yang cocok.</p>`; return; }
             const grup = [];
             sorted.forEach(item => {
                 const d = new Date(item['Timestamp']);
                 const k = kunciHari(item['Timestamp']);
                 let g = grup[grup.length - 1];
                 if (!g || g.k !== k) { g = { k, d, net: 0, items: [] }; grup.push(g); }
-                const n = Number(item['Nominal']) || 0;
-                g.net += item['Tipe'] === 'Masuk' ? n : -n;
+                if (detailAktif(item)) {
+                    const n = Number(item['Nominal']) || 0;
+                    g.net += item['Tipe'] === 'Masuk' ? n : -n;
+                }
                 g.items.push(item);
             });
             container.innerHTML = grup.map(g => `
@@ -3642,20 +3700,217 @@
                     <div class="divide-y divide-slate-100 dark:divide-white/5">
                         ${g.items.map(item => {
                             const masuk = item['Tipe'] === 'Masuk';
+                            const batal = !detailAktif(item);
                             const jam = new Date(item['Timestamp']).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                             const dompet = dompetLabelMap[item['Dompet']] || item['Dompet'] || '-';
-                            const ket = item['Keterangan'] ? `<span class="font-normal text-slate-400"> · ${item['Keterangan']}</span>` : '';
-                            return `<div class="flex items-center gap-3 py-2.5">
-                                <span class="w-9 h-9 rounded-xl ${masuk ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-500'} flex items-center justify-center shrink-0"><i class="fa-solid ${masuk ? 'fa-arrow-down' : 'fa-arrow-up'} text-xs"></i></span>
+                            const ket = item['Keterangan'] ? `<span class="font-normal text-slate-400"> · ${esc(item['Keterangan'])}</span>` : '';
+                            const kode = item['Kode'] ? esc(item['Kode']) : '';
+                            return `<button type="button" ${kode ? `onclick="bukaDetailTransaksi('${kode}')"` : ''} class="w-full text-left flex items-center gap-3 py-2.5 ${batal ? 'opacity-50' : ''}">
+                                <span class="w-9 h-9 rounded-xl ${batal ? 'bg-slate-200 dark:bg-white/10 text-slate-400' : (masuk ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-500')} flex items-center justify-center shrink-0"><i class="fa-solid ${batal ? 'fa-ban' : (masuk ? 'fa-arrow-down' : 'fa-arrow-up')}"></i></span>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-[13px] font-bold text-slate-800 dark:text-white truncate">${item['Kategori']}${ket}</p>
-                                    <p class="text-[11px] text-slate-400">${jam} · ${dompet}</p>
+                                    <p class="text-[13px] font-bold text-slate-800 dark:text-white truncate ${batal ? 'line-through' : ''}">${esc(item['Kategori'])}${ket}</p>
+                                    <p class="text-[11px] text-slate-400">${jam} · ${esc(dompet)}${kode ? ` · <span class="font-mono">${kode}</span>` : ''}${batal ? ' · <span class="font-bold text-red-400">Dibatalkan</span>' : ''}</p>
                                 </div>
-                                <span class="text-[13px] font-extrabold tabular-nums shrink-0 ${masuk ? 'text-brand' : 'text-red-500'}">${masuk ? '+' : '-'} ${formatRp(Number(item['Nominal']) || 0)}</span>
-                            </div>`;
+                                <span class="text-[13px] font-extrabold tabular-nums shrink-0 ${batal ? 'line-through text-slate-400' : (masuk ? 'text-brand' : 'text-red-500')}">${masuk ? '+' : '-'} ${formatRp(Number(item['Nominal']) || 0)}</span>
+                            </button>`;
                         }).join('')}
                     </div>
                 </div>`).join('');
+        }
+
+        // ============================================================
+        // EDIT / BATALKAN TRANSAKSI berdasarkan Kode (tab Riwayat > Log Transaksi)
+        // ============================================================
+        function namaDompetMap() {
+            const m = { cash: 'Cash', gopay: 'Gopay', gopay_driver: 'Gopay Driver', bca: 'BCA' };
+            dompetCustomList.forEach(d => { m[d.id] = d.nama; });
+            return m;
+        }
+        function efekSaldoItem(tipe, nominal) { return tipe === 'Masuk' ? nominal : -nominal; }
+
+        // Geser saldo dompet DI HP (server menggeser sendiri saat edit/batal sampai ke sana).
+        function geserSaldoLokal(deltas) {
+            const idBawaan = { gopay_driver: 'saldo_gopay_driver', gopay: 'saldo_gopay', cash: 'saldo_cash', bca: 'saldo_bca' };
+            Object.keys(deltas).forEach(key => {
+                const d = Number(deltas[key]) || 0;
+                if (!d) return;
+                if (idBawaan[key]) {
+                    const el = document.getElementById(idBawaan[key]);
+                    if (el) el.value = (parseFloat(el.value) || 0) + d;
+                } else {
+                    const el = document.getElementById('saldo_custom_' + key);
+                    if (el) el.value = (parseFloat(el.value) || 0) + d;
+                    const item = dompetCustomList.find(x => x.id === key);
+                    if (item) item.saldo = (Number(item.saldo) || 0) + d;
+                }
+            });
+            simpanSaldoLocal();
+            if (typeof simpanDompetCustomLocal === 'function') simpanDompetCustomLocal();
+            calculateRealtime();
+        }
+
+        // Hitung ulang 1 baris laporan harian (allSheetRows) dari transaksi aktif ber-Timestamp sama.
+        // Aturannya sama persis dengan hitungUlangHarian() di Code.gs.
+        const KELUAR_KOLOM_TETAP_LIST = ['Makan', 'Minum', 'Kuota', 'Rokok', 'Bensin', 'Potongan Gojek', 'Talangan Pesanan',
+            'Ganti Oli Mesin', 'Ganti Oli Gardan', 'Servis Motor', 'Servis', 'Oli', 'Sparepart'];
+        function hitungUlangHarianLokal(timestamp) {
+            const target = new Date(timestamp).getTime();
+            const baris = allSheetRows.find(rw => new Date(rw['Timestamp']).getTime() === target);
+            if (!baris) return;
+            const lama = (n) => Number(baris[n]) || 0;
+            const keluar = {}; KELUAR_KOLOM_TETAP_LIST.forEach(n => { keluar[n] = 0; });
+            let inBid = 0, inTips = 0, inLain = 0, outLain = 0; const descIn = [], descOut = [];
+            allDetailSemua.forEach(it => {
+                if (new Date(it['Timestamp']).getTime() !== target || !detailAktif(it)) return;
+                const nom = Number(it['Nominal']) || 0, kat = String(it['Kategori'] || '').trim();
+                if (it['Tipe'] === 'Masuk') {
+                    if (kat.toLowerCase() === 'bid') inBid += nom;
+                    else if (kat.toLowerCase() === 'tips') inTips += nom;
+                    else { inLain += nom; descIn.push(`${kat || 'Lainnya'} (${formatRp(nom)} via ${it['Dompet']})`); }
+                } else {
+                    if (Object.prototype.hasOwnProperty.call(keluar, kat)) keluar[kat] += nom;
+                    else { outLain += nom; descOut.push(`${kat || 'Lainnya'} (${formatRp(nom)} via ${it['Dompet']})`); }
+                }
+            });
+            const totalIn = inBid + inTips + inLain;
+            let totalOut = outLain; KELUAR_KOLOM_TETAP_LIST.forEach(n => { totalOut += keluar[n]; });
+            const kotorLama = lama('Total Pemasukan') - lama('Keluar Talangan Pesanan') - lama('Keluar Potongan Gojek');
+            const pSed = kotorLama > 0 ? lama('Shodaqoh') / kotorLama : 0.025;
+            const pTab = kotorLama > 0 ? lama('Tabungan Servis') / kotorLama : 0.10;
+            const kotor = Math.max(0, totalIn - keluar['Talangan Pesanan'] - keluar['Potongan Gojek']);
+            Object.assign(baris, {
+                'Pemasukan Bid': inBid, 'Pemasukan Tips': inTips, 'Pemasukan Lain': inLain,
+                'Keterangan Pemasukan Lain': descIn.join('\n'), 'Total Pemasukan': totalIn,
+                'Keluar Lain': outLain, 'Keterangan Keluar Lain': descOut.join('\n'),
+                'Total Pengeluaran': totalOut, 'Pendapatan Bersih': totalIn - totalOut,
+                'Shodaqoh': kotor * pSed, 'Tabungan Servis': kotor * pTab
+            });
+            KELUAR_KOLOM_TETAP_LIST.forEach(n => { baris['Keluar ' + n] = keluar[n]; });
+        }
+
+        function segarkanSetelahUbahTransaksi(timestamp) {
+            allDetailTransaksi = allDetailSemua.filter(detailAktif);
+            hitungUlangHarianLokal(timestamp);
+            renderRekap();
+            renderLogTransaksiList();
+            if (typeof renderRiwayatList === 'function') { try { renderRiwayatList(); } catch (e) {} }
+            refreshDaftarKategoriLain();
+            refreshDaftarKategoriMasukLain();
+            jadwalkanSnapshot();
+        }
+
+        // Terapkan perubahan ke item (sudah ada di allDetailSemua) + saldo + laporan harian, di HP.
+        // baru = { kategori, keterangan, nominal, dompet, status }. Mengembalikan nilai lama (untuk undo).
+        function terapkanPerubahanLokal(item, baru) {
+            const lama = {
+                kategori: item['Kategori'], keterangan: item['Keterangan'], nominal: Number(item['Nominal']) || 0,
+                dompet: item['Dompet'], status: item['Status'] || 'Aktif', catatan: item['Catatan'] || ''
+            };
+            const tipe = item['Tipe'];
+            const deltas = {};
+            const tambah = (dompet, d) => { if (dompet) deltas[dompet] = (deltas[dompet] || 0) + d; };
+            if (lama.status !== 'Dibatalkan') tambah(lama.dompet, -efekSaldoItem(tipe, lama.nominal));
+            if (baru.status !== 'Dibatalkan') tambah(baru.dompet, efekSaldoItem(tipe, baru.nominal));
+            item['Kategori'] = baru.kategori; item['Keterangan'] = baru.keterangan;
+            item['Nominal'] = baru.nominal; item['Dompet'] = baru.dompet; item['Status'] = baru.status;
+            item['Catatan'] = baru.catatan !== undefined ? baru.catatan : lama.catatan;
+            geserSaldoLokal(deltas);
+            segarkanSetelahUbahTransaksi(item['Timestamp']);
+            return lama;
+        }
+
+        function isiPilihanDompetTrx(terpilih) {
+            const sel = document.getElementById('trx-dompet');
+            const m = namaDompetMap();
+            if (terpilih && !m[terpilih]) m[terpilih] = terpilih;
+            sel.innerHTML = Object.keys(m).map(k => `<option value="${k}">${String(m[k]).replace(/</g, '&lt;')}</option>`).join('');
+            sel.value = terpilih || 'cash';
+        }
+        function bukaDetailTransaksi(kode) {
+            const item = allDetailSemua.find(x => x['Kode'] === kode);
+            if (!item) { showToast('Transaksi tidak ditemukan'); return; }
+            const batal = !detailAktif(item);
+            const masuk = item['Tipe'] === 'Masuk';
+            document.getElementById('trx-kode-val').value = kode;
+            document.getElementById('trx-kode').innerText = kode;
+            document.getElementById('trx-judul').innerText = batal ? 'Transaksi Dibatalkan' : 'Edit Transaksi';
+            const t = document.getElementById('trx-tipe');
+            t.innerText = masuk ? 'MASUK' : 'KELUAR';
+            t.className = 'text-[10px] font-bold px-2 py-1 rounded-lg ' + (masuk ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-500');
+            document.getElementById('trx-waktu').innerText = new Date(item['Timestamp']).toLocaleString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            document.getElementById('trx-kategori').value = item['Kategori'] || '';
+            document.getElementById('trx-ket').value = item['Keterangan'] || '';
+            document.getElementById('trx-nominal').value = Number(item['Nominal']) || 0;
+            isiPilihanDompetTrx(item['Dompet']);
+            ['trx-kategori', 'trx-ket', 'trx-nominal', 'trx-dompet'].forEach(id => { document.getElementById(id).disabled = batal; });
+            document.getElementById('trx-aksi').classList.toggle('hidden', batal);
+            document.getElementById('trx-info').classList.toggle('hidden', batal);
+            const c = document.getElementById('trx-catatan');
+            c.innerText = item['Catatan'] ? 'Jejak: ' + item['Catatan'] : '';
+            c.classList.toggle('hidden', !item['Catatan']);
+            const m = document.getElementById('modal-transaksi'), cc = document.getElementById('modal-transaksi-content');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); cc.classList.remove('scale-95'); }, 10);
+        }
+        function tutupDetailTransaksi() {
+            const m = document.getElementById('modal-transaksi'), cc = document.getElementById('modal-transaksi-content');
+            m.classList.add('opacity-0'); cc.classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+        let sedangUbahTransaksi = false;
+        function catatanBaru(item, teks) {
+            const waktu = new Date().toLocaleString('sv-SE', { hour12: false }).slice(0, 16);
+            return ((item['Catatan'] ? item['Catatan'] + ' | ' : '') + teks + ' ' + waktu).trim();
+        }
+        async function simpanEditTransaksi() {
+            if (sedangUbahTransaksi) return;
+            const kode = document.getElementById('trx-kode-val').value;
+            const item = allDetailSemua.find(x => x['Kode'] === kode);
+            if (!item || !detailAktif(item)) return;
+            const kategori = document.getElementById('trx-kategori').value.trim();
+            const keterangan = document.getElementById('trx-ket').value.trim();
+            const nominal = parseFloat(document.getElementById('trx-nominal').value) || 0;
+            const dompet = document.getElementById('trx-dompet').value;
+            if (!kategori) { showToast('Kategori wajib diisi'); return; }
+            if (!(nominal > 0)) { showToast('Nominal harus lebih dari 0'); return; }
+            const adaUbah = kategori !== (item['Kategori'] || '') || keterangan !== (item['Keterangan'] || '')
+                || nominal !== (Number(item['Nominal']) || 0) || dompet !== item['Dompet'];
+            if (!adaUbah) { showToast('Tidak ada perubahan'); return; }
+            sedangUbahTransaksi = true;
+            const ringkas = [];
+            if (kategori !== item['Kategori']) ringkas.push('Kategori ' + item['Kategori'] + '→' + kategori);
+            if (keterangan !== (item['Keterangan'] || '')) ringkas.push('Keterangan diubah');
+            if (nominal !== Number(item['Nominal'])) ringkas.push('Nominal ' + item['Nominal'] + '→' + nominal);
+            if (dompet !== item['Dompet']) ringkas.push('Dompet ' + item['Dompet'] + '→' + dompet);
+            const lama = terapkanPerubahanLokal(item, { kategori, keterangan, nominal, dompet, status: 'Aktif', catatan: catatanBaru(item, 'Diedit:' + ringkas.join(', ')) });
+            tutupDetailTransaksi();
+            try {
+                const h = await kirimKeServer({ action: 'edit_transaksi', data: { kode, kategori, keterangan, nominal, dompet } });
+                showToast(h && h.queued ? 'Perubahan tersimpan di HP. Dikirim otomatis saat internet tersedia.' : 'Transaksi ' + kode + ' diperbarui.');
+            } catch (e) {
+                terapkanPerubahanLokal(item, lama); // server menolak: kembalikan seperti semula
+                showToast('Gagal: ' + (e.message || 'server menolak perubahan'));
+            } finally { sedangUbahTransaksi = false; }
+        }
+        async function batalkanTransaksi() {
+            if (sedangUbahTransaksi) return;
+            const kode = document.getElementById('trx-kode-val').value;
+            const item = allDetailSemua.find(x => x['Kode'] === kode);
+            if (!item || !detailAktif(item)) return;
+            if (!confirm(`Batalkan transaksi ${kode} (${item['Kategori']}, ${formatRp(Number(item['Nominal']) || 0)})?\nSaldo dompet akan dikembalikan dan transaksi tidak dihitung lagi.`)) return;
+            sedangUbahTransaksi = true;
+            const lama = terapkanPerubahanLokal(item, {
+                kategori: item['Kategori'], keterangan: item['Keterangan'], nominal: Number(item['Nominal']) || 0,
+                dompet: item['Dompet'], status: 'Dibatalkan', catatan: catatanBaru(item, 'Dibatalkan')
+            });
+            tutupDetailTransaksi();
+            try {
+                const h = await kirimKeServer({ action: 'batalkan_transaksi', data: { kode } });
+                showToast(h && h.queued ? 'Pembatalan tersimpan di HP. Dikirim otomatis saat internet tersedia.' : 'Transaksi ' + kode + ' dibatalkan.');
+            } catch (e) {
+                terapkanPerubahanLokal(item, lama);
+                showToast('Gagal: ' + (e.message || 'server menolak pembatalan'));
+            } finally { sedangUbahTransaksi = false; }
         }
 
         // Sama seperti renderRincianPengeluaran() tapi buat sisi Pendapatan.
@@ -3883,7 +4138,7 @@
                     // Load Log Transaksi granular (sheet DetailTransaksi) -- ditampilkan
                     // terpisah dari Riwayat Laporan di tab Riwayat.
                     if (Array.isArray(json.dataDetailTransaksi)) {
-                        allDetailTransaksi = json.dataDetailTransaksi;
+                        setDetailSemua(json.dataDetailTransaksi);
                         if (currentRiwayatSubTab === 'log') renderLogTransaksiList();
                         // Rincian Pengeluaran di Beranda dihitung dari allDetailTransaksi,
                         // jadi render ulang di sini (data ini baru siap setelah baris ini).
@@ -4135,6 +4390,36 @@
         }
 
         // --- Menyimpan Data Form ke Google Sheet ---
+        // Cek nomor order (dipisah koma) yang sudah ada di transaksi AKTIF dengan kategori sama.
+        function cariOrderDobel(daftar) {
+            const hasil = [];
+            const pecah = (t) => (t || '').toString().split(',').map(x => x.trim()).filter(Boolean);
+            daftar.forEach(cek => {
+                if (!(cek.nominal > 0)) return;
+                const baru = pecah(cek.teks);
+                if (!baru.length) return;
+                const sudah = {};
+                (allDetailTransaksi || []).forEach(it => {
+                    if ((it['Kategori'] || '') !== cek.kategori) return;
+                    pecah(it['Keterangan']).forEach(o => { sudah[o.toLowerCase()] = it; });
+                });
+                const terlihat = new Set();
+                baru.forEach(o => {
+                    const k = o.toLowerCase();
+                    if (terlihat.has(k)) return;
+                    terlihat.add(k);
+                    const it = sudah[k];
+                    if (!it) return;
+                    hasil.push({
+                        order: o, kategori: cek.kategori, kode: it['Kode'],
+                        nominal: Number(it['Nominal']) || 0,
+                        jam: new Date(it['Timestamp']).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                    });
+                });
+            });
+            return hasil;
+        }
+
         async function simpanData(saldoOnly = false, keBeranda = false) {
             // Cegah tekan dua kali: waktu sinyal lambat tombol terasa "tidak merespons", lalu
             // ditekan lagi -> data tercatat dobel. Selama masih menyimpan, tekanan berikutnya diabaikan.
@@ -4182,7 +4467,7 @@
             let detailTransaksi = [];
             const tambahDetail = (tipe, kategori, keterangan, nominal, dompet) => {
                 if (nominal > 0) {
-                    detailTransaksi.push({ tipe, kategori, keterangan, nominal, dompet });
+                    detailTransaksi.push({ tipe, kategori, keterangan, nominal, dompet, kode: buatKodeTransaksi(tipe) });
                 }
             };
 
@@ -4297,6 +4582,19 @@
                 return;
             }
 
+            // Peringatan order dobel: nomor order Bid / Talangan yang sama sudah pernah tercatat (aktif).
+            if (!saldoOnly) {
+                const dobel = cariOrderDobel([
+                    { kategori: 'Bid', teks: getStr('in_bid_order'), nominal: getVal('in_bid') },
+                    { kategori: 'Talangan Pesanan', teks: getStr('out_talangan_order'), nominal: getVal('out_talangan') }
+                ]);
+                if (dobel.length) {
+                    const daftar = dobel.slice(0, 5).map(d => `• ${d.order} (${d.kategori}, jam ${d.jam}, ${formatRp(d.nominal)}, kode ${d.kode || '-'})`).join('\n');
+                    const lebih = dobel.length > 5 ? `\n...dan ${dobel.length - 5} order lain` : '';
+                    if (!confirm(`Order ini sudah tercatat:\n${daftar}${lebih}\n\nTetap simpan lagi?`)) return;
+                }
+            }
+
             window.__sedangSimpanData = true;
             btnText.innerText = "Menyimpan...";
             btnIcon.className = "fa-solid fa-spinner fa-spin text-xl";
@@ -4337,15 +4635,19 @@
                 // Update juga log granular lokal (allDetailTransaksi) supaya Rincian
                 // Pengeluaran & saran kategori custom langsung update tanpa reload.
                 detailTransaksi.forEach(item => {
-                    allDetailTransaksi.push({
+                    allDetailSemua.push({
                         'Timestamp': data.tanggal,
                         'Tipe': item.tipe,
                         'Kategori': item.kategori,
                         'Keterangan': item.keterangan,
                         'Nominal': item.nominal,
-                        'Dompet': item.dompet
+                        'Dompet': item.dompet,
+                        'Kode': item.kode,
+                        'Status': 'Aktif',
+                        'Catatan': ''
                     });
                 });
+                allDetailTransaksi = allDetailSemua.filter(detailAktif);
                 refreshDaftarKategoriLain();
                 refreshDaftarKategoriMasukLain();
 
@@ -4811,7 +5113,7 @@
                     km_sparepart: 0,
                     out_lain: nominal,
                     out_lain_desc: deskripsiKeluar,
-                    detail: [{ tipe: 'Keluar', kategori: 'Cicilan Hutang', keterangan: deskripsiKeluar, nominal: nominal, dompet: sumber }],
+                    detail: [{ tipe: 'Keluar', kategori: 'Cicilan Hutang', keterangan: deskripsiKeluar, nominal: nominal, dompet: sumber, kode: buatKodeTransaksi('Keluar') }],
                     // Saldo akhir dompet CUSTOM (tambahan) -- semua ikut disertakan,
                     // yang dipakai bayar cicilan (kalau kebetulan dompet custom) dipotong nominal.
                     saldoCustom: (function () {
