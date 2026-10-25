@@ -1416,6 +1416,7 @@
             try { json = await res.json(); }
             catch (parseErr) { throw new ErrJaringan("Respons server tidak valid (sinyal putus-nyambung?)."); }
             if (json.kode === 'AUTH') { tampilkanLayarKunci('Kunci salah atau belum diisi.'); throw new ErrKunci('Kunci salah. Data tetap tersimpan di HP.'); }
+            if (json.kode === 'SIBUK') throw new ErrJaringan(json.message || "Server sedang sibuk, dicoba lagi otomatis.");
             if (json.status !== 'success') throw new Error(json.message || "Server menolak permintaan.");
             return json;
         }
@@ -4655,6 +4656,7 @@
                 }
             }
 
+            let sudahTerkirim = false;
             window.__sedangSimpanData = true;
             btnText.innerText = "Menyimpan...";
             btnIcon.className = "fa-solid fa-spinner fa-spin text-xl";
@@ -4664,6 +4666,7 @@
                     const hasilKirim = await kirimKeServer({ action: 'simpan_harian', data: data });
                     if (hasilKirim && hasilKirim.queued) showToast("Tersimpan di HP. Dikirim otomatis saat internet tersedia.");
                     else showToast(saldoOnly ? "Saldo Awal berhasil disimpan ke server!" : "Laporan berhasil disimpan!");
+                    sudahTerkirim = true;
                 } else {
                     await new Promise(r => setTimeout(r, 1000));
                     showToast(saldoOnly ? "Saldo Awal disimpan offline!" : "Simpan offline berhasil!");
@@ -4748,8 +4751,16 @@
                 }
 
             } catch (error) {
-                showToast(error.message || "Gagal menyambung ke Spreadsheet!");
                 console.error(error);
+                if (sudahTerkirim) {
+                    // Data SUDAH terkirim/antri, hanya pembaruan tampilan yang error.
+                    // Form wajib dikosongkan supaya tidak ditekan Simpan lagi (itu bikin data ganda).
+                    try { resetForm(); } catch (e2) {}
+                    try { switchTab('dashboard', 0); } catch (e2) {}
+                    showToast("Data sudah tersimpan. Tampilan gagal diperbarui, tekan tombol refresh.");
+                } else {
+                    showToast(error.message || "Gagal menyambung ke Spreadsheet!");
+                }
             } finally {
                 window.__sedangSimpanData = false;
                 if (!saldoOnly) {
