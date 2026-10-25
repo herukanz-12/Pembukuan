@@ -5418,13 +5418,15 @@
         // supaya tidak menampilkan toast "Memuat ulang..." yang terkesan
         // seperti user habis pencet tombol, tapi tetap fetch data terbaru
         // & ikon reflash tetap berputar sebagai indikator loading.
-        async function muatUlangData(silent = false) {
+        let terakhirSinkron = 0; // waktu terakhir tarik data dari server berhasil
+        async function muatUlangData(silent = false, tanpaToast = false) {
             const icon = document.getElementById('icon-refresh');
             if (icon) icon.classList.add('fa-spin');
             if (!silent) showToast("Memuat ulang data dari server...");
             const berhasil = await fetchRekapData();
             if (berhasil) {
-                showToast("Data berhasil diperbarui!");
+                terakhirSinkron = Date.now();
+                if (!tanpaToast) showToast("Data berhasil diperbarui!");
             }
             // Kalau gagal, biarkan toast error asli dari fetchRekapData() yang tampil
             // (jangan ditimpa pesan "berhasil" palsu).
@@ -5491,6 +5493,20 @@
                 }
             });
         };
+
+        // Pakai 2 HP bergantian: kalau aplikasi dibiarkan terbuka di latar belakang lalu dibuka lagi,
+        // data & saldo di HP itu bisa basi (belum tahu catatan dari HP satunya). Jadi tiap aplikasi
+        // kembali tampil setelah > 60 detik sejak sinkron terakhir, tarik data terbaru otomatis.
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState !== 'visible') return;
+            if (Date.now() - terakhirSinkron < 60000) return;
+            if (window.__sedangSimpanData) return;
+            try {
+                if (bacaAntrian(ANTRIAN_KEY).length) await flushAntrian(); // kirim dulu yang antri
+            } catch (e) {}
+            if (bacaAntrian(ANTRIAN_KEY).length) return; // masih ada yang belum terkirim: jangan ditimpa data server
+            muatUlangData(true, true);
+        });
 
         // --- Registrasi Service Worker (sw.js) ---
         // File ini yang tadinya kesimpan/ketuker dengan nama "manifest.json".
