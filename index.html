@@ -874,6 +874,11 @@
             <button type="button" onclick="keuanganBuka('menu')" class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2.5 rounded-xl mb-5 hover:border-brand/40 transition">
                 <i class="fa-solid fa-arrow-left"></i> Kembali ke Keuangan
             </button>
+            <div class="mt-1 mb-3 flex items-center gap-3">
+                <i class="fa-solid fa-wallet text-xs text-slate-400"></i>
+                <span class="text-[11px] font-extrabold tracking-widest uppercase text-slate-400">Saldo Dompet</span>
+                <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
+            </div>
             <button type="button" onclick="toggleSaldoDetail()" id="btn-saldo-total" class="w-full bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 text-left transition-all active:scale-[0.99]">
                 <div class="flex items-center justify-between gap-3">
                     <div>
@@ -904,13 +909,20 @@
                 <button type="button" id="riwayat-saldo-lebih" onclick="riwayatSaldoJumlah += 30; renderRiwayatSaldo(true)" class="hidden w-full mt-3 text-xs font-bold text-brand py-2">Tampilkan lebih banyak</button>
             </div>
 
+            <!-- ===== BAGIAN BARU: RINCIAN BULANAN (terpisah dari Saldo di atas) ===== -->
+            <div class="mt-12 pt-8 border-t-2 border-dashed border-slate-200 dark:border-white/10"></div>
+            <div class="mt-0 mb-3 flex items-center gap-3">
+                <i class="fa-solid fa-chart-pie text-xs text-slate-400"></i>
+                <span class="text-[11px] font-extrabold tracking-widest uppercase text-slate-400">Rincian Bulanan</span>
+                <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
+            </div>
             <!-- Pemilih bulan untuk Rincian Pendapatan & Pengeluaran -->
-            <div class="flex items-center justify-between bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-2 mt-8">
+            <div class="flex items-center justify-between bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-2">
                 <button type="button" id="btn-rincian-bulan-prev" onclick="geserRincianBulan(-1)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 flex items-center justify-center transition active:scale-95">
                     <i class="fa-solid fa-chevron-left text-xs"></i>
                 </button>
                 <div class="text-center">
-                    <p class="text-[11px] font-semibold text-slate-400">Rincian bulan</p>
+                    <p class="text-[11px] font-semibold text-slate-400">Pilih bulan</p>
                     <p id="rincian-bulan-label" class="text-sm font-extrabold text-slate-800 dark:text-white">-</p>
                 </div>
                 <button type="button" id="btn-rincian-bulan-next" onclick="geserRincianBulan(1)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 flex items-center justify-center transition active:scale-95">
