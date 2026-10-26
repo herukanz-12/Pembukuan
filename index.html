@@ -887,6 +887,23 @@
             <div class="hidden mt-3 bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-2 divide-y divide-slate-100 dark:divide-white/5" id="saldo-detail-grid"><div class="flex items-center gap-3 px-3 py-3"><span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-motorcycle text-sm"></i></span><span class="flex-1 text-[13px] font-bold text-slate-700 dark:text-slate-200">Gopay Driver</span><span id="dash-saldo-gopay-driver" class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">Rp 0</span></div><div class="flex items-center gap-3 px-3 py-3"><span class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-wallet text-sm"></i></span><span class="flex-1 text-[13px] font-bold text-slate-700 dark:text-slate-200">Gopay</span><span id="dash-saldo-gopay" class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">Rp 0</span></div><div class="flex items-center gap-3 px-3 py-3"><span class="w-9 h-9 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-money-bill-wave text-sm"></i></span><span class="flex-1 text-[13px] font-bold text-slate-700 dark:text-slate-200">Cash</span><span id="dash-saldo-cash" class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">Rp 0</span></div><div class="flex items-center gap-3 px-3 py-3"><span class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-building-columns text-sm"></i></span><span class="flex-1 text-[13px] font-bold text-slate-700 dark:text-slate-200">BCA</span><span id="dash-saldo-bca" class="text-sm font-extrabold tabular-nums text-slate-800 dark:text-white">Rp 0</span></div></div>
             <div class="hidden mt-3 bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-2 divide-y divide-slate-100 dark:divide-white/5" id="saldo-detail-grid-custom"></div>
 
+            <!-- Riwayat perubahan saldo (dari sheet RiwayatSaldo, sama di semua HP) -->
+            <button type="button" onclick="toggleRiwayatSaldo()" class="w-full mt-3 bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-sky-100 dark:bg-sky-500/10 text-sky-500 flex items-center justify-center"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div class="text-left">
+                        <p class="text-[10px] text-slate-500 font-medium uppercase">Riwayat Perubahan Saldo</p>
+                        <p id="riwayat-saldo-ringkas" class="text-xs font-bold text-slate-700 dark:text-slate-200">Ketuk untuk melihat</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-riwayat-saldo"></i>
+            </button>
+            <div id="riwayat-saldo-panel" class="hidden mt-3 bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-4">
+                <select id="riwayat-saldo-filter" onchange="riwayatSaldoFilter = this.value; riwayatSaldoJumlah = 30; renderRiwayatSaldo(true)" class="w-full mb-3 text-xs font-bold bg-slate-50 dark:bg-bgDark text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 outline-none"></select>
+                <div id="riwayat-saldo-list" class="divide-y divide-slate-100 dark:divide-white/5"></div>
+                <button type="button" id="riwayat-saldo-lebih" onclick="riwayatSaldoJumlah += 30; renderRiwayatSaldo(true)" class="hidden w-full mt-3 text-xs font-bold text-brand py-2">Tampilkan lebih banyak</button>
+            </div>
+
             <!-- Pemilih bulan untuk Rincian Pendapatan & Pengeluaran -->
             <div class="flex items-center justify-between bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-2 mt-8">
                 <button type="button" id="btn-rincian-bulan-prev" onclick="geserRincianBulan(-1)" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 flex items-center justify-center transition active:scale-95">
@@ -939,6 +956,7 @@
                     <div>
                         <p class="text-[10px] text-slate-500 font-medium uppercase">Total Pengeluaran</p>
                         <p class="text-lg font-bold text-slate-800 dark:text-white" id="total-rincian-pengeluaran">Rp 0</p>
+                        <p id="rincian-pengeluaran-sub" class="hidden text-[10px] text-slate-400 mt-0.5 text-left"></p>
                     </div>
                 </div>
                 <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-rincian-pengeluaran"></i>
@@ -1558,7 +1576,7 @@
             if (snapMemulihkan) return;
             clearTimeout(snapTimer);
             snapTimer = setTimeout(() => {
-                idbSet('snapshot', { t: Date.now(), rows: allSheetRows, detail: allDetailSemua, maint: allMaintenanceData, maintTerakhir: window.maintenanceTerakhir }).catch(() => {});
+                idbSet('snapshot', { t: Date.now(), riwayatSaldo: window.__riwayatSaldoServerAda ? window.riwayatSaldoServer : null, rows: allSheetRows, detail: allDetailSemua, maint: allMaintenanceData, maintTerakhir: window.maintenanceTerakhir }).catch(() => {});
             }, 800);
         }
         async function muatSnapshotLokal() {
@@ -1567,6 +1585,7 @@
                 if (!snap) return false;
                 snapMemulihkan = true;
                 allSheetRows = snap.rows || [];
+                if (Array.isArray(snap.riwayatSaldo)) { window.riwayatSaldoServer = snap.riwayatSaldo; window.__riwayatSaldoServerAda = true; }
                 setDetailSemua(snap.detail || []);
                 allMaintenanceData = snap.maint || [];
                 window.maintenanceTerakhir = snap.maintTerakhir || {};
@@ -1994,6 +2013,142 @@
             }
         }
 
+        // ===== RIWAYAT PERUBAHAN SALDO (UI) =====
+        window.riwayatSaldoServer = window.riwayatSaldoServer || [];
+        let riwayatSaldoFilter = 'all';
+        let riwayatSaldoJumlah = 30;
+        let riwayatSaldoSig = '';
+
+        function toggleRiwayatSaldo() {
+            const panel = document.getElementById('riwayat-saldo-panel');
+            const ikon = document.getElementById('icon-riwayat-saldo');
+            const buka = panel.classList.toggle('hidden') === false;
+            if (ikon) ikon.style.transform = buka ? 'rotate(180deg)' : '';
+            if (buka) renderRiwayatSaldo(true);
+        }
+
+        function renderRiwayatSaldoUI() {
+            tampilkanSaldoSebelumnya();
+            renderRiwayatSaldo(false);
+        }
+
+        function formatWaktuRiwayat(iso) {
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ' ' +
+                d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+        }
+
+        function renderRiwayatSaldo(paksa) {
+            const ringkas = document.getElementById('riwayat-saldo-ringkas');
+            const list = document.getElementById('riwayat-saldo-list');
+            if (!ringkas || !list) return;
+            if (!window.__riwayatSaldoServerAda) {
+                ringkas.innerText = 'Menunggu server versi baru';
+                list.innerHTML = '<p class="text-[11px] text-slate-400 text-center py-4">Riwayat saldo tersimpan di Sheet setelah <b>Code.gs</b> diperbarui (v3.14.0) dan di-Deploy ulang.</p>';
+                const b0 = document.getElementById('riwayat-saldo-lebih'); if (b0) b0.classList.add('hidden');
+                return;
+            }
+            const semua = window.riwayatSaldoServer || [];
+            ringkas.innerText = semua.length ? (semua.length + ' perubahan tercatat') : 'Belum ada perubahan tercatat';
+
+            // Pilihan filter dompet (hanya dompet yang pernah berubah)
+            const filter = document.getElementById('riwayat-saldo-filter');
+            const daftar = []; const lihat = {};
+            semua.forEach(r => { if (!lihat[r.dompet]) { lihat[r.dompet] = true; daftar.push({ id: r.dompet, nama: r.nama || r.dompet }); } });
+            const sigFilter = daftar.map(d => d.id + d.nama).join('|');
+            if (filter && filter.dataset.sig !== sigFilter) {
+                filter.innerHTML = '<option value="all">Semua dompet</option>' + daftar.map(d => `<option value="${d.id}">${d.nama}</option>`).join('');
+                filter.dataset.sig = sigFilter;
+            }
+            if (filter) { if (riwayatSaldoFilter !== 'all' && !lihat[riwayatSaldoFilter]) riwayatSaldoFilter = 'all'; filter.value = riwayatSaldoFilter; }
+
+            const tersaring = semua.filter(r => riwayatSaldoFilter === 'all' || r.dompet === riwayatSaldoFilter);
+            const tampil = tersaring.slice(0, riwayatSaldoJumlah);
+            const sig = riwayatSaldoFilter + '#' + riwayatSaldoJumlah + '#' + tampil.length + '#' + (tampil[0] ? tampil[0].waktu + tampil[0].sesudah : '');
+            if (!paksa && sig === riwayatSaldoSig) return;
+            riwayatSaldoSig = sig;
+
+            list.innerHTML = tampil.length ? tampil.map(r => {
+                const naik = r.selisih > 0;
+                return `<div class="flex items-center gap-3 py-3">
+                    <span class="w-8 h-8 rounded-lg ${naik ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'} flex items-center justify-center shrink-0"><i class="fa-solid ${naik ? 'fa-arrow-up' : 'fa-arrow-down'} text-xs"></i></span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[13px] font-bold text-slate-700 dark:text-slate-200 truncate">${r.nama || r.dompet}</p>
+                        <p class="text-[10px] text-slate-400">${formatRp(r.sebelum)} \u2192 ${formatRp(r.sesudah)}</p>
+                        <p class="text-[10px] text-slate-400">${r.sumber || ''} \u00b7 ${formatWaktuRiwayat(r.waktu)}</p>
+                    </div>
+                    <span class="text-sm font-extrabold tabular-nums ${naik ? 'text-emerald-500' : 'text-red-500'}">${naik ? '+' : '\u2212'}${formatRp(Math.abs(r.selisih))}</span>
+                </div>`;
+            }).join('') : '<p class="text-[11px] text-slate-400 text-center py-4">Belum ada perubahan tercatat.</p>';
+            const lebih = document.getElementById('riwayat-saldo-lebih');
+            if (lebih) lebih.classList.toggle('hidden', tersaring.length <= riwayatSaldoJumlah);
+        }
+
+        // ===== SALDO SEBELUMNYA PER DOMPET =====
+        // Setiap kali saldo sebuah dompet berubah (transaksi disimpan, transfer, Simpan Saldo, atau
+        // saldo dari HP lain tersinkron), yang lama dicatat sebagai "sebelumnya" dan ditampilkan di
+        // bawah nama dompet di tab Keuangan. Disimpan di HP ini (localStorage), bukan di Sheet.
+        const SALDO_SNAP_KEY = 'saldo_snapshot_v1';
+        const SALDO_PREV_KEY = 'saldo_sebelumnya_v1';
+        function bacaJsonLokal(key) { try { return JSON.parse(localStorage.getItem(key)) || {}; } catch (e) { return {}; } }
+
+        function catatPerubahanSaldo(tersimpan) {
+            if (!window.__saldoSiapDicatat) return;          // saldo lokal belum selesai dimuat
+            if (window.__saldoAwalDirty === true) return;    // angka masih diketik, belum tersimpan
+            const snap = bacaJsonLokal(SALDO_SNAP_KEY);
+            const prev = bacaJsonLokal(SALDO_PREV_KEY);
+            let berubah = false;
+            Object.keys(tersimpan).forEach((id) => {
+                const baru = Math.round(Number(tersimpan[id]) || 0);
+                if (!(id in snap)) { snap[id] = baru; berubah = true; return; }   // pertama kali: cukup catat
+                if (snap[id] !== baru) {
+                    prev[id] = { sebelum: snap[id], sesudah: baru, waktu: Date.now() };
+                    snap[id] = baru;
+                    berubah = true;
+                }
+            });
+            if (berubah) {
+                try { localStorage.setItem(SALDO_SNAP_KEY, JSON.stringify(snap)); localStorage.setItem(SALDO_PREV_KEY, JSON.stringify(prev)); } catch (e) {}
+            }
+        }
+
+        function tampilkanSaldoSebelumnya(tersimpan) {
+            // Sumber utama: sheet RiwayatSaldo (sama di semua HP). Kalau server belum diperbarui,
+            // pakai catatan lokal HP ini.
+            let prev = bacaJsonLokal(SALDO_PREV_KEY);
+            if (window.__riwayatSaldoServerAda) {
+                prev = {};
+                (window.riwayatSaldoServer || []).forEach((r) => {            // urutan: terbaru dulu
+                    if (!prev[r.dompet]) prev[r.dompet] = { sebelum: Number(r.sebelum) || 0, sesudah: Number(r.sesudah) || 0, waktu: new Date(r.waktu).getTime() };
+                });
+            }
+            const idElemen = { gopay_driver: 'dash-saldo-gopay-driver', gopay: 'dash-saldo-gopay', cash: 'dash-saldo-cash', bca: 'dash-saldo-bca' };
+            dompetCustomList.forEach(d => { idElemen[d.id] = 'dash-saldo-custom-' + d.id; });
+            Object.keys(idElemen).forEach((id) => {
+                const nilai = document.getElementById(idElemen[id]);
+                const label = nilai && nilai.previousElementSibling;
+                if (!label) return;
+                let sub = label.querySelector('.saldo-prev');
+                const p = prev[id];
+                if (!p) { if (sub) sub.remove(); return; }
+                if (!sub) {
+                    sub = document.createElement('span');
+                    sub.className = 'saldo-prev block text-[10px] font-medium leading-tight mt-0.5 whitespace-normal';
+                    label.appendChild(sub);
+                }
+                const selisih = p.sesudah - p.sebelum;
+                const tgl = new Date(p.waktu);
+                const waktuTeks = tgl.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ' ' +
+                    tgl.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+                const warna = selisih > 0 ? 'text-emerald-500' : 'text-red-500';
+                sub.title = 'Berubah pada ' + waktuTeks;
+                sub.innerHTML = '<span class="text-slate-400">Sebelumnya ' + formatRp(p.sebelum) + '</span> ' +
+                    '<span class="' + warna + ' font-bold">' + (selisih > 0 ? '+' : '\u2212') + formatRp(Math.abs(selisih)) + '</span>' +
+                    '<span class="text-slate-400"> \u00b7 ' + waktuTeks + '</span>';
+            });
+        }
+
         function calculateRealtime() {
             // 1. Ambil Nilai Saldo Awal (Base)
             let base = {
@@ -2106,6 +2261,7 @@
                 elDrafNote.innerText = adaDraf ? '\u270E Ada isian di tab Input yang belum disimpan (tidak dihitung di angka ini).' : '';
                 elDrafNote.classList.toggle('hidden', !adaDraf);
             }
+            try { catatPerubahanSaldo(tersimpan); tampilkanSaldoSebelumnya(tersimpan); } catch (ePrev) { console.warn('Saldo sebelumnya gagal', ePrev); }
             let elTotalSaldo = document.getElementById('dash-saldo-total');
             if (elTotalSaldo) elTotalSaldo.innerText = formatRp(totalSaldoSemua);
 
@@ -4160,6 +4316,34 @@
         function renderRincianPengeluaran(kategoriTotal, totalOut) {
             const container = document.getElementById('rincian-pengeluaran-list');
 
+            // TALANGAN PESANAN bukan biaya: uangnya dipakai menalangi pesanan GoFood/GoShop lalu
+            // kembali lewat Tagih Tunai (tercatat di Pemasukan). Supaya Rincian Pengeluaran
+            // cuma berisi biaya asli, talangan dikeluarkan dari daftar, total, dan persentase,
+            // lalu ditampilkan sebagai baris terpisah di bawah.
+            const talanganNominal = Math.max(0, Number(kategoriTotal['Talangan Pesanan']) || 0);
+            if (talanganNominal > 0) {
+                kategoriTotal = Object.assign({}, kategoriTotal);
+                delete kategoriTotal['Talangan Pesanan'];
+                totalOut = Math.max(0, totalOut - talanganNominal);
+            }
+            const elTotalBiaya = document.getElementById('total-rincian-pengeluaran');
+            if (elTotalBiaya) elTotalBiaya.innerText = formatRp(totalOut);
+            const elSub = document.getElementById('rincian-pengeluaran-sub');
+            if (elSub) {
+                elSub.innerText = talanganNominal > 0 ? ('Biaya asli, belum termasuk talangan ' + formatRp(talanganNominal)) : '';
+                elSub.classList.toggle('hidden', talanganNominal <= 0);
+            }
+            const talanganHtml = talanganNominal > 0 ? `
+                <div class="flex items-center gap-3 pt-4 border-t border-dashed border-slate-200 dark:border-white/10">
+                    <div class="w-11 h-11 rounded-xl bg-purple-100 dark:bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 opacity-70">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-slate-600 dark:text-slate-300 truncate">Talangan Pesanan</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${formatRp(talanganNominal)} &nbsp;|&nbsp; uang kembali lewat Tagih Tunai, bukan biaya</p>
+                    </div>
+                </div>` : '';
+
             // kategoriTotal sekarang objek dinamis { "Makan": 15000, "Beli Helm": 120000, ... }
             // hasil dari computeKategoriPengeluaran() -- key-nya bisa kategori bawaan
             // ATAU kategori custom ketikan user. Ikon/warna diambil dari
@@ -4216,7 +4400,7 @@
                     <div class="text-center text-xs text-slate-400 py-4 flex flex-col items-center gap-2">
                         <i class="fa-solid fa-receipt text-2xl text-slate-300 dark:text-white/10"></i>
                         Belum ada pengeluaran tercatat.
-                    </div>`;
+                    </div>` + talanganHtml;
                 return;
             }
 
@@ -4250,7 +4434,7 @@
                             <div class="bg-gradient-to-r from-brand to-brand-neon h-2 rounded-full progress-bar-fill" style="width: ${persentase}%"></div>
                         </div>
                     </div>`;
-            }).join('');
+            }).join('') + talanganHtml;
         }
 
         async function fetchRekapData() {
@@ -4267,6 +4451,10 @@
                 if (json.kode === 'AUTH') { tampilkanLayarKunci('Kunci salah atau belum diisi.'); return false; }
                 if (json.status === 'success') {
                     window.__serverTerakhir = { versiServer: json.versiServer || null, saldo: json.dataSaldo || null, custom: json.dataDompetCustom || null, waktu: Date.now() };
+                    // Riwayat perubahan saldo dari Sheet (kalau Code.gs sudah versi 3.14.0 ke atas).
+                    window.__riwayatSaldoServerAda = Array.isArray(json.dataRiwayatSaldo);
+                    if (window.__riwayatSaldoServerAda) window.riwayatSaldoServer = json.dataRiwayatSaldo;
+                    try { renderRiwayatSaldoUI(); } catch (eRs) { console.warn('Riwayat saldo gagal tampil', eRs); }
                     // Tiap bagian data diproses terpisah: kalau satu bagian error, bagian lain
                     // (mis. saldo) tetap ter-update, dan pengguna diberi tahu bagian mana yang gagal.
                     const gagalBagian = [];
@@ -5694,6 +5882,7 @@
             refreshDaftarKategoriMasukLain();
 
             muatSaldoLocal();
+            window.__saldoSiapDicatat = true; // mulai sekarang perubahan saldo boleh dicatat sebagai "sebelumnya"
             muatKmOliLocal();
             muatDraftForm(); // pulihkan isi form yang belum sempat disimpan (mis. app ke-reload)
             // Tampilin dulu saldo dari backup lokal (localStorage) SEBELUM nunggu
