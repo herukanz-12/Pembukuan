@@ -836,6 +836,7 @@
                     <div class="absolute -top-20 -right-16 w-56 h-56 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
                     <p class="relative z-10 text-xs font-semibold text-white/75 mb-1">Total saldo (uang milik Anda, sudah dikurangi utang Gojek)</p>
                     <h3 id="keu-total-saldo" class="relative z-10 text-[2.6rem] leading-none font-extrabold tracking-tight text-brand-neon tabular-nums">Rp 0</h3>
+                    <p id="keu-draf-note" class="hidden relative z-10 text-xs text-white/80 mt-2"></p>
                     <p id="keu-utang-line" class="hidden relative z-10 text-xs text-amber-300/90 mt-2"></p>
                     <p id="keu-sisa-cicilan" class="relative z-10 text-xs text-white/65 mt-2">Tidak ada cicilan berjalan</p>
                     <p id="keu-aset-line" class="relative z-10 text-xs text-white/65 mt-0.5"></p>
@@ -2068,16 +2069,30 @@
             });
 
             // 6. Update Dashboard
-            document.getElementById('dash-saldo-gopay-driver').innerText = formatRp(finalSaldo.gopay_driver);
-            document.getElementById('dash-saldo-gopay').innerText = formatRp(finalSaldo.gopay);
-            document.getElementById('dash-saldo-cash').innerText = formatRp(finalSaldo.cash);
-            document.getElementById('dash-saldo-bca').innerText = formatRp(finalSaldo.bca);
+            // Tab Keuangan/Beranda menampilkan saldo TERSIMPAN (base). Isian di form Input yang
+            // belum ditekan Simpan TIDAK ikut dihitung di sini (hanya di pratinjau form Input),
+            // supaya angkanya sama di semua HP dan tidak berubah karena draf yang tertinggal.
+            const tersimpan = {
+                gopay_driver: base.gopay_driver, gopay: base.gopay, cash: base.cash, bca: base.bca
+            };
+            let totalCustomTersimpan = 0;
+            dompetCustomList.forEach(d => { tersimpan[d.id] = base[d.id]; totalCustomTersimpan += base[d.id]; });
+            document.getElementById('dash-saldo-gopay-driver').innerText = formatRp(tersimpan.gopay_driver);
+            document.getElementById('dash-saldo-gopay').innerText = formatRp(tersimpan.gopay);
+            document.getElementById('dash-saldo-cash').innerText = formatRp(tersimpan.cash);
+            document.getElementById('dash-saldo-bca').innerText = formatRp(tersimpan.bca);
             dompetCustomList.forEach(d => {
                 let elDash = document.getElementById('dash-saldo-custom-' + d.id);
-                if (elDash) elDash.innerText = formatRp(finalSaldo[d.id]);
+                if (elDash) elDash.innerText = formatRp(tersimpan[d.id]);
             });
 
-            let totalSaldoSemua = finalSaldo.gopay_driver + finalSaldo.gopay + finalSaldo.cash + finalSaldo.bca + totalSaldoCustom;
+            let totalSaldoSemua = tersimpan.gopay_driver + tersimpan.gopay + tersimpan.cash + tersimpan.bca + totalCustomTersimpan;
+            const elDrafNote = document.getElementById('keu-draf-note');
+            if (elDrafNote) {
+                const adaDraf = (typeof adaTransaksiBelumDisimpan === 'function') && adaTransaksiBelumDisimpan();
+                elDrafNote.innerText = adaDraf ? '\u270E Ada isian di tab Input yang belum disimpan (tidak dihitung di angka ini).' : '';
+                elDrafNote.classList.toggle('hidden', !adaDraf);
+            }
             let elTotalSaldo = document.getElementById('dash-saldo-total');
             if (elTotalSaldo) elTotalSaldo.innerText = formatRp(totalSaldoSemua);
 
@@ -2085,7 +2100,7 @@
             // melebihi isinya). Total saldo di atas sudah menjumlah saldo minus itu, jadi
             // angkanya = uang milik sendiri. Di sini ditampilkan rinciannya: uang yang
             // sedang dipegang (belum dikurangi utang) vs utang yang harus dikembalikan.
-            const utangGojek = Math.max(0, -finalSaldo.gopay_driver);
+            const utangGojek = Math.max(0, -tersimpan.gopay_driver);
             const uangDipegang = totalSaldoSemua + utangGojek;
             window.utangGojek = utangGojek;
             const teksUtang = utangGojek > 0
@@ -2099,17 +2114,37 @@
             });
             const elDrv = document.getElementById('dash-saldo-gopay-driver');
             if (elDrv) {
-                elDrv.classList.toggle('text-red-500', finalSaldo.gopay_driver < 0);
-                elDrv.classList.toggle('text-slate-800', finalSaldo.gopay_driver >= 0);
-                elDrv.classList.toggle('dark:text-white', finalSaldo.gopay_driver >= 0);
-                elDrv.innerText = formatRp(finalSaldo.gopay_driver) + (finalSaldo.gopay_driver < 0 ? ' (utang)' : '');
+                elDrv.classList.toggle('text-red-500', tersimpan.gopay_driver < 0);
+                elDrv.classList.toggle('text-slate-800', tersimpan.gopay_driver >= 0);
+                elDrv.classList.toggle('dark:text-white', tersimpan.gopay_driver >= 0);
+                elDrv.innerText = formatRp(tersimpan.gopay_driver) + (tersimpan.gopay_driver < 0 ? ' (utang)' : '');
             }
 
             // Simpan state secara global agar saat disave, nilai akhir yang terkirim
             window.currentFinalSaldo = finalSaldo;
+            window.currentDeltaSaldo = Object.assign({}, deltas); // selisih isian form per dompet (dikirim ke server)
             updateInputSummary();
 
             cekOli();
+        }
+
+        // Setelah server membalas, saldo di HP disamakan dengan saldo SEBENARNYA di Sheet
+        // (bukan hasil hitungan lokal yang bisa saja basi). Kiriman yang masih antri tidak punya balasan.
+        function terapkanSaldoDariRespons(hasil) {
+            try {
+                if (!hasil || hasil.queued || !hasil.saldo || typeof hasil.saldo !== 'object') return;
+                const sl = hasil.saldo;
+                const set = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined && v !== null) el.value = Number(v) || 0; };
+                set('saldo_gopay_driver', sl.gopay_driver);
+                set('saldo_gopay', sl.gopay);
+                set('saldo_cash', sl.cash);
+                set('saldo_bca', sl.bca);
+                if (sl.custom && typeof sl.custom === 'object') {
+                    dompetCustomList.forEach(d => { if (sl.custom[d.id] !== undefined) set('saldo_custom_' + d.id, sl.custom[d.id]); });
+                }
+                simpanSaldoLocal();
+                calculateRealtime();
+            } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
         function updateInputSummary() {
@@ -2561,7 +2596,7 @@
             dompetCustomList.forEach(d => {
                 let el = document.getElementById('saldo_custom_' + d.id);
                 if (!el) return;
-                if (nilaiSekarang[d.id] !== undefined && nilaiSekarang[d.id] !== '') {
+                if (!window.__paksaSaldoServer && nilaiSekarang[d.id] !== undefined && nilaiSekarang[d.id] !== '') {
                     el.value = nilaiSekarang[d.id];
                 } else if (d.saldo !== undefined && d.saldo !== null) {
                     el.value = d.saldo || 0;
@@ -4168,9 +4203,13 @@
                 const json = await res.json();
                 if (json.kode === 'AUTH') { tampilkanLayarKunci('Kunci salah atau belum diisi.'); return false; }
                 if (json.status === 'success') {
+                    // Tiap bagian data diproses terpisah: kalau satu bagian error, bagian lain
+                    // (mis. saldo) tetap ter-update, dan pengguna diberi tahu bagian mana yang gagal.
+                    const gagalBagian = [];
                     // Load Data Pengaturan LEBIH DULU, supaya waktu renderRekap()/cekPajakKendaran()
                     // jalan (dipanggil dari blok dataHarian di bawah), nilainya sudah yang terbaru
                     // dari server -- bukan cache lama di localStorage HP ini.
+                    try {
                     if (json.dataSettings && typeof json.dataSettings === 'object') {
                         const s = json.dataSettings;
                         if (s.target !== undefined) localStorage.setItem('set_target', s.target);
@@ -4182,16 +4221,20 @@
                         if (s.koreksiTrip !== undefined) localStorage.setItem('set_trip_koreksi', s.koreksiTrip);
                         if (s.bulanKoreksi !== undefined && s.bulanKoreksi !== '') localStorage.setItem('set_trip_koreksi_bulan', s.bulanKoreksi);
                     }
+                    } catch (eBag) { gagalBagian.push('pengaturan'); console.error('Gagal memproses pengaturan', eBag); }
 
                     // Load Data Harian
+                    try {
                     if (Array.isArray(json.dataHarian)) {
                         allSheetRows = json.dataHarian;
-                        renderRekap();
+                        try { renderRekap(); } catch (eRk) { gagalBagian.push('tampilan rekap'); console.error('renderRekap gagal', eRk); }
                         // Sinkronkan saldo dari sheet SaldoTerkini (state berdiri sendiri di
                         // backend) ke semua HP -- bukan discan dari riwayat DataHarian lagi.
                         syncSaldoDariServer(json.dataSaldo);
                     }
+                    } catch (eBag) { gagalBagian.push('riwayat harian'); console.error('Gagal memproses riwayat harian', eBag); }
                     // Load Data Hutang dari Spreadsheet Server
+                    try {
                     if (Array.isArray(json.dataHutang)) {
                         hutangData = json.dataHutang.map(row => ({
                             id: row['ID'].toString(),
@@ -4205,9 +4248,11 @@
                         simpanHutangLocal(); // Backup lokal agar instan waktu load
                         renderHutangList();
                     }
+                    } catch (eBag) { gagalBagian.push('hutang'); console.error('Gagal memproses hutang', eBag); }
 
                     // Load Log Transaksi granular (sheet DetailTransaksi) -- ditampilkan
                     // terpisah dari Riwayat Laporan di tab Riwayat.
+                    try {
                     if (Array.isArray(json.dataDetailTransaksi)) {
                         setDetailSemua(json.dataDetailTransaksi);
                         if (currentRiwayatSubTab === 'log') renderLogTransaksiList();
@@ -4217,26 +4262,34 @@
                         refreshDaftarKategoriLain();
                         refreshDaftarKategoriMasukLain();
                     }
+                    } catch (eBag) { gagalBagian.push('log transaksi'); console.error('Gagal memproses log transaksi', eBag); }
 
                     // Load Riwayat Maintenance Motor (sheet MaintenanceMotor) + ringkasan
                     // servis terakhir per jenis -- dipakai kartu "Maintenance Motor" di Tab Monitor.
+                    try {
                     if (Array.isArray(json.dataMaintenance)) {
                         allMaintenanceData = json.dataMaintenance;
                     }
+                    } catch (eBag) { gagalBagian.push('maintenance'); console.error('Gagal memproses maintenance', eBag); }
+                    try {
                     if (json.dataMaintenanceTerakhir && typeof json.dataMaintenanceTerakhir === 'object') {
                         window.maintenanceTerakhir = json.dataMaintenanceTerakhir;
                     }
+                    } catch (eBag) { gagalBagian.push('maintenance terakhir'); console.error('Gagal memproses maintenance terakhir', eBag); }
                     renderMaintenanceStatus();
 
+                    try {
                     if (Array.isArray(json.dataAset)) {
                         // Kalau di HP ada perubahan aset yang BELUM berhasil sampai ke server,
                         // jangan ditimpa data server (yang bisa kosong/lama). Kirim ulang dulu.
                         if (asetDirty()) { dorongAsetKeServer(); renderAsetList(); }
                         else { asetData = json.dataAset; simpanAsetLocal(); renderAsetList(); }
                     }
+                    } catch (eBag) { gagalBagian.push('aset'); console.error('Gagal memproses aset', eBag); }
 
                     // Sinkron Dompet Custom (tambahan) & Kategori Custom dari server,
                     // supaya dompet/kategori baru yang ditambah dari HP lain juga muncul.
+                    try {
                     if (Array.isArray(json.dataDompetCustom)) {
                         // Saldo lokal (localStorage) tetap prioritas kalau ada supaya angka
                         // yang sedang diketik user di HP ini tidak ketiban data server,
@@ -4244,24 +4297,34 @@
                         dompetCustomList = json.dataDompetCustom.map(d => ({ id: d.id, nama: d.nama, saldo: d.saldo, urutan: d.urutan }));
                         bersihDompetDuplikatLocal();
                         simpanDompetCustomLocal();
-                        renderSaldoCustomInputs();
+                        window.__paksaSaldoServer = true; // data server sudah bersih (antrian kosong): server = sumber kebenaran
+                        try { renderSaldoCustomInputs(); } finally { window.__paksaSaldoServer = false; }
                         suntikDompetCustomKeSemuaSelect();
                         renderKelolaDompet();
                         calculateRealtime();
                     }
+                    } catch (eBag) { gagalBagian.push('dompet custom'); console.error('Gagal memproses dompet custom', eBag); }
+                    try {
                     if (Array.isArray(json.dataKategoriPemasukanCustom)) {
                         kategoriPemasukanCustomList = json.dataKategoriPemasukanCustom;
                         simpanKategoriCustomLocal();
                         refreshDaftarKategoriMasukLain();
                         renderKelolaKategori('pemasukan');
                     }
+                    } catch (eBag) { gagalBagian.push('kategori pemasukan'); console.error('Gagal memproses kategori pemasukan', eBag); }
+                    try {
                     if (Array.isArray(json.dataKategoriPengeluaranCustom)) {
                         kategoriPengeluaranCustomList = json.dataKategoriPengeluaranCustom;
                         simpanKategoriCustomLocal();
                         refreshDaftarKategoriLain();
                         renderKelolaKategori('pengeluaran');
                     }
+                    } catch (eBag) { gagalBagian.push('kategori pengeluaran'); console.error('Gagal memproses kategori pengeluaran', eBag); }
 
+                    if (gagalBagian.length) {
+                        showToast('Sebagian data gagal diproses: ' + gagalBagian.join(', ') + '. Coba refresh lagi.', 6000);
+                        return false;
+                    }
                     return true;
                 } else {
                     showToast("Gagal memuat riwayat: " + json.message);
@@ -4584,6 +4647,9 @@
                 saldo_gopay: window.currentFinalSaldo.gopay,
                 saldo_cash: window.currentFinalSaldo.cash,
                 saldo_bca: window.currentFinalSaldo.bca,
+                // Server menggeser saldo di Sheet dengan SELISIH ini (bukan menimpa angka mutlak),
+                // supaya HP yang datanya basi tidak menimpa transaksi dari HP lain.
+                saldoDelta: Object.assign({}, window.currentDeltaSaldo || {}),
                 
                 in_bid: getVal('in_bid'),
                 in_tips: getVal('in_tips'),
@@ -4637,6 +4703,13 @@
                 let mapCustom = {};
                 dompetCustomList.forEach(d => { mapCustom[d.id] = baseVal('saldo_custom_' + d.id); });
                 data.saldoCustom = mapCustom;
+                // Transfer Saldo / Beli Aset: kirim selisihnya saja. Simpan Saldo Awal (tanpa override) tetap mutlak.
+                if (window.__saldoDeltaOverride && typeof window.__saldoDeltaOverride === 'object') {
+                    data.saldoDelta = Object.assign({}, window.__saldoDeltaOverride);
+                    window.__saldoDeltaOverride = null;
+                } else {
+                    delete data.saldoDelta;
+                }
                 ['in_bid','in_tips','in_lain','in_trip','out_makan','out_minum','out_kuota','out_rokok','out_bensin',
                  'out_potongan_gojek','out_talangan','out_ganti_oli_mesin','out_oli_gardan','out_servis_motor','out_lain',
                  'out_servis','out_oli','km_oli','out_sparepart','km_sparepart','km_sekarang'].forEach(k => { data[k] = 0; });
@@ -4667,6 +4740,7 @@
             }
 
             let sudahTerkirim = false;
+            let hasilSimpanServer = null;
             window.__sedangSimpanData = true;
             btnText.innerText = "Menyimpan...";
             btnIcon.className = "fa-solid fa-spinner fa-spin text-xl";
@@ -4674,6 +4748,7 @@
             try {
                 if (isServerAktif()) {
                     const hasilKirim = await kirimKeServer({ action: 'simpan_harian', data: data });
+                    hasilSimpanServer = hasilKirim;
                     if (hasilKirim && hasilKirim.queued) showToast("\u23F3 BELUM masuk Sheet. Data aman di HP dan dikirim otomatis saat sinyal ada. Cek badge di atas.", 6000);
                     else showToast(saldoOnly ? "\u2713 Saldo Awal terkonfirmasi tersimpan di Sheet" : "\u2713 Tersimpan di Google Sheet", 3500);
                     sudahTerkirim = true;
@@ -4741,6 +4816,7 @@
                 }
                 simpanSaldoLocal();
                 if (saldoOnly) calculateRealtime();
+                terapkanSaldoDariRespons(hasilSimpanServer);
 
                 if (saldoOnly) {
                     // Jangan pindah tab -- biarin user tetep di panel Dompet dan
@@ -5124,7 +5200,11 @@
                 // saldoOnly = true -> jalur yang sama persis dengan "Simpan Saldo
                 // Awal Sekarang": cuma sinkronisasi saldo, TIDAK dicatat sebagai
                 // pemasukan/pengeluaran, jadi Pendapatan Bersih tidak berubah.
+                window.__saldoDeltaOverride = {};
+                window.__saldoDeltaOverride[dari] = -nominal;
+                window.__saldoDeltaOverride[ke] = nominal;
                 await simpanData(true);
+                window.__saldoDeltaOverride = null;
                 closeModalTransferSaldo();
             } catch (e) {
                 showToast("Gagal transfer: " + e.message);
@@ -5192,6 +5272,7 @@
                     km_sekarang: getVal('km_sekarang'),
                     out_sparepart: 0,
                     km_sparepart: 0,
+                    saldoDelta: (function () { const m = {}; m[sumber] = -nominal; return m; })(),
                     out_lain: nominal,
                     out_lain_desc: deskripsiKeluar,
                     detail: [{ tipe: 'Keluar', kategori: 'Cicilan Hutang', keterangan: deskripsiKeluar, nominal: nominal, dompet: sumber, kode: buatKodeTransaksi('Keluar') }],
@@ -5247,6 +5328,7 @@
 
                 simpanSaldoLocal();
                 calculateRealtime(); // Kalkulasi ulang semua UI text
+                terapkanSaldoDariRespons(hasilBayar);
 
                 showToast(hasilBayar && hasilBayar.queued ? "Pembayaran tersimpan di HP, dikirim otomatis saat online." : "Pembayaran berhasil dicatat!");
                 renderHutangList();
@@ -5416,7 +5498,9 @@
             btn.dataset.sibuk = '1';
             elDompet.value = saldoLama - keluar;
             try {
+                window.__saldoDeltaOverride = {}; window.__saldoDeltaOverride[dompet] = -keluar;
                 await simpanData(true); // sinkron saldo saja, bukan pemasukan/pengeluaran
+                window.__saldoDeltaOverride = null;
                 a.nilai = (Number(a.nilai) || 0) + masuk;
                 const adaModal = modalAda(a);
                 if (adaModal) a.modal = Number(a.modal) + keluar; // modal = uang yang benar-benar keluar
