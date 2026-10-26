@@ -457,12 +457,12 @@
                         <!-- Dompet CUSTOM (tambahan dari menu Pengaturan) dirender otomatis di sini -->
                         <div id="saldo-custom-form-container" class="space-y-3"></div>
                     </div>
-                    <p id="warn-saldo-awal" class="hidden relative z-10 mt-4 text-[11px] font-semibold leading-snug text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2">\u26A0 Angka Saldo Awal sudah Anda ubah tapi BELUM tersimpan ke Sheet. HP lain belum melihatnya. Tekan tombol Simpan Saldo Awal di bawah.</p>
-                    <button type="button" id="btn-simpan-saldo-awal" onclick="simpanData(true, true)" class="relative z-10 w-full mt-5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                    <p id="warn-saldo-awal" class="hidden relative z-10 mt-4 text-[11px] font-semibold leading-snug text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2">&#9888; Angka saldo sudah Anda ubah tapi BELUM tersimpan ke Sheet. HP lain belum melihatnya. Tekan tombol Simpan Saldo di bawah.</p>
+                    <button type="button" id="btn-simpan-saldo-awal" onclick="simpanData(true, true)" class="relative z-10 w-full mt-5 bg-brand hover:bg-brand-dark text-white font-bold text-base py-4 rounded-[2rem] shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-floppy-disk" id="icon-simpan-saldo-awal"></i>
-                        <span id="text-simpan-saldo-awal">Simpan Saldo Awal Sekarang</span>
+                        <span id="text-simpan-saldo-awal">Simpan Saldo</span>
                     </button>
-                    <p class="text-[10px] text-slate-400 mt-2 relative z-10 text-center">Tombol ini tidak wajib: <strong>Simpan Laporan</strong> di bawah juga ikut menyimpan perubahan Saldo Awal (dengan atau tanpa transaksi). Tombol biru ini hanya jalan pintas untuk menyimpan saldo saja. Kalau keduanya tidak ditekan (atau cuma pindah tab), perubahan <strong>belum tersimpan ke server</strong>.</p>
+                    <p class="text-[10px] text-slate-400 mt-2 relative z-10 text-center">Tombol ini menyimpan angka saldo dompet ke Sheet. Kalau belum ditekan, perubahan <strong>belum tersimpan ke server</strong>.</p>
                 </div>
                 </div>
                 <!-- /panel-dompet -->
@@ -1634,9 +1634,10 @@
         // --- Menu Input (5 Tombol) ---
         // Daftar panel yang termasuk bagian dari form Laporan Harian (inputForm),
         // jadi tombol "Simpan Laporan" harus tetap tampil selagi salah satu dari
-        // panel ini aktif. "panel-catat-maintenance" TIDAK termasuk karena itu
+        // panel ini aktif. "panel-dompet" TIDAK termasuk: panel itu punya SATU tombol sendiri
+        // (Simpan Saldo) supaya tidak membingungkan. "panel-catat-maintenance" TIDAK termasuk karena itu
         // form terpisah dengan tombol simpan sendiri (simpanMaintenanceServis()).
-        const INPUT_FORM_PANELS = ['panel-trip', 'panel-dompet', 'panel-masuk-keluar', 'panel-maintenance'];
+        const INPUT_FORM_PANELS = ['panel-trip', 'panel-masuk-keluar', 'panel-maintenance'];
 
         function showInputMenu() {
             document.getElementById('input-menu-grid').style.display = '';
