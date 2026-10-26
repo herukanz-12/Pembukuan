@@ -134,8 +134,14 @@
             <i class="fa-solid fa-motorcycle absolute inset-0 flex items-center justify-center text-2xl text-brand"></i>
         </div>
         <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-1">OjolTracker</h2>
-        <p class="text-xs text-slate-500 animate-pulse">Sedang mengambil data...</p>
+        <p id="splash-teks" class="text-xs text-slate-500 animate-pulse">Sedang mengambil data dari Google Sheet...</p>
+        <div id="splash-gagal" class="hidden mt-5 flex flex-col items-center gap-2 px-8 text-center">
+            <p id="splash-gagal-teks" class="text-xs text-amber-600 dark:text-amber-400 mb-1"></p>
+            <button type="button" onclick="splashCobaLagi()" class="px-5 py-2.5 rounded-xl bg-brand text-white text-sm font-bold">Coba lagi</button>
+            <button type="button" onclick="splashLanjutOffline()" class="px-5 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400">Lanjut pakai data di HP</button>
+        </div>
     </div>
+    <div id="banner-basi" onclick="splashCobaLagi(true)" class="hidden fixed left-0 right-0 z-40 top-[72px] mx-4 px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-[11px] font-semibold text-amber-600 dark:text-amber-400 text-center cursor-pointer"></div>
 
     <!-- Header (Glassmorphism) -->
     <header class="fixed top-0 w-full z-50 backdrop-blur-xl bg-white/70 dark:bg-bgDark/70 border-b border-slate-200/50 dark:border-white/5 px-6 py-4 flex justify-between items-center transition-colors shadow-glass">
@@ -1464,6 +1470,7 @@
                         tulisAntrian(ANTRIAN_DITOLAK_KEY, tol);
                         tulisAntrian(ANTRIAN_KEY, bacaAntrian(ANTRIAN_KEY).filter(x => x.id !== item.id));
                         updateBadgeAntrian();
+                        showToast('\u2717 GAGAL masuk Sheet: ' + (e.message || 'ditolak server') + '. Ketuk badge merah untuk kirim ulang.', 7000);
                         continue;
                     }
                     tulisAntrian(ANTRIAN_KEY, bacaAntrian(ANTRIAN_KEY).filter(x => x.id !== item.id));
@@ -1472,7 +1479,7 @@
                 }
                 const bersih = bacaAntrian(ANTRIAN_KEY).length === 0;
                 if (terkirim > 0 && bersih) {
-                    showToast(`${terkirim} data offline sudah terkirim ke server`);
+                    showToast(`\u2713 ${terkirim} data yang tertunda sekarang sudah masuk ke Google Sheet`, 5000);
                     setTimeout(() => { if (typeof fetchRekapData === 'function') fetchRekapData(); }, 800);
                 }
                 return bersih;
@@ -1596,6 +1603,7 @@
 
         // --- Tab Navigation ---
         function switchTab(tabName, index) {
+            try { segarkanJikaBasi(); } catch (e) {}
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -1669,19 +1677,21 @@
         function getStr(id) { return document.getElementById(id).value.trim(); }
         function formatRp(angka) { return 'Rp ' + angka.toLocaleString('id-ID'); }
         
-        function showToast(message) {
+        let __toastTimer = null;
+        function showToast(message, durasi) {
             const toast = document.getElementById('toast');
+            clearTimeout(__toastTimer);
             document.getElementById('toast-msg').innerText = message;
             toast.classList.remove('hidden');
             void toast.offsetWidth; 
             toast.classList.remove('opacity-0'); 
             toast.classList.add('translate-y-4');
             
-            setTimeout(() => { 
+            __toastTimer = setTimeout(() => { 
                 toast.classList.add('opacity-0'); 
                 toast.classList.remove('translate-y-4');
                 setTimeout(() => { toast.classList.add('hidden'); }, 300);
-            }, 3000);
+            }, durasi || 3000);
         }
 
         // --- LOGIKA MANUAL / LAIN-LAIN INPUT DINAMIS ---
@@ -4664,8 +4674,8 @@
             try {
                 if (isServerAktif()) {
                     const hasilKirim = await kirimKeServer({ action: 'simpan_harian', data: data });
-                    if (hasilKirim && hasilKirim.queued) showToast("Tersimpan di HP. Dikirim otomatis saat internet tersedia.");
-                    else showToast(saldoOnly ? "Saldo Awal berhasil disimpan ke server!" : "Laporan berhasil disimpan!");
+                    if (hasilKirim && hasilKirim.queued) showToast("\u23F3 BELUM masuk Sheet. Data aman di HP dan dikirim otomatis saat sinyal ada. Cek badge di atas.", 6000);
+                    else showToast(saldoOnly ? "\u2713 Saldo Awal terkonfirmasi tersimpan di Sheet" : "\u2713 Tersimpan di Google Sheet", 3500);
                     sudahTerkirim = true;
                 } else {
                     await new Promise(r => setTimeout(r, 1000));
@@ -5477,12 +5487,29 @@
             const berhasil = await fetchRekapData();
             if (berhasil) {
                 terakhirSinkron = Date.now();
+                try { localStorage.setItem('terakhir_sinkron_ts', String(terakhirSinkron)); } catch (e) {}
+                const bn = document.getElementById('banner-basi');
+                if (bn) bn.classList.add('hidden');
                 if (!tanpaToast) showToast("Data berhasil diperbarui!");
             }
             // Kalau gagal, biarkan toast error asli dari fetchRekapData() yang tampil
             // (jangan ditimpa pesan "berhasil" palsu).
             if (icon) icon.classList.remove('fa-spin');
         }
+
+        // Segarkan data diam-diam kalau sudah basi (> 2 menit sejak sinkron terakhir).
+        // Dipanggil saat pindah tab dan tiap 3 menit selama aplikasi tampil. Dulu data
+        // hanya ditarik saat aplikasi dibuka, jadi HP yang aplikasinya dibiarkan terbuka
+        // (layar dijaga menyala) tidak tahu catatan dari HP lain.
+        function segarkanJikaBasi() {
+            if (document.visibilityState !== 'visible') return;
+            if (Date.now() - terakhirSinkron < 120000) return;
+            if (window.__sedangSimpanData || window.__sedangSegarkan) return;
+            if (bacaAntrian(ANTRIAN_KEY).length) return; // masih ada yang belum terkirim: jangan ditimpa
+            window.__sedangSegarkan = true;
+            muatUlangData(true, true).finally(() => { window.__sedangSegarkan = false; });
+        }
+        setInterval(segarkanJikaBasi, 180000);
 
         // --- Inisialisasi Saat Aplikasi Dimuat ---
         window.onload = async () => {
@@ -5533,17 +5560,89 @@
             // Setelah sync server pertama ini selesai (dompetCustomList sudah
             // pasti berisi data terbaru dari Sheet), baru jalanin pembersihan
             // dompet duplikat SEKALI ke server -- lihat autoBersihkanDompetDuplikat().
-            muatUlangData(true).then(() => {
-                autoBersihkanDompetDuplikat();
-                
-                // Menghilangkan splash screen setelah data selesai dimuat
-                const splash = document.getElementById('splash-screen');
-                if (splash) {
-                    splash.classList.add('opacity-0');
-                    setTimeout(() => { splash.style.display = 'none'; }, 500); // Menunggu animasi pudar selesai
-                }
-            });
+            jalankanSinkronAwal();
         };
+
+        // --- Sinkron awal: layar pembuka BARU hilang setelah data benar-benar ditarik dari Sheet ---
+        // Kalau gagal (sinyal jelek / ada data belum terkirim), layar pembuka menampilkan
+        // pilihan jelas, bukan diam-diam menampilkan data lama di HP seolah-olah terbaru.
+        function tutupSplash() {
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                splash.classList.add('opacity-0');
+                setTimeout(() => { splash.style.display = 'none'; }, 500);
+            }
+        }
+        function teksTerakhirSinkron() {
+            let ts = 0;
+            try { ts = parseInt(localStorage.getItem('terakhir_sinkron_ts') || '0', 10); } catch (e) {}
+            if (!ts) return 'belum pernah sinkron di HP ini';
+            const d = new Date(ts);
+            const hariIni = d.toDateString() === new Date().toDateString();
+            const jam = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            return 'terakhir sinkron ' + (hariIni ? 'hari ini ' : d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ' ') + jam;
+        }
+        function tampilkanBannerBasi() {
+            const bn = document.getElementById('banner-basi');
+            if (!bn) return;
+            const adaAntri = bacaAntrian(ANTRIAN_KEY).length;
+            bn.innerText = '\u26A0 Data dari HP, belum dicek ke Sheet (' + teksTerakhirSinkron() + (adaAntri ? '; ' + adaAntri + ' data belum terkirim' : '') + '). Ketuk untuk coba lagi.';
+            bn.classList.remove('hidden');
+        }
+        let __sinkronAwalJalan = false;
+        async function jalankanSinkronAwal() {
+            if (__sinkronAwalJalan) return;
+            __sinkronAwalJalan = true;
+            const teks = document.getElementById('splash-teks');
+            const gagalBox = document.getElementById('splash-gagal');
+            if (gagalBox) gagalBox.classList.add('hidden');
+            if (teks) { teks.classList.remove('hidden'); teks.innerText = 'Sedang mengambil data dari Google Sheet...'; }
+            let ok = false;
+            const offline = navigator.onLine === false;
+            if (!offline) {
+                for (let i = 0; i < 2 && !ok; i++) {
+                    if (i === 1 && teks) teks.innerText = 'Mencoba lagi mengambil data...';
+                    const mulai = Date.now();
+                    await muatUlangData(true, true);
+                    ok = terakhirSinkron >= mulai;
+                }
+            }
+            __sinkronAwalJalan = false;
+            if (ok) {
+                try { autoBersihkanDompetDuplikat(); } catch (e) {}
+                const bn = document.getElementById('banner-basi'); if (bn) bn.classList.add('hidden');
+                tutupSplash();
+                showToast('\u2713 Data terbaru dari Google Sheet', 2500);
+                return;
+            }
+            if (offline) {
+                // Offline itu wajar (aplikasi dirancang bisa dipakai offline): langsung masuk, tapi diberi tanda.
+                tutupSplash();
+                tampilkanBannerBasi();
+                return;
+            }
+            // Online tapi gagal: biarkan pengguna memilih, jangan diam-diam pakai data lama.
+            const adaAntri = bacaAntrian(ANTRIAN_KEY).length;
+            if (teks) teks.classList.add('hidden');
+            const gt = document.getElementById('splash-gagal-teks');
+            if (gt) gt.innerText = adaAntri
+                ? 'Belum bisa mengambil data: ada ' + adaAntri + ' data di HP yang belum terkirim ke Sheet.'
+                : 'Belum bisa mengambil data dari Google Sheet (sinyal kurang stabil).';
+            if (gagalBox) gagalBox.classList.remove('hidden');
+        }
+        function splashCobaLagi(dariBanner) {
+            if (dariBanner === true) {
+                const bn = document.getElementById('banner-basi');
+                if (bn) bn.innerText = 'Mengambil data dari Sheet...';
+                muatUlangData(true, false).then(() => { if (Date.now() - terakhirSinkron > 15000) tampilkanBannerBasi(); });
+                return;
+            }
+            jalankanSinkronAwal();
+        }
+        function splashLanjutOffline() {
+            tutupSplash();
+            tampilkanBannerBasi();
+        }
 
         // Pakai 2 HP bergantian: kalau aplikasi dibiarkan terbuka di latar belakang lalu dibuka lagi,
         // data & saldo di HP itu bisa basi (belum tahu catatan dari HP satunya). Jadi tiap aplikasi
