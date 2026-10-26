@@ -879,7 +879,7 @@
                 <span class="text-[11px] font-extrabold tracking-widest uppercase text-slate-400">Saldo Dompet</span>
                 <div class="h-px flex-1 bg-slate-200 dark:bg-white/10"></div>
             </div>
-            <button type="button" onclick="toggleSaldoDetail()" id="btn-saldo-total" class="w-full bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 text-left transition-all active:scale-[0.99]">
+            <button type="button" onclick="toggleSaldoDetail()" id="btn-saldo-total" class="w-full bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 border-l-4 border-l-blue-500 dark:border-l-blue-500 p-5 text-left transition-all active:scale-[0.99]">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <p class="text-xs text-slate-500">Total saldo</p>
@@ -893,7 +893,7 @@
             <div class="hidden mt-3 bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-2 divide-y divide-slate-100 dark:divide-white/5" id="saldo-detail-grid-custom"></div>
 
             <!-- Riwayat perubahan saldo (dari sheet RiwayatSaldo, sama di semua HP) -->
-            <button type="button" onclick="toggleRiwayatSaldo()" class="w-full mt-3 bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between">
+            <button type="button" onclick="toggleRiwayatSaldo()" class="w-full mt-3 bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 border-l-4 border-l-violet-500 dark:border-l-violet-500 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-sky-100 dark:bg-sky-500/10 text-sky-500 flex items-center justify-center"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <div class="text-left">
@@ -937,7 +937,7 @@
             </div>
 
             <!-- Kartu Total Pendapatan (klik untuk expand/collapse rincian per kategori) -->
-            <button type="button" onclick="toggleRincianDetail('pendapatan')" id="btn-rincian-pendapatan-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
+            <button type="button" onclick="toggleRincianDetail('pendapatan')" id="btn-rincian-pendapatan-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 border-l-4 border-l-emerald-500 dark:border-l-emerald-500 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-500 flex items-center justify-center"><i class="fa-solid fa-coins"></i></div>
                     <div>
@@ -962,7 +962,7 @@
             </div>
 
             <!-- Kartu Total Pengeluaran (klik untuk expand/collapse rincian per kategori) -->
-            <button type="button" onclick="toggleRincianDetail('pengeluaran')" id="btn-rincian-pengeluaran-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
+            <button type="button" onclick="toggleRincianDetail('pengeluaran')" id="btn-rincian-pengeluaran-total" class="w-full bg-white dark:bg-cardDark p-4 rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 border-l-4 border-l-red-500 dark:border-l-red-500 flex items-center justify-between mb-3 text-left transition-all active:scale-[0.98]">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 text-red-500 flex items-center justify-center"><i class="fa-solid fa-receipt"></i></div>
                     <div>
