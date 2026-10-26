@@ -842,6 +842,8 @@
                     <p id="keu-aset-line" class="relative z-10 text-xs text-white/65 mt-0.5"></p>
                 </div>
                 <div id="keuangan-menu-list" class="space-y-3"></div>
+                <button type="button" onclick="tampilkanCekSinkron()" class="mt-5 w-full text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-3"><i class="fa-solid fa-stethoscope mr-1.5"></i> Cek Sinkron (kalau angka beda antar HP)</button>
+                <pre id="cek-sinkron-hasil" class="hidden mt-3 p-3 rounded-xl bg-slate-100 dark:bg-white/5 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words"></pre>
             </div>
 
             <!-- SUB-HALAMAN: CATATAN CICILAN -->
@@ -2145,6 +2147,47 @@
                 simpanSaldoLocal();
                 calculateRealtime();
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
+        }
+
+        const VERSI_APP = 'v3.13.1';
+        async function tampilkanCekSinkron() {
+            const box = document.getElementById('cek-sinkron-hasil');
+            if (!box) return;
+            box.classList.remove('hidden');
+            box.innerText = 'Mengambil data dari server...';
+            await new Promise(r => setTimeout(r, 50));
+            let ok = false;
+            try { ok = await fetchRekapData(); } catch (e) {}
+            const rp = n => formatRp(Number(n) || 0);
+            const base = id => { const el = document.getElementById(id); return el ? (parseFloat(el.value) || 0) : 0; };
+            const sv = window.__serverTerakhir;
+            let t = [];
+            t.push('Versi aplikasi: ' + VERSI_APP);
+            t.push('Versi server (Code.gs): ' + (sv && sv.versiServer ? sv.versiServer : 'LAMA / belum di-deploy ulang'));
+            t.push('Tarik data dari server: ' + (ok ? 'BERHASIL' : 'GAGAL') + (sv ? ' (' + new Date(sv.waktu).toLocaleTimeString('id-ID') + ')' : ''));
+            t.push('Antrian belum terkirim: ' + bacaAntrian(ANTRIAN_KEY).length + ' | ditolak: ' + bacaAntrian(ANTRIAN_DITOLAK_KEY).length);
+            t.push('Isian form belum disimpan: ' + ((typeof adaTransaksiBelumDisimpan === 'function' && adaTransaksiBelumDisimpan()) ? 'ADA' : 'tidak ada'));
+            t.push('');
+            t.push('SALDO DI SERVER (sheet SaldoTerkini):');
+            let totalServer = 0;
+            if (sv && sv.saldo) {
+                const sd = sv.saldo;
+                t.push('  Gopay Driver: ' + rp(sd.gopay_driver)); t.push('  Gopay: ' + rp(sd.gopay));
+                t.push('  Cash: ' + rp(sd.cash)); t.push('  BCA: ' + rp(sd.bca));
+                totalServer = (+sd.gopay_driver || 0) + (+sd.gopay || 0) + (+sd.cash || 0) + (+sd.bca || 0);
+            } else t.push('  (tidak ada data)');
+            (sv && sv.custom || []).forEach(d => { t.push('  ' + d.nama + ': ' + rp(d.saldo)); totalServer += Number(d.saldo) || 0; });
+            t.push('  TOTAL server: ' + rp(totalServer));
+            t.push('');
+            t.push('SALDO DI HP INI (yang ditampilkan):');
+            t.push('  Gopay Driver: ' + rp(base('saldo_gopay_driver'))); t.push('  Gopay: ' + rp(base('saldo_gopay')));
+            t.push('  Cash: ' + rp(base('saldo_cash'))); t.push('  BCA: ' + rp(base('saldo_bca')));
+            let totalHp = base('saldo_gopay_driver') + base('saldo_gopay') + base('saldo_cash') + base('saldo_bca');
+            dompetCustomList.forEach(d => { const v = base('saldo_custom_' + d.id); t.push('  ' + d.nama + ': ' + rp(v)); totalHp += v; });
+            t.push('  TOTAL di HP: ' + rp(totalHp));
+            t.push('');
+            t.push(Math.abs(totalHp - totalServer) < 1 ? 'KESIMPULAN: HP sama dengan server. Kalau beda dengan HP lain, saldo di server memang berubah (cek sheet SaldoTerkini).' : 'KESIMPULAN: HP BERBEDA dari server (selisih ' + rp(totalHp - totalServer) + '). Tekan tombol refresh lalu cek ulang.');
+            box.innerText = t.join('\n');
         }
 
         function updateInputSummary() {
@@ -4203,6 +4246,7 @@
                 const json = await res.json();
                 if (json.kode === 'AUTH') { tampilkanLayarKunci('Kunci salah atau belum diisi.'); return false; }
                 if (json.status === 'success') {
+                    window.__serverTerakhir = { versiServer: json.versiServer || null, saldo: json.dataSaldo || null, custom: json.dataDompetCustom || null, waktu: Date.now() };
                     // Tiap bagian data diproses terpisah: kalau satu bagian error, bagian lain
                     // (mis. saldo) tetap ter-update, dan pengguna diberi tahu bagian mana yang gagal.
                     const gagalBagian = [];
