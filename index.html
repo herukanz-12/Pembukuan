@@ -839,7 +839,7 @@
                     <h3 id="keu-total-saldo" class="relative z-10 text-[2.6rem] leading-none font-extrabold tracking-tight text-brand-neon tabular-nums">Rp 0</h3>
                     <p id="keu-saldoawal-note" class="hidden relative z-10 text-xs font-bold text-amber-300 mt-2"></p>
                     <p id="keu-draf-note" class="hidden relative z-10 text-xs text-white/80 mt-2"></p>
-                    <p id="keu-utang-line" class="hidden relative z-10 text-xs text-amber-300/90 mt-2"></p>
+                    <div id="keu-utang-line" class="hidden relative z-10 mt-2"></div>
                     <p id="keu-sisa-cicilan" class="relative z-10 text-xs text-white/65 mt-2">Tidak ada cicilan berjalan</p>
                     <p id="keu-aset-line" class="relative z-10 text-xs text-white/65 mt-0.5"></p>
                 </div>
@@ -881,10 +881,10 @@
             </div>
             <button type="button" onclick="toggleSaldoDetail()" id="btn-saldo-total" class="w-full bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 border-l-4 border-l-blue-500 dark:border-l-blue-500 p-5 text-left transition-all active:scale-[0.99]">
                 <div class="flex items-center justify-between gap-3">
-                    <div>
+                    <div class="flex-1 min-w-0">
                         <p class="text-xs text-slate-500">Total saldo</p>
                         <p class="text-3xl font-extrabold tabular-nums text-slate-800 dark:text-white mt-0.5" id="dash-saldo-total">Rp 0</p>
-                        <p id="dash-saldo-utang" class="hidden text-[11px] leading-snug text-amber-500 mt-1"></p>
+                        <div id="dash-saldo-utang" class="hidden"></div>
                     </div>
                     <span class="flex items-center gap-2 text-[11px] font-bold text-slate-400">Per dompet <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-saldo-total"></i></span>
                 </div>
@@ -2284,14 +2284,25 @@
             const utangGojek = Math.max(0, -tersimpan.gopay_driver);
             const uangDipegang = totalSaldoSemua + utangGojek;
             window.utangGojek = utangGojek;
-            const teksUtang = utangGojek > 0
-                ? 'Uang di dompet ' + formatRp(uangDipegang) + ' \u00b7 Utang talangan Gojek ' + formatRp(utangGojek) + ' (sudah dikurangi)'
-                : '';
-            ['keu-utang-line', 'dash-saldo-utang'].forEach(id => {
+            // Rincian dibuat seperti nota supaya mudah dibaca:
+            //   Uang di semua dompet   Rp 756.700
+            //   Utang ke Gojek       - Rp 256.500
+            //   = Total saldo (angka besar di atasnya)
+            const htmlRincian = (gelap) => utangGojek > 0 ? (
+                '<p class="text-[11px] font-semibold mt-1 ' + (gelap ? 'text-white/80' : 'text-slate-500 dark:text-slate-400') + '">Uang aktual Anda, sudah dikurangi utang Gojek</p>' +
+                '<div class="mt-2 pt-2 border-t border-dashed space-y-0.5 text-[11px] ' + (gelap ? 'border-white/25' : 'border-slate-200 dark:border-white/10') + '">' +
+                    '<div class="flex justify-between gap-4"><span class="' + (gelap ? 'text-white/70' : 'text-slate-400') + '">Uang di semua dompet</span>' +
+                        '<span class="font-bold tabular-nums ' + (gelap ? 'text-white' : 'text-slate-600 dark:text-slate-300') + '">' + formatRp(uangDipegang) + '</span></div>' +
+                    '<div class="flex justify-between gap-4"><span class="' + (gelap ? 'text-white/70' : 'text-slate-400') + '">Utang ke Gojek</span>' +
+                        '<span class="font-bold tabular-nums ' + (gelap ? 'text-amber-300' : 'text-red-500') + '">\u2212 ' + formatRp(utangGojek) + '</span></div>' +
+                '</div>'
+            ) : '';
+            [['keu-utang-line', true], ['dash-saldo-utang', false]].forEach(([id, gelap]) => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                el.innerText = teksUtang;
-                el.classList.toggle('hidden', !teksUtang);
+                const html = htmlRincian(gelap);
+                el.innerHTML = html;
+                el.classList.toggle('hidden', !html);
             });
             const elDrv = document.getElementById('dash-saldo-gopay-driver');
             if (elDrv) {
