@@ -510,6 +510,16 @@
                             <input type="text" id="gq_order" class="w-full bg-white dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-slate-800 dark:text-white outline-none" placeholder="Opsional">
                         </div>
                     </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase block mb-1">Tips (tunai)</label>
+                            <input type="number" inputmode="numeric" id="gq_tips" oninput="gqPreview()" class="w-full bg-white dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-lg font-bold text-emerald-500 outline-none focus:border-emerald-400" placeholder="Opsional">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase block mb-1">Parkir (tunai)</label>
+                            <input type="number" inputmode="numeric" id="gq_parkir" oninput="gqPreview()" class="w-full bg-white dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-lg font-bold text-sky-500 outline-none focus:border-sky-400" placeholder="Opsional">
+                        </div>
+                    </div>
                     <p id="gq_preview" class="text-[11px] text-slate-500 dark:text-slate-400 mb-3 hidden"></p>
                     <button type="button" onclick="gqTerapkan()" class="w-full py-3 rounded-xl bg-amber-500 text-white font-bold text-sm active:scale-[0.98] transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-bolt"></i> Catat Pesanan Tunai
@@ -537,7 +547,15 @@
 <div class="flex-1 min-w-0"><label for="in_tips" class="block text-[13px] font-bold text-slate-800 dark:text-white">Tips</label>
 <select id="dompet_in_tips" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
 <div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
-<input type="number" inputmode="numeric" id="in_tips" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-emerald-400 text-right p-0 pb-0.5 font-bold text-emerald-500 outline-none tabular-nums" placeholder="0"></div></div></div></div>
+<input type="number" inputmode="numeric" id="in_tips" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-emerald-400 text-right p-0 pb-0.5 font-bold text-emerald-500 outline-none tabular-nums" placeholder="0"></div></div></div>
+<div class="py-3"><div class="flex items-center gap-3">
+<span class="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-square-parking text-sm"></i></span>
+<div class="flex-1 min-w-0"><label for="in_parkir" class="block text-[13px] font-bold text-slate-800 dark:text-white">Uang parkir (titipan)</label>
+<select id="dompet_in_parkir" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay_driver">Gopay Driver</option><option value="gopay">Gopay</option><option value="bca">BCA</option></select></div>
+<div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
+<input type="number" inputmode="numeric" id="in_parkir" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-sky-400 text-right p-0 pb-0.5 font-bold text-sky-500 outline-none tabular-nums" placeholder="0"></div></div>
+<p class="text-[11px] text-slate-400 mt-1.5 ml-12">Hanya menambah saldo dompet, TIDAK masuk pendapatan. Isi kalau parkir ada di aplikasi tapi Anda tidak jadi bayar parkir.</p></div>
+</div>
 <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-white/5"><span class="text-sm font-bold text-slate-700 dark:text-slate-200">Pemasukan lainnya</span><button type="button" onclick="addManualIncomeRow()" class="text-xs font-bold text-brand bg-brand/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 active:scale-95 transition"><i class="fa-solid fa-plus text-[10px]"></i> Tambah</button></div><div id="manual-income-list" class="space-y-3 mt-3"></div><datalist id="daftar-kategori-masuk-lain"></datalist></div></div>
 <div id="section-input-keluar" class="hidden animate-fade-in"><div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5"><div class="divide-y divide-slate-100 dark:divide-white/5"><div class="py-3"><div class="flex items-center gap-3">
 <span class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-burger text-sm"></i></span>
@@ -1880,12 +1898,14 @@
             } catch (e) {}
         }
         function gqPreview() {
-            const tagih = getVal('gq_tagih'), talangan = getVal('gq_talangan');
+            const tagih = getVal('gq_tagih'), talangan = getVal('gq_talangan'), tips = getVal('gq_tips'), parkir = getVal('gq_parkir');
             const el = document.getElementById('gq_preview');
-            if (tagih <= 0 && talangan <= 0) { el.classList.add('hidden'); return; }
+            if (tagih <= 0 && talangan <= 0 && tips <= 0 && parkir <= 0) { el.classList.add('hidden'); return; }
             const sumber = gqLabelDompet(getStr('gq_sumber'));
             let t = 'Cash +' + formatRp(tagih) + ' · ' + sumber + ' -' + formatRp(talangan);
             if (tagih > 0 && talangan > 0) t += ' · Selisih ' + formatRp(tagih - talangan);
+            if (tips > 0) t += ' · Tips +' + formatRp(tips);
+            if (parkir > 0) t += ' · Parkir +' + formatRp(parkir) + ' (bukan pendapatan)';
             el.textContent = t;
             el.classList.remove('hidden');
         }
@@ -1914,17 +1934,37 @@
             }
         }
         function gqTerapkan() {
-            const tagih = getVal('gq_tagih'), talangan = getVal('gq_talangan');
-            if (tagih <= 0 && talangan <= 0) { showToast('Isi Tagih Tunai & Talangan dulu'); return; }
+            const tagih = getVal('gq_tagih'), talangan = getVal('gq_talangan'), tips = getVal('gq_tips'), parkir = getVal('gq_parkir');
+            if (tagih <= 0 && talangan <= 0 && tips <= 0 && parkir <= 0) { showToast('Isi Tagih Tunai & Talangan dulu'); return; }
             const sumber = getStr('gq_sumber'), order = getStr('gq_order');
             if (tagih > 0) gqTambahBaris('masuk', tagih, 'cash', order);
             if (talangan > 0) gqTambahBaris('keluar', talangan, sumber, order);
+            if (tips > 0) {
+                // Tips tunai -> field Tips (dompet Cash). Kalau field Tips sudah dipakai dompet lain, jadi baris "Tips".
+                const v = document.getElementById('in_tips'), d = document.getElementById('dompet_in_tips');
+                const cur = parseFloat(v.value) || 0;
+                if (cur === 0 || d.value === 'cash') { v.value = cur + tips; d.value = 'cash'; }
+                else {
+                    addManualIncomeRow();
+                    const row = document.getElementById('manual-income-list').lastElementChild;
+                    row.querySelector('.manual-in-desc').value = 'Tips';
+                    row.querySelector('.manual-in-dompet').value = 'cash';
+                    row.querySelector('.manual-in-val').value = tips;
+                }
+            }
+            if (parkir > 0) {
+                // Parkir tunai -> menambah saldo Cash saja, bukan pendapatan.
+                const v = document.getElementById('in_parkir'), d = document.getElementById('dompet_in_parkir');
+                const cur = parseFloat(v.value) || 0;
+                if (cur === 0 || d.value === 'cash') { v.value = cur + parkir; d.value = 'cash'; }
+                else { showToast('Kolom Uang parkir sedang dipakai dompet lain. Isi manual di Pemasukan.'); }
+            }
             gqSimpanSumber();
-            ['gq_tagih', 'gq_talangan', 'gq_order'].forEach(id => document.getElementById(id).value = '');
+            ['gq_tagih', 'gq_talangan', 'gq_order', 'gq_tips', 'gq_parkir'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('gq_preview').classList.add('hidden');
             calculateRealtime();
             simpanDraftForm();
-            showToast('Pesanan tunai dicatat. Tekan Simpan untuk kirim ke Sheet.');
+            if (parkir <= 0) showToast('Pesanan tunai dicatat. Tekan Simpan untuk kirim ke Sheet.');
         }
         document.addEventListener('DOMContentLoaded', gqMuatSumber);
 
@@ -1936,7 +1976,7 @@
         // Draf dihapus setelah Simpan berhasil / tombol Reset.
         const DRAFT_KEY = 'draf_form_input_v1';
         const DRAFT_MAX_UMUR_MS = 36 * 60 * 60 * 1000; // draf lebih tua dari 36 jam dibuang
-        const DRAFT_FIELD = ['in_bid', 'in_bid_sisa', 'in_bid_order', 'ket_out_makan', 'ket_out_minum', 'ket_out_kuota', 'ket_out_rokok', 'ket_out_bensin', 'ket_out_ganti_oli_mesin', 'ket_out_oli_gardan', 'ket_out_servis_motor', 'in_bid_bersih', 'in_tips', 'in_trip',
+        const DRAFT_FIELD = ['in_bid', 'in_parkir', 'gq_tips', 'gq_parkir', 'in_bid_sisa', 'in_bid_order', 'ket_out_makan', 'ket_out_minum', 'ket_out_kuota', 'ket_out_rokok', 'ket_out_bensin', 'ket_out_ganti_oli_mesin', 'ket_out_oli_gardan', 'ket_out_servis_motor', 'in_bid_bersih', 'in_tips', 'in_trip',
             'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin',
             'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order',
             'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart',
@@ -2217,6 +2257,7 @@
             addIncome('in_bid', 'dompet_in_bid');
             addIncome('in_bid_sisa', 'dompet_in_bid_sisa');
             addIncome('in_tips', 'dompet_in_tips');
+            addIncome('in_parkir', 'dompet_in_parkir'); // titipan: ubah saldo dompet saja, tidak masuk pendapatan
             
             document.querySelectorAll('#manual-income-list > div').forEach(row => {
                 let val = parseFloat(row.querySelector('.manual-in-val').value) || 0;
@@ -2379,7 +2420,7 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.15.4';
+        const VERSI_APP = 'v3.15.5';
         async function tampilkanCekSinkron() {
             const box = document.getElementById('cek-sinkron-hasil');
             if (!box) return;
@@ -2789,7 +2830,7 @@
         // Dompet custom akan disisipkan sebagai <optgroup> tambahan ke semua select
         // ini + ke select dinamis (.manual-in-dompet / .manual-out-dompet / bayar hutang).
         const ID_SELECT_DOMPET_FIXED = [
-            'dompet_in_bid', 'dompet_in_bid_sisa', 'dompet_in_tips', 'gq_sumber',
+            'dompet_in_bid', 'dompet_in_parkir', 'dompet_in_bid_sisa', 'dompet_in_tips', 'gq_sumber',
             'dompet_out_makan', 'dompet_out_minum', 'dompet_out_kuota', 'dompet_out_rokok',
             'dompet_out_bensin', 'dompet_out_potongan_gojek', 'dompet_out_ganti_oli_mesin',
             'dompet_out_oli_gardan', 'dompet_out_servis_motor', 'dompet_out_talangan',
@@ -4843,9 +4884,9 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_bid_sisa', 'in_bid_order', 'ket_out_makan', 'ket_out_minum', 'ket_out_kuota', 'ket_out_rokok', 'ket_out_bensin', 'ket_out_ganti_oli_mesin', 'ket_out_oli_gardan', 'ket_out_servis_motor', 'in_bid_bersih', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_parkir', 'in_bid_sisa', 'in_bid_order', 'ket_out_makan', 'ket_out_minum', 'ket_out_kuota', 'ket_out_rokok', 'ket_out_bensin', 'ket_out_ganti_oli_mesin', 'ket_out_oli_gardan', 'ket_out_servis_motor', 'in_bid_bersih', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
-            ['gq_tagih', 'gq_talangan', 'gq_order'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+            ['gq_tagih', 'gq_talangan', 'gq_order', 'gq_tips', 'gq_parkir'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
             const gqp = document.getElementById('gq_preview'); if (gqp) gqp.classList.add('hidden');
             hapusDraftForm();
             const hintPotongan = document.getElementById('hint_potongan_otomatis');
@@ -5076,7 +5117,7 @@
             let validationIn = data.in_bid + data.in_tips + data.in_lain;
             let validationOut = data.out_makan + data.out_minum + data.out_kuota + data.out_rokok + data.out_bensin + data.out_potongan_gojek + data.out_talangan + data.out_ganti_oli_mesin + data.out_oli_gardan + data.out_servis_motor + data.out_servis + data.out_oli + data.out_sparepart + data.out_lain;
 
-            if(!saldoOnly && validationIn === 0 && validationOut === 0) {
+            if(!saldoOnly && validationIn === 0 && validationOut === 0 && getVal('in_parkir') === 0) {
                 showToast("Isi nominal pemasukan/pengeluaran dulu!");
                 return;
             }
@@ -5668,7 +5709,7 @@
         // sekali.
         // True kalau di form Input masih ada nominal Masuk/Keluar yang belum disimpan.
         function adaTransaksiBelumDisimpan() {
-            const ids = ['in_bid','in_bid_sisa','in_tips','out_makan','out_minum','out_kuota','out_rokok','out_bensin','out_potongan_gojek',
+            const ids = ['in_bid','in_parkir','in_bid_sisa','in_tips','out_makan','out_minum','out_kuota','out_rokok','out_bensin','out_potongan_gojek',
                          'out_talangan','out_ganti_oli_mesin','out_oli_gardan','out_servis_motor','out_servis','out_oli','out_sparepart'];
             if (ids.some(id => getVal(id) > 0)) return true;
             let ada = false;
