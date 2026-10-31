@@ -532,7 +532,7 @@
 <div class="flex-1 min-w-0"><label for="in_bid" class="block text-[13px] font-bold text-slate-800 dark:text-white">Bid / Argo</label>
 <select id="dompet_in_bid" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="gopay_driver">Gopay Driver</option><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="bca">BCA</option></select></div>
 <div class="flex items-baseline gap-1 shrink-0"><span class="text-xs font-bold text-slate-400">Rp</span>
-<input type="number" inputmode="numeric" id="in_bid" oninput="autoHitungPotonganGojek()" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-emerald-400 text-right p-0 pb-0.5 font-bold text-emerald-500 outline-none tabular-nums" placeholder="0"></div></div><p class="text-[11px] text-slate-400 mt-1.5 ml-12">Order tunai GoRide: isi tagih tunai di sini, ganti dompet ke Cash. GoFood/GoShop tunai: pakai tombol Pesanan Tunai di atas</p><input type="text" id="in_bid_order" class="mt-2 ml-12 w-[calc(100%-3rem)] bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="No. order (opsional)"><div class="mt-2 ml-12"><label for="in_bid_bersih" class="block text-[11px] font-semibold text-slate-500 mb-1">Pendapatan bersih di app Gojek (opsional)</label><input type="number" inputmode="numeric" id="in_bid_bersih" oninput="autoHitungPotonganGojek()" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-brand" placeholder="Isi untuk menghitung Potongan Gojek otomatis"><p id="hint_potongan_otomatis" class="text-[11px] text-slate-400 mt-1 hidden"></p></div></div><div class="py-3"><div class="flex items-center gap-3">
+<input type="number" inputmode="numeric" id="in_bid" oninput="autoHitungPotonganGojek()" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-emerald-400 text-right p-0 pb-0.5 font-bold text-emerald-500 outline-none tabular-nums" placeholder="0"></div></div><p class="text-[11px] text-slate-400 mt-1.5 ml-12">Order tunai GoRide: isi tagih tunai di sini, ganti dompet ke Cash. GoFood/GoShop tunai: pakai tombol Pesanan Tunai di atas</p><div class="mt-3 ml-12 pt-3 border-t border-dashed border-slate-200 dark:border-white/10"><div class="flex items-center gap-3"><div class="flex-1 min-w-0"><label for="in_bid_sisa" class="block text-[12px] font-bold text-slate-700 dark:text-slate-200">+ Sisa dibayar lewat</label><select id="dompet_in_bid_sisa" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="gopay_driver">Gopay Driver</option><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="bca">BCA</option></select></div><div class="flex items-center gap-1.5"><span class="text-xs text-slate-400">Rp</span><input type="number" inputmode="numeric" id="in_bid_sisa" oninput="autoHitungPotonganGojek()" class="w-24 bg-transparent border-b border-slate-200 dark:border-white/10 focus:border-emerald-400 text-right p-0 pb-0.5 font-bold text-emerald-500 outline-none tabular-nums" placeholder="0"></div></div><p class="text-[11px] text-slate-400 mt-1">Opsional, untuk order campuran. Contoh: Bid 10.000 di Cash, sisa 212 di Gopay Driver. Dihitung 1 trip.</p></div><input type="text" id="in_bid_order" class="mt-2 ml-12 w-[calc(100%-3rem)] bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-brand" placeholder="No. order (opsional)"><div class="mt-2 ml-12"><label for="in_bid_bersih" class="block text-[11px] font-semibold text-slate-500 mb-1">Pendapatan bersih di app Gojek (opsional)</label><input type="number" inputmode="numeric" id="in_bid_bersih" oninput="autoHitungPotonganGojek()" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-brand" placeholder="Isi untuk menghitung Potongan Gojek otomatis"><p id="hint_potongan_otomatis" class="text-[11px] text-slate-400 mt-1 hidden"></p></div></div><div class="py-3"><div class="flex items-center gap-3">
 <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0"><i class="fa-solid fa-hand-holding-heart text-sm"></i></span>
 <div class="flex-1 min-w-0"><label for="in_tips" class="block text-[13px] font-bold text-slate-800 dark:text-white">Tips</label>
 <select id="dompet_in_tips" class="mt-0.5 -ml-1 max-w-full text-[11px] font-semibold bg-transparent text-slate-500 dark:text-slate-400 outline-none [&>option]:bg-white dark:[&>option]:bg-cardDark"><option value="cash">Cash</option><option value="gopay">Gopay</option><option value="gopay_driver">Gopay Driver</option><option value="bca">BCA</option></select></div>
@@ -1936,7 +1936,7 @@
         // Draf dihapus setelah Simpan berhasil / tombol Reset.
         const DRAFT_KEY = 'draf_form_input_v1';
         const DRAFT_MAX_UMUR_MS = 36 * 60 * 60 * 1000; // draf lebih tua dari 36 jam dibuang
-        const DRAFT_FIELD = ['in_bid', 'in_bid_order', 'ket_out_makan', 'ket_out_minum', 'ket_out_kuota', 'ket_out_rokok', 'ket_out_bensin', 'ket_out_ganti_oli_mesin', 'ket_out_oli_gardan', 'ket_out_servis_motor', 'in_bid_bersih', 'in_tips', 'in_trip',
+        const DRAFT_FIELD = ['in_bid', 'in_bid_sisa', 'in_bid_order', 'ket_out_makan', 'ket_out_minum', 'ket_out_kuota', 'ket_out_rokok', 'ket_out_bensin', 'ket_out_ganti_oli_mesin', 'ket_out_oli_gardan', 'ket_out_servis_motor', 'in_bid_bersih', 'in_tips', 'in_trip',
             'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin',
             'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order',
             'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart',
@@ -2038,7 +2038,7 @@
         // Potongan Gojek (komisi 8% + biaya asuransi + biaya jasa aplikasi, dst)
         // tinggal dihitung otomatis dari selisihnya, gak perlu diitung manual.
         function autoHitungPotonganGojek() {
-            const bid = getVal('in_bid');
+            const bid = getVal('in_bid') + getVal('in_bid_sisa');
             const bersih = getVal('in_bid_bersih');
             const hint = document.getElementById('hint_potongan_otomatis');
             if (bersih > 0 && bid > 0) {
@@ -2215,6 +2215,7 @@
 
             // 2. Tambah Semua Pemasukan
             addIncome('in_bid', 'dompet_in_bid');
+            addIncome('in_bid_sisa', 'dompet_in_bid_sisa');
             addIncome('in_tips', 'dompet_in_tips');
             
             document.querySelectorAll('#manual-income-list > div').forEach(row => {
@@ -2378,7 +2379,7 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.15.2';
+        const VERSI_APP = 'v3.15.4';
         async function tampilkanCekSinkron() {
             const box = document.getElementById('cek-sinkron-hasil');
             if (!box) return;
@@ -2421,7 +2422,7 @@
 
         function updateInputSummary() {
             const elIn = document.getElementById('inp-sum-in'); if (!elIn) return;
-            let tin = getVal('in_bid') + getVal('in_tips'), tout = 0;
+            let tin = getVal('in_bid') + getVal('in_bid_sisa') + getVal('in_tips'), tout = 0;
             document.querySelectorAll('#manual-income-list .manual-in-val').forEach(e => tin += parseFloat(e.value) || 0);
             ['out_makan','out_minum','out_kuota','out_rokok','out_bensin','out_potongan_gojek','out_talangan','out_ganti_oli_mesin','out_oli_gardan','out_servis_motor','out_servis','out_oli','out_sparepart'].forEach(id => tout += getVal(id));
             document.querySelectorAll('#manual-expense-list .manual-out-val').forEach(e => tout += parseFloat(e.value) || 0);
@@ -2788,7 +2789,7 @@
         // Dompet custom akan disisipkan sebagai <optgroup> tambahan ke semua select
         // ini + ke select dinamis (.manual-in-dompet / .manual-out-dompet / bayar hutang).
         const ID_SELECT_DOMPET_FIXED = [
-            'dompet_in_bid', 'dompet_in_tips', 'gq_sumber',
+            'dompet_in_bid', 'dompet_in_bid_sisa', 'dompet_in_tips', 'gq_sumber',
             'dompet_out_makan', 'dompet_out_minum', 'dompet_out_kuota', 'dompet_out_rokok',
             'dompet_out_bensin', 'dompet_out_potongan_gojek', 'dompet_out_ganti_oli_mesin',
             'dompet_out_oli_gardan', 'dompet_out_servis_motor', 'dompet_out_talangan',
@@ -4842,7 +4843,7 @@
         }
 
         function resetForm() {
-            const inputs = ['in_bid', 'in_bid_order', 'ket_out_makan', 'ket_out_minum', 'ket_out_kuota', 'ket_out_rokok', 'ket_out_bensin', 'ket_out_ganti_oli_mesin', 'ket_out_oli_gardan', 'ket_out_servis_motor', 'in_bid_bersih', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
+            const inputs = ['in_bid', 'in_bid_sisa', 'in_bid_order', 'ket_out_makan', 'ket_out_minum', 'ket_out_kuota', 'ket_out_rokok', 'ket_out_bensin', 'ket_out_ganti_oli_mesin', 'ket_out_oli_gardan', 'ket_out_servis_motor', 'in_bid_bersih', 'in_tips', 'in_trip', 'out_makan', 'out_minum', 'out_kuota', 'out_rokok', 'out_bensin', 'out_potongan_gojek', 'out_potongan_gojek_order', 'out_talangan', 'out_talangan_order', 'out_ganti_oli_mesin', 'out_oli_gardan', 'out_servis_motor', 'out_servis', 'out_oli', 'out_sparepart'];
             inputs.forEach(id => document.getElementById(id).value = '');
             ['gq_tagih', 'gq_talangan', 'gq_order'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
             const gqp = document.getElementById('gq_preview'); if (gqp) gqp.classList.add('hidden');
@@ -4924,6 +4925,13 @@
                 }
             });
 
+            // Sisa pembayaran order campuran: kategori 'Bid non-tunai' (BUKAN 'Bid', supaya tidak jadi trip dobel).
+            const sisaBid = getVal('in_bid_sisa');
+            if (sisaBid > 0) {
+                totalInLain += sisaBid;
+                listInDesc.push(`Bid non-tunai (${formatRp(sisaBid)} via ${getStr('dompet_in_bid_sisa')})`);
+            }
+
             let totalOutLain = 0;
             let listOutDesc = [];
             document.querySelectorAll('#manual-expense-list > div').forEach(row => {
@@ -4948,6 +4956,7 @@
             };
 
             tambahDetail('Masuk', 'Bid', getStr('in_bid_order'), getVal('in_bid'), getStr('dompet_in_bid'));
+            tambahDetail('Masuk', 'Bid non-tunai', getStr('in_bid_order'), getVal('in_bid_sisa'), getStr('dompet_in_bid_sisa'));
             tambahDetail('Masuk', 'Tips', '', getVal('in_tips'), getStr('dompet_in_tips'));
             document.querySelectorAll('#manual-income-list > div').forEach(row => {
                 let desc = row.querySelector('.manual-in-desc').value.trim();
@@ -5659,7 +5668,7 @@
         // sekali.
         // True kalau di form Input masih ada nominal Masuk/Keluar yang belum disimpan.
         function adaTransaksiBelumDisimpan() {
-            const ids = ['in_bid','in_tips','out_makan','out_minum','out_kuota','out_rokok','out_bensin','out_potongan_gojek',
+            const ids = ['in_bid','in_bid_sisa','in_tips','out_makan','out_minum','out_kuota','out_rokok','out_bensin','out_potongan_gojek',
                          'out_talangan','out_ganti_oli_mesin','out_oli_gardan','out_servis_motor','out_servis','out_oli','out_sparepart'];
             if (ids.some(id => getVal(id) > 0)) return true;
             let ada = false;
