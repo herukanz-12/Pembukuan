@@ -982,6 +982,34 @@
             </div>
             </div>
             <!-- /keuangan-saldo -->
+            <!-- SUB-HALAMAN: GRAFIK BULANAN -->
+            <div id="keuangan-grafik" style="display:none">
+                <button type="button" onclick="keuanganBuka('menu')" class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2.5 rounded-xl mb-5 hover:border-brand/40 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Keuangan
+                </button>
+                <div class="mb-4">
+                    <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Grafik Bulanan</h2>
+                    <p class="text-xs text-slate-500 mt-1">Naik turunnya pendapatan, pengeluaran, dan pendapatan bersih</p>
+                </div>
+                <div class="flex bg-slate-100 dark:bg-white/5 rounded-2xl p-1 mb-4 border border-slate-200 dark:border-white/10">
+                    <button type="button" data-rentang="6" onclick="setRentangGrafik(6)" class="grafik-rentang flex-1 py-2 rounded-xl text-xs font-bold transition-all">6 bulan</button>
+                    <button type="button" data-rentang="12" onclick="setRentangGrafik(12)" class="grafik-rentang flex-1 py-2 rounded-xl text-xs font-bold transition-all">12 bulan</button>
+                    <button type="button" data-rentang="0" onclick="setRentangGrafik(0)" class="grafik-rentang flex-1 py-2 rounded-xl text-xs font-bold transition-all">Semua</button>
+                </div>
+                <div id="grafik-ringkas" class="grid grid-cols-2 gap-3 mb-4"></div>
+                <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-4 mb-4">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-2 px-1">
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm" style="background:#10b981"></span>Pendapatan</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm" style="background:#ef4444"></span>Pengeluaran</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-0.5 rounded" style="background:#3b82f6"></span>Bersih</span>
+                    </div>
+                    <div id="grafik-svg-wrap"></div>
+                    <p class="text-[10px] text-slate-400 text-center mt-1">Ketuk sebuah bulan untuk melihat rinciannya. Talangan pesanan dan potongan Gojek tidak dihitung.</p>
+                </div>
+                <div id="grafik-detail" class="bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-4 mb-4"></div>
+                <div id="grafik-daftar" class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 mb-8"></div>
+            </div>
+            <!-- /keuangan-grafik -->
             <!-- SUB-HALAMAN: ASET (di luar saldo) -->
             <div id="keuangan-aset" style="display:none">
                 <button type="button" onclick="keuanganBuka('menu')" class="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 px-4 py-2.5 rounded-xl mb-5 hover:border-brand/40 transition">
@@ -1013,6 +1041,8 @@
             <p class="text-xs text-slate-500 mb-6">Laporan harian, transaksi, sedekah, dan tabungan</p>
 
             <div class="flex gap-1 bg-slate-100 dark:bg-white/5 rounded-2xl p-1 mb-5 border border-slate-200 dark:border-white/10"><button type="button" onclick="setRiwayatSubTab('laporan')" id="btn-riwayat-laporan" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">Laporan</button><button type="button" onclick="setRiwayatSubTab('log')" id="btn-riwayat-log" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">Transaksi</button><button type="button" onclick="setRiwayatSubTab('sedekah')" id="btn-riwayat-sedekah" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">Sedekah</button><button type="button" onclick="setRiwayatSubTab('tabungan')" id="btn-riwayat-tabungan" class="riwayat-subtab-btn flex-1 text-xs font-bold py-2.5 rounded-xl transition-all">Tabungan</button></div>
+
+            <button type="button" id="btn-muat-lama" onclick="muatSemuaRiwayat()" class="hidden w-full mb-4 py-2.5 rounded-xl text-xs font-bold text-brand bg-brand/10 border border-brand/20 active:scale-[0.98] transition"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Muat riwayat lebih lama (di luar 90 hari terakhir)</button>
 
             <!-- Panel: Riwayat Laporan (total per simpan, dari sheet DataHarian) -->
             <div id="riwayat-laporan-panel">
@@ -2348,7 +2378,7 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.13.3';
+        const VERSI_APP = 'v3.15.2';
         async function tampilkanCekSinkron() {
             const box = document.getElementById('cek-sinkron-hasil');
             if (!box) return;
@@ -3138,7 +3168,8 @@
         }
 
         // --- Modal "Lihat Detail" (rincian per-periode sebelumnya) ---
-        function openModalDetailPendapatan() {
+        async function openModalDetailPendapatan() {
+            if ((currentPeriode === 'month' || currentPeriode === 'year') && window.__adaDataLebihLama) await muatSemuaRiwayat();
             const judulMap = { day: 'Pendapatan Harian', week: 'Pendapatan Mingguan', month: 'Pendapatan Bulanan', year: 'Pendapatan Tahunan' };
             document.getElementById('detail-pendapatan-title').innerText = judulMap[currentPeriode] || 'Pendapatan';
 
@@ -3249,7 +3280,11 @@
             return Math.min(0, (awal.getFullYear() - n.getFullYear()) * 12 + (awal.getMonth() - n.getMonth()));
         }
 
-        function geserRincianBulan(delta) {
+        async function geserRincianBulan(delta) {
+            // Data awal hanya 90 hari: kalau mundur melewati data yang termuat, tarik seluruh riwayat dulu.
+            if (delta < 0 && window.__adaDataLebihLama && rincianBulanOffset + delta < rincianBulanOffsetMin()) {
+                await muatSemuaRiwayat();
+            }
             rincianBulanOffset += delta;
             renderRincianBulanan();
         }
@@ -3269,7 +3304,7 @@
 
             const prev = document.getElementById('btn-rincian-bulan-prev');
             const next = document.getElementById('btn-rincian-bulan-next');
-            if (prev) { prev.disabled = rincianBulanOffset <= min; prev.classList.toggle('opacity-30', prev.disabled); }
+            if (prev) { prev.disabled = rincianBulanOffset <= min && !window.__adaDataLebihLama; prev.classList.toggle('opacity-30', prev.disabled); }
             if (next) { next.disabled = rincianBulanOffset >= 0; next.classList.toggle('opacity-30', next.disabled); }
 
             const tot = computeTotals(allSheetRows, 'month', ref);
@@ -3281,6 +3316,9 @@
 
         function setPeriode(periode) {
             currentPeriode = periode;
+            if (periode === 'year' && window.__adaDataLebihLama) {
+                muatSemuaRiwayat().then(() => { if (currentPeriode === 'year') renderRekap(); });
+            }
             const tombolPeriode = [
                 { id: 'btn-periode-day', value: 'day' },
                 { id: 'btn-periode-week', value: 'week' },
@@ -4460,6 +4498,25 @@
             }).join('') + talanganHtml;
         }
 
+        // ===== MUAT RIWAYAT LENGKAP (data lama di luar 90 hari terakhir) =====
+        let __sedangMuatSemua = null;
+        function perbaruiTombolMuatLama() {
+            const b = document.getElementById('btn-muat-lama');
+            if (b) b.classList.toggle('hidden', !window.__adaDataLebihLama);
+        }
+        function muatSemuaRiwayat() {
+            if (window.__dataPenuh) return Promise.resolve();
+            if (__sedangMuatSemua) return __sedangMuatSemua;
+            showToast('Memuat seluruh riwayat, mohon tunggu...', 3000);
+            window.__dataPenuh = true;
+            __sedangMuatSemua = fetchRekapData().then(ok => {
+                if (!ok) { window.__dataPenuh = false; showToast('Gagal memuat riwayat lama. Coba lagi.'); }
+                else { window.__adaDataLebihLama = false; showToast('\u2713 Seluruh riwayat dimuat'); }
+                perbaruiTombolMuatLama();
+            }).finally(() => { __sedangMuatSemua = null; });
+            return __sedangMuatSemua;
+        }
+
         async function fetchRekapData() {
             if (!isServerAktif()) return false;
             if (!ambilKunci()) { tampilkanLayarKunci(); return false; }
@@ -4469,10 +4526,13 @@
             const antrianBersih = await flushAntrian();
             if (!antrianBersih) return false;
             try {
-                const res = await fetchDenganTimeout(GAS_URL + '?key=' + encodeURIComponent(ambilKunci()), { cache: 'no-store' }, 25000);
+                const res = await fetchDenganTimeout(GAS_URL + '?key=' + encodeURIComponent(ambilKunci()) + (window.__dataPenuh ? '&dari=all' : ''), { cache: 'no-store' }, window.__dataPenuh ? 60000 : 25000);
                 const json = await res.json();
                 if (json.kode === 'AUTH') { tampilkanLayarKunci('Kunci salah atau belum diisi.'); return false; }
                 if (json.status === 'success') {
+                    // Server v3.15+ hanya mengirim 90 hari terakhir kecuali diminta ?dari=all.
+                    window.__adaDataLebihLama = !!json.adaDataLebihLama && !window.__dataPenuh;
+                    try { perbaruiTombolMuatLama(); } catch (eTb) {}
                     window.__serverTerakhir = { versiServer: json.versiServer || null, saldo: json.dataSaldo || null, custom: json.dataDompetCustom || null, waktu: Date.now() };
                     // Riwayat perubahan saldo dari Sheet (kalau Code.gs sudah versi 3.14.0 ke atas).
                     window.__riwayatSaldoServerAda = Array.isArray(json.dataRiwayatSaldo);
@@ -5161,6 +5221,10 @@
                 }
             },
             {
+                key: 'grafik', icon: 'fa-chart-column', warna: 'brand', judul: 'Grafik Bulanan',
+                info: () => 'Pantau naik turun pendapatan, pengeluaran, dan bersih tiap bulan'
+            },
+            {
                 key: 'aset', icon: 'fa-gem', warna: 'brand', judul: 'Aset',
                 info: () => asetData.length ? formatRp(totalAset()) + ' · ' + asetData.length + ' aset, tidak dihitung sebagai saldo' : 'Catat motor, emas, dan harta lain di luar saldo'
             },
@@ -5204,6 +5268,209 @@
             }).join('');
         }
 
+        // ==========================================================
+        // GRAFIK BULANAN: pendapatan, pengeluaran, pendapatan bersih per bulan
+        // Sumber data sama dengan Rincian/Monitor (allSheetRows: Total Pemasukan & Total Pengeluaran).
+        // ==========================================================
+        let grafikRentang = 12;      // 6, 12, atau 0 = semua
+        let grafikBulanTerpilih = -1; // indeks di daftar bulan yang sedang tampil
+        let grafikData = [];
+
+        async function bukaGrafikBulanan() {
+            setRentangGrafik(grafikRentang);
+            // Data awal aplikasi hanya 90 hari: untuk grafik penuh, tarik seluruh riwayat.
+            if (window.__adaDataLebihLama) {
+                const wrap = document.getElementById('grafik-svg-wrap');
+                if (wrap) wrap.innerHTML = '<p class="text-center text-xs text-slate-400 py-16">Memuat seluruh riwayat...</p>';
+                await muatSemuaRiwayat();
+                renderGrafikBulanan();
+            }
+        }
+
+        function setRentangGrafik(n) {
+            grafikRentang = n;
+            grafikBulanTerpilih = -1;
+            document.querySelectorAll('.grafik-rentang').forEach(b => {
+                const aktif = Number(b.dataset.rentang) === n;
+                ['bg-white', 'dark:bg-cardDark', 'shadow-sm', 'text-brand'].forEach(c => b.classList.toggle(c, aktif));
+                b.classList.toggle('text-slate-500', !aktif);
+                b.classList.toggle('dark:text-slate-400', !aktif);
+            });
+            renderGrafikBulanan();
+        }
+
+        function ringkasRp(n) {
+            const a = Math.abs(n), tanda = n < 0 ? '−' : '';
+            if (a >= 1e9) return tanda + (a / 1e9).toFixed(1).replace('.', ',') + 'M';
+            if (a >= 1e6) return tanda + (a / 1e6).toFixed(a >= 1e7 ? 0 : 1).replace('.', ',') + 'jt';
+            if (a >= 1e3) return tanda + Math.round(a / 1e3) + 'rb';
+            return tanda + Math.round(a);
+        }
+
+        function hitungDataBulanan() {
+            const peta = {};
+            (allSheetRows || []).forEach(row => {
+                const d = new Date(row['Timestamp']);
+                if (isNaN(d)) return;
+                const k = d.getFullYear() * 12 + d.getMonth();
+                const b = peta[k] || (peta[k] = { masuk: 0, keluar: 0 });
+                // Talangan Pesanan & Potongan Gojek dikeluarkan dari kedua sisi (bukan hasil jasa, bukan biaya sendiri).
+                // Pendapatan bersih tidak berubah karena nilai yang sama dikurangkan dari masuk dan keluar.
+                const lewat = (Number(row['Keluar Talangan Pesanan']) || 0) + (Number(row['Keluar Potongan Gojek']) || 0);
+                b.masuk += (Number(row['Total Pemasukan']) || 0) - lewat;
+                b.keluar += (Number(row['Total Pengeluaran']) || 0) - lewat;
+            });
+            const kunci = Object.keys(peta).map(Number);
+            if (!kunci.length) return [];
+            const now = new Date();
+            const kini = now.getFullYear() * 12 + now.getMonth();
+            let awal = Math.min.apply(null, kunci);
+            if (grafikRentang > 0) awal = Math.max(awal, kini - grafikRentang + 1);
+            const hasil = [];
+            for (let k = awal; k <= kini; k++) {
+                const b = peta[k] || { masuk: 0, keluar: 0 };
+                const tahun = Math.floor(k / 12), bulan = k % 12;
+                hasil.push({
+                    tahun, bulan, masuk: b.masuk, keluar: b.keluar, bersih: b.masuk - b.keluar,
+                    berjalan: k === kini,
+                    nama: new Date(tahun, bulan, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }),
+                    singkat: new Date(tahun, bulan, 1).toLocaleDateString('id-ID', { month: 'short' })
+                });
+            }
+            return hasil;
+        }
+
+        function langkahSumbu(kasar) {
+            if (kasar <= 0) return 1;
+            const pangkat = Math.pow(10, Math.floor(Math.log10(kasar)));
+            const f = kasar / pangkat;
+            return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * pangkat;
+        }
+
+        function persenUbah(baru, lama) {
+            if (!lama) return null;
+            return ((baru - lama) / Math.abs(lama)) * 100;
+        }
+        function labelUbah(baru, lama) {
+            const p = persenUbah(baru, lama);
+            if (p === null) return '<span class="text-slate-400">-</span>';
+            const naik = p >= 0;
+            return '<span class="font-bold ' + (naik ? 'text-emerald-500' : 'text-red-500') + '">' + (naik ? '▲ ' : '▼ ') + Math.abs(p).toFixed(0) + '%</span>';
+        }
+
+        function renderGrafikBulanan() {
+            const wrap = document.getElementById('grafik-svg-wrap');
+            if (!wrap) return;
+            grafikData = hitungDataBulanan();
+            const n = grafikData.length;
+            const ringkas = document.getElementById('grafik-ringkas');
+            const detail = document.getElementById('grafik-detail');
+            const daftar = document.getElementById('grafik-daftar');
+            if (!n) {
+                wrap.innerHTML = '<p class="text-center text-xs text-slate-400 py-16">Belum ada data untuk digrafikkan.</p>';
+                ringkas.innerHTML = ''; detail.innerHTML = ''; daftar.innerHTML = '';
+                return;
+            }
+            if (grafikBulanTerpilih < 0 || grafikBulanTerpilih >= n) grafikBulanTerpilih = n - 1;
+
+            // Ringkasan: bulan yang sudah selesai dipakai untuk rata-rata, terbaik, dan terlemah
+            const selesai = grafikData.filter(b => !b.berjalan && (b.masuk > 0 || b.keluar > 0));
+            const pakai = selesai.length ? selesai : grafikData;
+            const rata = pakai.reduce((t, b) => t + b.bersih, 0) / pakai.length;
+            const terbaik = pakai.reduce((a, b) => b.bersih > a.bersih ? b : a, pakai[0]);
+            const terlemah = pakai.reduce((a, b) => b.bersih < a.bersih ? b : a, pakai[0]);
+            const kartu = (judul, nilai, sub, warna) => '<div class="bg-white dark:bg-cardDark rounded-2xl shadow-glass border border-slate-100 dark:border-white/5 p-3.5"><p class="text-[11px] text-slate-500">' + judul + '</p><p class="text-lg font-extrabold tabular-nums ' + warna + '">' + nilai + '</p><p class="text-[10px] text-slate-400 truncate">' + sub + '</p></div>';
+            let tren = '-', trenSub = 'Butuh minimal 2 bulan';
+            if (selesai.length >= 2) {
+                const a = selesai[selesai.length - 1], b = selesai[selesai.length - 2];
+                const p = persenUbah(a.bersih, b.bersih);
+                if (p !== null) { tren = (p >= 0 ? '▲ +' : '▼ −') + Math.abs(p).toFixed(0) + '%'; }
+                trenSub = a.singkat + ' dibanding ' + b.singkat;
+            }
+            const trenWarna = tren.startsWith('▲') ? 'text-emerald-500' : tren.startsWith('▼') ? 'text-red-500' : 'text-slate-400';
+            ringkas.innerHTML =
+                kartu('Rata-rata bersih / bulan', formatRp(Math.round(rata)), selesai.length ? selesai.length + ' bulan selesai' : 'bulan berjalan', rata >= 0 ? 'text-slate-800 dark:text-white' : 'text-red-500') +
+                kartu('Tren bersih', tren, trenSub, trenWarna) +
+                kartu('Bulan terbaik', formatRp(Math.round(terbaik.bersih)), terbaik.nama, 'text-emerald-500') +
+                kartu('Bulan terlemah', formatRp(Math.round(terlemah.bersih)), terlemah.nama, terlemah.bersih < 0 ? 'text-red-500' : 'text-amber-500');
+
+            // ===== SVG =====
+            const W = 340, H = 220, padL = 42, padR = 8, padT = 10, padB = 34;
+            const pw = W - padL - padR, ph = H - padT - padB;
+            const maxV = Math.max(0, ...grafikData.map(b => Math.max(b.masuk, b.keluar, b.bersih)));
+            const minV = Math.min(0, ...grafikData.map(b => b.bersih));
+            const langkah = langkahSumbu((maxV - minV || 1) / 4);
+            const yMax = Math.ceil(maxV / langkah) * langkah || langkah;
+            const yMin = Math.floor(minV / langkah) * langkah;
+            const y = v => padT + ph * (1 - (v - yMin) / (yMax - yMin));
+            const slot = pw / n, bw = Math.max(3, Math.min(14, slot * 0.34));
+            const cx = i => padL + slot * (i + 0.5);
+
+            let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="w-full h-auto select-none" role="img" aria-label="Grafik pendapatan, pengeluaran, dan pendapatan bersih per bulan">';
+            for (let v = yMin; v <= yMax + langkah / 2; v += langkah) {
+                const yy = y(v).toFixed(1);
+                svg += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + yy + '" y2="' + yy + '" class="' + (Math.abs(v) < 1e-6 ? 'stroke-slate-400' : 'stroke-slate-200 dark:stroke-white/10') + '" stroke-width="' + (Math.abs(v) < 1e-6 ? 1 : 0.6) + '"/>';
+                svg += '<text x="' + (padL - 4) + '" y="' + (Number(yy) + 3) + '" text-anchor="end" font-size="9" class="fill-slate-400">' + ringkasRp(v) + '</text>';
+            }
+            // sorot bulan terpilih
+            svg += '<rect x="' + (padL + slot * grafikBulanTerpilih).toFixed(1) + '" y="' + padT + '" width="' + slot.toFixed(1) + '" height="' + ph + '" rx="4" class="fill-slate-100 dark:fill-white/5"/>';
+            grafikData.forEach((b, i) => {
+                const x0 = cx(i), y0 = y(0);
+                const hm = Math.max(0, y0 - y(b.masuk)), hk = Math.max(0, y0 - y(b.keluar));
+                svg += '<rect x="' + (x0 - bw - 0.5).toFixed(1) + '" y="' + (y0 - hm).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hm.toFixed(1) + '" rx="2" fill="#10b981"' + (b.berjalan ? ' opacity="0.65"' : '') + '/>';
+                svg += '<rect x="' + (x0 + 0.5).toFixed(1) + '" y="' + (y0 - hk).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hk.toFixed(1) + '" rx="2" fill="#ef4444"' + (b.berjalan ? ' opacity="0.65"' : '') + '/>';
+            });
+            const titik = grafikData.map((b, i) => cx(i).toFixed(1) + ',' + y(b.bersih).toFixed(1)).join(' ');
+            if (n > 1) svg += '<polyline points="' + titik + '" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+            grafikData.forEach((b, i) => {
+                svg += '<circle cx="' + cx(i).toFixed(1) + '" cy="' + y(b.bersih).toFixed(1) + '" r="' + (i === grafikBulanTerpilih ? 4 : 2.8) + '" fill="#3b82f6" class="stroke-white dark:stroke-cardDark" stroke-width="1.5"/>';
+            });
+            const tiapBerapa = n > 12 ? Math.ceil(n / 10) : 1;
+            grafikData.forEach((b, i) => {
+                if (i % tiapBerapa !== 0 && i !== n - 1) return;
+                svg += '<text x="' + cx(i).toFixed(1) + '" y="' + (H - 18) + '" text-anchor="middle" font-size="9" class="' + (i === grafikBulanTerpilih ? 'fill-slate-800 dark:fill-white font-bold' : 'fill-slate-400') + '">' + b.singkat + '</text>';
+                if (i === 0 || b.bulan === 0) svg += '<text x="' + cx(i).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="middle" font-size="8" class="fill-slate-400">' + b.tahun + '</text>';
+            });
+            grafikData.forEach((b, i) => {
+                svg += '<rect x="' + (padL + slot * i).toFixed(1) + '" y="' + padT + '" width="' + slot.toFixed(1) + '" height="' + (ph + 22) + '" fill="transparent" style="cursor:pointer" onclick="pilihBulanGrafik(' + i + ')"/>';
+            });
+            svg += '</svg>';
+            wrap.innerHTML = svg;
+
+            renderDetailGrafik();
+
+            // Daftar per bulan (terbaru di atas)
+            daftar.innerHTML = '<h3 class="text-sm font-bold text-slate-800 dark:text-white mb-2">Per bulan</h3>' +
+                '<div class="divide-y divide-slate-100 dark:divide-white/5">' +
+                grafikData.map((b, i) => ({ b, i })).reverse().map(({ b, i }) => {
+                    const sebelum = i > 0 ? grafikData[i - 1] : null;
+                    return '<button type="button" onclick="pilihBulanGrafik(' + i + ', true)" class="w-full text-left py-3 flex items-center gap-3">' +
+                        '<div class="flex-1 min-w-0"><p class="text-[13px] font-bold text-slate-800 dark:text-white">' + b.nama + (b.berjalan ? ' <span class="text-[10px] font-semibold text-amber-500">(berjalan)</span>' : '') + '</p>' +
+                        '<p class="text-[11px] text-slate-400 tabular-nums">Masuk ' + ringkasRp(b.masuk) + ' · Keluar ' + ringkasRp(b.keluar) + '</p></div>' +
+                        '<div class="text-right shrink-0"><p class="text-sm font-extrabold tabular-nums ' + (b.bersih >= 0 ? 'text-slate-800 dark:text-white' : 'text-red-500') + '">' + formatRp(Math.round(b.bersih)) + '</p>' +
+                        '<p class="text-[11px]">' + (sebelum ? labelUbah(b.bersih, sebelum.bersih) : '<span class="text-slate-400">-</span>') + '</p></div></button>';
+                }).join('') + '</div>';
+        }
+
+        function renderDetailGrafik() {
+            const detail = document.getElementById('grafik-detail');
+            const b = grafikData[grafikBulanTerpilih];
+            if (!detail || !b) return;
+            const sebelum = grafikBulanTerpilih > 0 ? grafikData[grafikBulanTerpilih - 1] : null;
+            const baris = (label, nilai, warna, ubah) => '<div class="flex items-center justify-between py-1.5"><span class="text-xs text-slate-500"><span class="inline-block w-2 h-2 rounded-sm mr-2" style="background:' + warna + '"></span>' + label + '</span><span class="text-sm font-bold tabular-nums text-slate-800 dark:text-white">' + formatRp(Math.round(nilai)) + (ubah ? ' <span class="text-[11px] ml-1">' + ubah + '</span>' : '') + '</span></div>';
+            detail.innerHTML = '<p class="text-sm font-bold text-slate-800 dark:text-white mb-1">' + b.nama + (b.berjalan ? ' <span class="text-[10px] font-semibold text-amber-500">(berjalan, belum sebulan penuh)</span>' : '') + '</p>' +
+                baris('Pendapatan', b.masuk, '#10b981', sebelum ? labelUbah(b.masuk, sebelum.masuk) : '') +
+                baris('Pengeluaran', b.keluar, '#ef4444', sebelum ? labelUbah(b.keluar, sebelum.keluar) : '') +
+                '<div class="border-t border-dashed border-slate-200 dark:border-white/10 mt-1 pt-1">' + baris('Pendapatan bersih', b.bersih, '#3b82f6', sebelum ? labelUbah(b.bersih, sebelum.bersih) : '') + '</div>' +
+                (sebelum ? '<p class="text-[10px] text-slate-400 mt-1">Persentase dibanding ' + sebelum.nama + '</p>' : '');
+        }
+
+        function pilihBulanGrafik(i, gulir) {
+            grafikBulanTerpilih = i;
+            renderGrafikBulanan();
+            if (gulir) { const el = document.getElementById('grafik-svg-wrap'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        }
+
         function keuanganBuka(key) {
             document.getElementById('keuangan-menu').style.display = (key === 'menu') ? '' : 'none';
             KEUANGAN_MENU.forEach(m => {
@@ -5213,6 +5480,7 @@
             if (key === 'menu') keuanganRenderMenu();
             if (key === 'cicilan') renderHutangList();
             if (key === 'aset') renderAsetList();
+            if (key === 'grafik') bukaGrafikBulanan();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -5915,7 +6183,7 @@
             // paling baru dari server.
             calculateRealtime();
             renderHutangList();
-            await muatSnapshotLokal(); // Beranda & Riwayat langsung terisi dari HP, tanpa nunggu internet
+            const adaSnapshot = await muatSnapshotLokal(); // Beranda & Riwayat langsung terisi dari HP, tanpa nunggu internet
             updateBadgeAntrian();
             flushAntrian();            // kirim data offline yang tertinggal (kalau sudah ada sinyal)
             setRiwayatSubTab('laporan');
@@ -5932,7 +6200,7 @@
             // Setelah sync server pertama ini selesai (dompetCustomList sudah
             // pasti berisi data terbaru dari Sheet), baru jalanin pembersihan
             // dompet duplikat SEKALI ke server -- lihat autoBersihkanDompetDuplikat().
-            jalankanSinkronAwal();
+            jalankanSinkronAwal(adaSnapshot === true);
         };
 
         // --- Sinkron awal: layar pembuka BARU hilang setelah data benar-benar ditarik dari Sheet ---
@@ -5962,9 +6230,16 @@
             bn.classList.remove('hidden');
         }
         let __sinkronAwalJalan = false;
-        async function jalankanSinkronAwal() {
+        async function jalankanSinkronAwal(latar) {
             if (__sinkronAwalJalan) return;
             __sinkronAwalJalan = true;
+            // OPTIMASI: kalau data di HP (snapshot) sudah ada, buka aplikasi LANGSUNG dan sinkron di latar belakang,
+            // jadi pemakaian tidak menunggu unduhan dari Sheet (yang makin lama kalau datanya banyak).
+            if (latar === true) {
+                tutupSplash();
+                const bnLatar = document.getElementById('banner-basi');
+                if (bnLatar) { bnLatar.innerText = '\u21BB Menyinkronkan data terbaru dari Sheet...'; bnLatar.classList.remove('hidden'); }
+            }
             const teks = document.getElementById('splash-teks');
             const gagalBox = document.getElementById('splash-gagal');
             if (gagalBox) gagalBox.classList.add('hidden');
@@ -5980,6 +6255,11 @@
                 }
             }
             __sinkronAwalJalan = false;
+            if (latar === true && !ok) {
+                // Gagal sinkron di latar belakang: tetap pakai data HP, beri tanda jelas.
+                tampilkanBannerBasi();
+                return;
+            }
             if (ok) {
                 try { autoBersihkanDompetDuplikat(); } catch (e) {}
                 const bn = document.getElementById('banner-basi'); if (bn) bn.classList.add('hidden');
