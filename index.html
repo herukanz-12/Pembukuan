@@ -408,6 +408,10 @@
                                 <span class="text-[10px] font-medium text-slate-400 w-16">Awal (Rp)</span>
                                 <input type="number" id="saldo_gopay_driver" oninput="calculateRealtime()" class="w-full bg-transparent border-none p-0 text-slate-800 dark:text-white font-bold outline-none" placeholder="0">
                             </div>
+                            <label class="flex items-start gap-2 border-t border-slate-200 dark:border-white/5 pt-2 mt-2 cursor-pointer">
+                                <input type="checkbox" id="chk_utang_dipegang" onchange="try{localStorage.setItem('utang_dipegang', this.checked ? '1' : '0')}catch(e){}; calculateRealtime()" class="mt-0.5 accent-emerald-500">
+                                <span class="text-[11px] leading-snug text-slate-500 dark:text-slate-400">Uang utang Gojek masih saya pegang. Kalau dicentang, utang yang berkurang karena order otomatis jadi Cash. Hilangkan centang kalau uangnya sudah terpakai.</span>
+                            </label>
                         </div>
 
                         <!-- Gopay -->
@@ -2232,6 +2236,12 @@
             });
         }
 
+        // Pulihkan centang "uang utang Gojek masih saya pegang" (per perangkat, bawaan: tidak dicentang)
+        document.addEventListener('DOMContentLoaded', () => {
+            const c = document.getElementById('chk_utang_dipegang');
+            try { if (c) c.checked = localStorage.getItem('utang_dipegang') === '1'; } catch (e) {}
+        });
+
         function calculateRealtime() {
             // 1. Ambil Nilai Saldo Awal (Base)
             let base = {
@@ -2266,6 +2276,9 @@
                 if (dompet) deltas[dompet] += val;
             });
 
+            // Pemasukan yang masuk ke Gopay Driver (parkir = titipan, tidak dihitung)
+            const masukKeGopayDriver = deltas.gopay_driver - (getStr('dompet_in_parkir') === 'gopay_driver' ? getVal('in_parkir') : 0);
+
             // 3. Kurangi Semua Pengeluaran
             subExpense('out_makan', 'dompet_out_makan');
             subExpense('out_minum', 'dompet_out_minum');
@@ -2287,6 +2300,18 @@
                 if (dompet) deltas[dompet] -= val;
             });
 
+            // UTANG GOJEK BERKURANG -> OTOMATIS JADI UANG SENDIRI.
+            // Kalau Gopay Driver sedang minus (utang ke Gojek) lalu bertambah karena order, utang
+            // berkurang sebesar itu dan jumlah yang sama pindah ke Cash (harta sendiri), tidak
+            // menggantung. Contoh: -120.000 + order 10.000 -> Gopay Driver -110.000, Cash +10.000.
+            // Hanya berlaku untuk pemasukan murni ke Gopay Driver (setelah dikurangi pengeluaran
+            // dari dompet itu, mis. potongan Gojek) dan paling banyak sebesar utang yang tersisa.
+            let utangDipegang = false;
+            try { utangDipegang = localStorage.getItem('utang_dipegang') === '1'; } catch (e) {}
+            const pindahKeCash = utangDipegang ? Math.max(0, Math.min(masukKeGopayDriver, deltas.gopay_driver, -base.gopay_driver)) : 0;
+            if (pindahKeCash > 0) deltas.cash += pindahKeCash;
+            window.pindahUtangKeCash = pindahKeCash;
+
             // 4. Kalkulasi Saldo Akhir
             let finalSaldo = {
                 gopay_driver: base.gopay_driver + deltas.gopay_driver,
@@ -2307,6 +2332,7 @@
             document.getElementById('akhir_gopay_driver').innerText = formatRp(finalSaldo.gopay_driver);
             document.getElementById('akhir_gopay').innerText = formatRp(finalSaldo.gopay);
             document.getElementById('akhir_cash').innerText = formatRp(finalSaldo.cash);
+            document.getElementById('akhir_cash').title = pindahKeCash > 0 ? ('Termasuk ' + formatRp(pindahKeCash) + ' dari utang Gojek yang berkurang') : '';
             document.getElementById('akhir_bca').innerText = formatRp(finalSaldo.bca);
             dompetCustomList.forEach(d => {
                 let elAkhir = document.getElementById('akhir_custom_' + d.id);
@@ -2421,7 +2447,7 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.15.12';
+        const VERSI_APP = 'v3.16.1';
         document.addEventListener('DOMContentLoaded', () => {
             const el = document.getElementById('versi-app-label');
             if (el) el.textContent = VERSI_APP;
