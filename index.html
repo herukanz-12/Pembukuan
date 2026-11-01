@@ -2421,7 +2421,7 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.15.11';
+        const VERSI_APP = 'v3.15.12';
         document.addEventListener('DOMContentLoaded', () => {
             const el = document.getElementById('versi-app-label');
             if (el) el.textContent = VERSI_APP;
@@ -3513,7 +3513,7 @@
 
             // Update Progress Bar Target Pendapatan Kotor (Total Pemasukan sebelum
             // dikurangi pengeluaran) -- motor kedua, terpisah dari yang Bersih di atas.
-            let kotorMon2 = mon.totalIn - (mon.kategoriTotal['Keluar Talangan Pesanan'] || 0);
+            let kotorMon2 = Math.max(0, mon.totalIn - (mon.kategoriTotal['Keluar Talangan Pesanan'] || 0) - (mon.kategoriTotal['Keluar Potongan Gojek'] || 0));
             document.getElementById('target-kotor-val').innerText = formatRp(kotorMon2);
 
             if (targetPendapatan > 0) {
