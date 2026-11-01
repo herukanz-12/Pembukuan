@@ -2421,7 +2421,7 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.15.9';
+        const VERSI_APP = 'v3.15.11';
         document.addEventListener('DOMContentLoaded', () => {
             const el = document.getElementById('versi-app-label');
             if (el) el.textContent = VERSI_APP;
@@ -3412,8 +3412,10 @@
             // Potongan Gojek bukan pengeluaran sungguhan: uangnya tidak pernah jadi milik mitra.
             // Dikeluarkan dari KEDUA sisi (Masuk & Keluar) untuk tampilan, jadi hasil bersih tetap sama.
             const potDash = dash.kategoriTotal['Keluar Potongan Gojek'] || 0;
-            const masukDash = Math.max(0, dash.totalIn - potDash);
-            const keluarDash = Math.max(0, dash.totalOut - potDash);
+            // Talangan Pesanan juga bukan pengeluaran (uang talangan kembali lewat tagih tunai), diperlakukan sama.
+            const talDash = dash.kategoriTotal['Keluar Talangan Pesanan'] || 0;
+            const masukDash = Math.max(0, dash.totalIn - potDash - talDash);
+            const keluarDash = Math.max(0, dash.totalOut - potDash - talDash);
             document.getElementById('dash-in-day').innerText = formatRp(masukDash);
             document.getElementById('dash-out-day').innerText = formatRp(keluarDash);
             updateMonitorExtras(masukDash, keluarDash);
@@ -3449,8 +3451,9 @@
             // Sama seperti di atas: Potongan Gojek tidak ditampilkan sebagai Keluar (dan dikurangi dari Masuk),
             // supaya Keluar hanya berisi pengeluaran asli. Hasil bersih tidak berubah.
             const potMon = mon.kategoriTotal['Keluar Potongan Gojek'] || 0;
-            const masukMon = Math.max(0, mon.totalIn - potMon);
-            const keluarMon = Math.max(0, mon.totalOut - potMon);
+            const talMon = mon.kategoriTotal['Keluar Talangan Pesanan'] || 0;
+            const masukMon = Math.max(0, mon.totalIn - potMon - talMon);
+            const keluarMon = Math.max(0, mon.totalOut - potMon - talMon);
             document.getElementById('mon-in').innerText = formatRp(masukMon);
             document.getElementById('mon-out').innerText = formatRp(keluarMon);
             // Talangan Pesanan (GoFood/GoShop) = pinjaman deposit Gojek yang ditutup cash
@@ -3458,9 +3461,9 @@
             // tapi ditampilkan terpisah supaya tidak terlihat seperti pengeluaran biasa.
             const elTalNote = document.getElementById('mon-talangan-note');
             if (elTalNote) {
-                const tal = (mon.kategoriTotal['Keluar Talangan Pesanan'] || 0);
+                const tal = talMon;
                 if (tal > 0) {
-                    elTalNote.innerText = 'Keluar termasuk talangan ' + formatRp(tal) + ' (ditutup cash) \u00b7 biaya asli ' + formatRp(Math.max(0, keluarMon - tal));
+                    elTalNote.innerText = 'Talangan ' + formatRp(tal) + ' (ditutup cash) tidak dihitung di Masuk maupun Keluar';
                     elTalNote.classList.remove('hidden');
                 } else {
                     elTalNote.classList.add('hidden');
@@ -4457,6 +4460,13 @@
                 kategoriTotal = Object.assign({}, kategoriTotal);
                 delete kategoriTotal['Talangan Pesanan'];
                 totalOut = Math.max(0, totalOut - talanganNominal);
+            }
+            // POTONGAN GOJEK juga bukan pengeluaran sungguhan: dikeluarkan dari daftar dan total.
+            const potonganNominal = Math.max(0, Number(kategoriTotal['Potongan Gojek']) || 0);
+            if (potonganNominal > 0) {
+                kategoriTotal = Object.assign({}, kategoriTotal);
+                delete kategoriTotal['Potongan Gojek'];
+                totalOut = Math.max(0, totalOut - potonganNominal);
             }
             const elTotalBiaya = document.getElementById('total-rincian-pengeluaran');
             if (elTotalBiaya) elTotalBiaya.innerText = formatRp(totalOut);
