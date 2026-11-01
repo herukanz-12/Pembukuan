@@ -2420,7 +2420,7 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.15.5';
+        const VERSI_APP = 'v3.15.8';
         async function tampilkanCekSinkron() {
             const box = document.getElementById('cek-sinkron-hasil');
             if (!box) return;
@@ -3044,9 +3044,19 @@
                 if (k === null) return;
                 auto[k] = (auto[k] || 0) + jumlahOrderDariKeterangan(item['Keterangan']);
             });
+            // Hari yang punya order Bid DIBATALKAN: kolom "Jumlah Trip" di laporan harian tidak ikut
+            // terkoreksi saat batal, jadi untuk hari itu hanya order Bid yang masih aktif yang dihitung.
+            const adaBatal = {};
+            (allDetailSemua || []).forEach(item => {
+                if (detailAktif(item)) return;
+                if (item['Tipe'] !== 'Masuk') return;
+                if ((item['Kategori'] || '').toString().trim().toLowerCase() !== 'bid') return;
+                const k = kunciHari(item['Timestamp']);
+                if (k !== null) adaBatal[k] = true;
+            });
             const hasil = {};
             new Set(Object.keys(manual).concat(Object.keys(auto))).forEach(k => {
-                hasil[k] = Math.max(manual[k] || 0, auto[k] || 0);
+                hasil[k] = adaBatal[k] ? (auto[k] || 0) : Math.max(manual[k] || 0, auto[k] || 0);
             });
             return hasil;
         }
@@ -3394,9 +3404,14 @@
             const dash = computeTotals(allSheetRows, currentPeriode);
             const bersihDash = dash.totalIn - dash.totalOut;
 
-            document.getElementById('dash-in-day').innerText = formatRp(dash.totalIn);
-            document.getElementById('dash-out-day').innerText = formatRp(dash.totalOut);
-            updateMonitorExtras(dash.totalIn, dash.totalOut);
+            // Potongan Gojek bukan pengeluaran sungguhan: uangnya tidak pernah jadi milik mitra.
+            // Dikeluarkan dari KEDUA sisi (Masuk & Keluar) untuk tampilan, jadi hasil bersih tetap sama.
+            const potDash = dash.kategoriTotal['Keluar Potongan Gojek'] || 0;
+            const masukDash = Math.max(0, dash.totalIn - potDash);
+            const keluarDash = Math.max(0, dash.totalOut - potDash);
+            document.getElementById('dash-in-day').innerText = formatRp(masukDash);
+            document.getElementById('dash-out-day').innerText = formatRp(keluarDash);
+            updateMonitorExtras(masukDash, keluarDash);
 
             // Pendapatan Kotor (Hasil Jasa Murni) = Total Masuk dikurangi Talangan
             // Pesanan (GoFood) dan Potongan Gojek (Bid/GoRide) -- dua-duanya uang
@@ -3426,8 +3441,13 @@
             const mon = computeTotals(allSheetRows, 'day');
             const bersihMon = mon.totalIn - mon.totalOut;
 
-            document.getElementById('mon-in').innerText = formatRp(mon.totalIn);
-            document.getElementById('mon-out').innerText = formatRp(mon.totalOut);
+            // Sama seperti di atas: Potongan Gojek tidak ditampilkan sebagai Keluar (dan dikurangi dari Masuk),
+            // supaya Keluar hanya berisi pengeluaran asli. Hasil bersih tidak berubah.
+            const potMon = mon.kategoriTotal['Keluar Potongan Gojek'] || 0;
+            const masukMon = Math.max(0, mon.totalIn - potMon);
+            const keluarMon = Math.max(0, mon.totalOut - potMon);
+            document.getElementById('mon-in').innerText = formatRp(masukMon);
+            document.getElementById('mon-out').innerText = formatRp(keluarMon);
             // Talangan Pesanan (GoFood/GoShop) = pinjaman deposit Gojek yang ditutup cash
             // tagih tunai, bukan biaya. Total Keluar tetap utuh (hasil bersih konsisten),
             // tapi ditampilkan terpisah supaya tidak terlihat seperti pengeluaran biasa.
@@ -3435,7 +3455,7 @@
             if (elTalNote) {
                 const tal = (mon.kategoriTotal['Keluar Talangan Pesanan'] || 0);
                 if (tal > 0) {
-                    elTalNote.innerText = 'Keluar termasuk talangan ' + formatRp(tal) + ' (ditutup cash) \u00b7 biaya asli ' + formatRp(Math.max(0, mon.totalOut - tal));
+                    elTalNote.innerText = 'Keluar termasuk talangan ' + formatRp(tal) + ' (ditutup cash) \u00b7 biaya asli ' + formatRp(Math.max(0, keluarMon - tal));
                     elTalNote.classList.remove('hidden');
                 } else {
                     elTalNote.classList.add('hidden');
@@ -4188,11 +4208,14 @@
             const lama = (n) => Number(baris[n]) || 0;
             const keluar = {}; KELUAR_KOLOM_TETAP_LIST.forEach(n => { keluar[n] = 0; });
             let inBid = 0, inTips = 0, inLain = 0, outLain = 0; const descIn = [], descOut = [];
+            let adaBid = false, tripAktif = 0;
             allDetailSemua.forEach(it => {
-                if (new Date(it['Timestamp']).getTime() !== target || !detailAktif(it)) return;
+                if (new Date(it['Timestamp']).getTime() !== target) return;
+                if (it['Tipe'] === 'Masuk' && String(it['Kategori'] || '').trim().toLowerCase() === 'bid') adaBid = true;
+                if (!detailAktif(it)) return;
                 const nom = Number(it['Nominal']) || 0, kat = String(it['Kategori'] || '').trim();
                 if (it['Tipe'] === 'Masuk') {
-                    if (kat.toLowerCase() === 'bid') inBid += nom;
+                    if (kat.toLowerCase() === 'bid') { inBid += nom; if (nom > 0) tripAktif += jumlahOrderDariKeterangan(it['Keterangan']); }
                     else if (kat.toLowerCase() === 'tips') inTips += nom;
                     else { inLain += nom; descIn.push(`${kat || 'Lainnya'} (${formatRp(nom)} via ${it['Dompet']})`); }
                 } else {
@@ -4213,6 +4236,7 @@
                 'Total Pengeluaran': totalOut, 'Pendapatan Bersih': totalIn - totalOut,
                 'Shodaqoh': kotor * pSed, 'Tabungan Servis': kotor * pTab
             });
+            if (adaBid) baris['Jumlah Trip'] = tripAktif;
             KELUAR_KOLOM_TETAP_LIST.forEach(n => { baris['Keluar ' + n] = keluar[n]; });
         }
 
