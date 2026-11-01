@@ -153,6 +153,7 @@
             <div>
                 <h1 class="text-sm font-bold tracking-tight text-slate-900 dark:text-white leading-tight">OjolTracker</h1>
                 <p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Digital Logbook</p>
+                <p id="versi-app-label" class="text-[9px] text-slate-400 font-semibold tracking-wide leading-tight"></p>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -2420,7 +2421,11 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.15.8';
+        const VERSI_APP = 'v3.15.9';
+        document.addEventListener('DOMContentLoaded', () => {
+            const el = document.getElementById('versi-app-label');
+            if (el) el.textContent = VERSI_APP;
+        });
         async function tampilkanCekSinkron() {
             const box = document.getElementById('cek-sinkron-hasil');
             if (!box) return;
