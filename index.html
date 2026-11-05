@@ -696,7 +696,12 @@
                 <!-- /panel-maintenance -->
 
                 <div id="input-submit-wrap" class="hidden">
-                    <button type="button" onclick="simpanData()" class="w-full relative overflow-hidden group bg-brand hover:bg-brand-dark text-white font-bold text-lg py-5 px-4 rounded-[2rem] shadow-neon transition-all transform active:scale-95 flex items-center justify-center gap-3 mt-8 border border-white/20">
+                    <div class="mt-8 bg-white dark:bg-cardDark border border-slate-200 dark:border-white/10 rounded-2xl p-4">
+                        <label for="input_tanggal_laporan" class="text-[10px] font-bold text-slate-500 uppercase block mb-1.5"><i class="fa-regular fa-calendar mr-1"></i> Tanggal Laporan</label>
+                        <input type="date" id="input_tanggal_laporan" onchange="updateHintTanggalLaporan()" class="w-full bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-3 text-sm text-slate-800 dark:text-white font-bold outline-none focus:border-brand">
+                        <p id="hint_tanggal_laporan" class="text-[11px] text-slate-400 mt-1.5">Hari ini. Lupa mencatat kemarin? Ganti tanggalnya di sini.</p>
+                    </div>
+                    <button type="button" onclick="simpanData()" class="w-full relative overflow-hidden group bg-brand hover:bg-brand-dark text-white font-bold text-lg py-5 px-4 rounded-[2rem] shadow-neon transition-all transform active:scale-95 flex items-center justify-center gap-3 mt-4 border border-white/20">
                         <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                         <i class="fa-solid fa-cloud-arrow-up text-xl" id="icon-simpan"></i>
                         <span id="text-simpan">Simpan Laporan</span>
@@ -1730,7 +1735,43 @@
             document.querySelectorAll('.input-panel-back').forEach(el => { el.style.display = 'none'; });
         }
 
+        // ===== TANGGAL LAPORAN (bisa mundur untuk catat yang kelupaan) =====
+        function tglLokalStr(d) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        function setTanggalLaporanHariIni() {
+            const el = document.getElementById('input_tanggal_laporan');
+            if (!el) return;
+            const h = tglLokalStr(new Date());
+            el.max = h; el.value = h;
+            updateHintTanggalLaporan();
+        }
+        // Hasil: waktu sekarang kalau tanggal = hari ini, selain itu jam 12:00 di tanggal pilihan (aman dari geser zona waktu).
+        function tanggalLaporanDipilih() {
+            const now = new Date();
+            const el = document.getElementById('input_tanggal_laporan');
+            if (!el || !el.value) return now;
+            const p = el.value.split('-').map(Number);
+            if (p.length !== 3 || p.some(isNaN)) return now;
+            const pilih = new Date(p[0], p[1] - 1, p[2], 12, 0, 0);
+            if (tglLokalStr(pilih) === tglLokalStr(now) || pilih > now) return now;
+            return pilih;
+        }
+        function laporanTanggalLampau() { return tglLokalStr(tanggalLaporanDipilih()) !== tglLokalStr(new Date()); }
+        function updateHintTanggalLaporan() {
+            const h = document.getElementById('hint_tanggal_laporan');
+            if (!h) return;
+            if (laporanTanggalLampau()) {
+                h.className = 'text-[11px] text-orange-500 font-bold mt-1.5';
+                h.innerText = 'Akan dicatat di ' + tanggalLaporanDipilih().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + ', bukan hari ini.';
+            } else {
+                h.className = 'text-[11px] text-slate-400 mt-1.5';
+                h.innerText = 'Hari ini. Lupa mencatat kemarin? Ganti tanggalnya di sini.';
+            }
+        }
+
         function showInputPanel(panelId) {
+            setTanggalLaporanHariIni();
             document.getElementById('input-menu-grid').style.display = 'none';
             document.querySelectorAll('.input-panel').forEach(el => {
                 el.style.display = (el.id === panelId) ? 'block' : 'none';
@@ -2785,7 +2826,7 @@
         const ABJAD_KODE = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         const kodeBaruDibuat = new Set();
         function buatKodeTransaksi(tipe) {
-            const d = new Date();
+            const d = tanggalLaporanDipilih();
             const tgl = String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
             let kode;
             do {
@@ -4962,6 +5003,7 @@
             document.getElementById('manual-expense-list').innerHTML = '';
             manualIncomeCounter = 0;
             manualExpenseCounter = 0;
+            setTanggalLaporanHariIni();
             
             calculateRealtime();
             showToast("Form berhasil di-reset");
@@ -5099,7 +5141,7 @@
 
             // MENGIRIM SALDO AKHIR (YANG SUDAH DIKALKULASI OTOMATIS)
             let data = {
-                tanggal: new Date().toISOString(),
+                tanggal: tanggalLaporanDipilih().toISOString(),
                 saldo_gopay_driver: window.currentFinalSaldo.gopay_driver,
                 saldo_gopay: window.currentFinalSaldo.gopay,
                 saldo_cash: window.currentFinalSaldo.cash,
@@ -5185,6 +5227,12 @@
             if(!saldoOnly && validationIn === 0 && validationOut === 0 && getVal('in_parkir') === 0) {
                 showToast("Isi nominal pemasukan/pengeluaran dulu!");
                 return;
+            }
+
+            // Tanggal mundur: minta konfirmasi supaya tidak salah tanggal.
+            if (!saldoOnly && laporanTanggalLampau()) {
+                const tglTeks = tanggalLaporanDipilih().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                if (!confirm('Laporan ini akan dicatat di ' + tglTeks + ' (bukan hari ini). Lanjut simpan?')) return;
             }
 
             // Peringatan order dobel: nomor order Bid / Talangan yang sama sudah pernah tercatat (aktif).
