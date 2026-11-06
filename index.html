@@ -1087,6 +1087,15 @@
                     <button type="button" data-logarus="Masuk" onclick="setLogFilterArus('Masuk')" class="log-arus-btn flex-1 py-2 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-slate-400">Masuk</button>
                     <button type="button" data-logarus="Keluar" onclick="setLogFilterArus('Keluar')" class="log-arus-btn flex-1 py-2 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-slate-400">Keluar</button>
                 </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <label for="log-urutan" class="text-[11px] font-bold text-slate-500 shrink-0"><i class="fa-solid fa-arrow-down-wide-short mr-1"></i>Urutkan</label>
+                    <select id="log-urutan" onchange="setLogUrutan(this.value)" class="flex-1 min-w-0 bg-slate-50 dark:bg-bgDark border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-brand [&>option]:bg-white dark:[&>option]:bg-cardDark">
+                        <option value="waktu">Waktu dicatat (terbaru dulu)</option>
+                        <option value="order-naik">No. order kecil ke besar (sesuai urutan jalan)</option>
+                        <option value="order-turun">No. order besar ke kecil</option>
+                        <option value="manual">Atur sendiri (pakai panah)</option>
+                    </select>
+                </div>
                 <p class="text-[11px] text-slate-400 mb-3">Ketuk transaksi untuk edit atau batalkan. Transaksi yang dibatalkan tetap tampil sebagai jejak, tidak dihitung.</p>
                 <div id="log-transaksi-list-container" class="space-y-4 mb-8">
                     <!-- Rendered dynamically via JS -->
@@ -4175,6 +4184,70 @@
 
         // --- Render Isi Tab Log Transaksi (granular, dari sheet DetailTransaksi) ---
         let logFilterArus = 'semua'; // 'semua' | 'Masuk' | 'Keluar'
+
+        // ===== URUTAN LOG TRANSAKSI (hanya tampilan di HP ini, data di sheet tidak berubah) =====
+        let logUrutan = 'waktu'; // 'waktu' | 'order-naik' | 'order-turun' | 'manual'
+        let logUrutanManual = {}; // { kunciHari: [kode, kode, ...] } urutan tampil dari atas
+        try {
+            const u = localStorage.getItem('ojol_log_urutan'); if (u) logUrutan = u;
+            const m = localStorage.getItem('ojol_log_manual'); if (m) logUrutanManual = JSON.parse(m) || {};
+        } catch (e) {}
+        function simpanUrutanLog() {
+            try {
+                localStorage.setItem('ojol_log_urutan', logUrutan);
+                localStorage.setItem('ojol_log_manual', JSON.stringify(logUrutanManual));
+            } catch (e) {}
+        }
+        function setLogUrutan(v) { logUrutan = v; simpanUrutanLog(); renderLogTransaksiList(); }
+        function nomorOrderRB(it) {
+            const m = String(it['Keterangan'] || '').match(/RB-(\d+)/i);
+            return m ? Number(m[1]) : null;
+        }
+        // Urutkan item DI DALAM satu hari. Default (waktu) = urutan dari renderer, tidak diubah.
+        function urutkanItemLog(items, k) {
+            const arr = items.slice();
+            const waktu = (a, b) => new Date(a['Timestamp']) - new Date(b['Timestamp']);
+            if (logUrutan === 'order-naik' || logUrutan === 'order-turun') {
+                const naik = logUrutan === 'order-naik';
+                arr.sort((a, b) => {
+                    const ra = nomorOrderRB(a), rb = nomorOrderRB(b);
+                    if (ra !== null && rb !== null && ra !== rb) return naik ? ra - rb : rb - ra;
+                    if (ra !== null && rb === null) return -1;
+                    if (ra === null && rb !== null) return 1;
+                    return naik ? waktu(a, b) : -waktu(a, b);
+                });
+            } else if (logUrutan === 'manual') {
+                const simpan = logUrutanManual[k] || [];
+                const idx = {}; simpan.forEach((c, i) => { idx[c] = i; });
+                const baru = arr.filter(i => !(i['Kode'] in idx)).sort((a, b) => -waktu(a, b));
+                const lama = arr.filter(i => (i['Kode'] in idx)).sort((a, b) => idx[a['Kode']] - idx[b['Kode']]);
+                return baru.concat(lama);
+            }
+            return arr;
+        }
+        function lolosFilterLog(i) {
+            if (logFilterArus !== 'semua' && i['Tipe'] !== logFilterArus) return false;
+            const cari = ((document.getElementById('log-cari') || {}).value || '').trim().toLowerCase();
+            if (cari && ![i['Kode'], i['Kategori'], i['Keterangan']].some(v => String(v || '').toLowerCase().includes(cari))) return false;
+            return true;
+        }
+        // Geser 1 transaksi naik (-1) / turun (+1) di harinya, melewati baris yang sedang tersaring.
+        function geserUrutanLog(kode, arah) {
+            const item = allDetailSemua.find(i => i['Kode'] === kode);
+            if (!item) return;
+            const k = kunciHari(item['Timestamp']);
+            const desc = (a, b) => new Date(b['Timestamp']) - new Date(a['Timestamp']);
+            const hariIni = allDetailSemua.filter(i => kunciHari(i['Timestamp']) === k).sort(desc);
+            const urut = urutkanItemLog(hariIni, k); // urutan tampil sekarang (versi lengkap)
+            let i = urut.findIndex(x => x['Kode'] === kode);
+            let j = i + arah;
+            while (j >= 0 && j < urut.length && !lolosFilterLog(urut[j])) j += arah;
+            if (i < 0 || j < 0 || j >= urut.length) return;
+            const t = urut[i]; urut[i] = urut[j]; urut[j] = t;
+            logUrutanManual[k] = urut.map(x => x['Kode']).filter(Boolean);
+            simpanUrutanLog();
+            renderLogTransaksiList();
+        }
         function setLogFilterArus(v) {
             logFilterArus = v;
             document.querySelectorAll('.log-arus-btn').forEach(b => {
@@ -4214,6 +4287,10 @@
                 }
                 g.items.push(item);
             });
+            const selUrut = document.getElementById('log-urutan');
+            if (selUrut && selUrut.value !== logUrutan) selUrut.value = logUrutan;
+            const modeManual = logUrutan === 'manual';
+            grup.forEach(g => { g.items = urutkanItemLog(g.items, g.k); });
             container.innerHTML = grup.map(g => `
                 <div class="bg-white dark:bg-cardDark rounded-[2rem] shadow-glass border border-slate-100 dark:border-white/5 p-5 animate-fade-in">
                     <div class="flex items-center justify-between mb-1">
@@ -4228,14 +4305,15 @@
                             const dompet = dompetLabelMap[item['Dompet']] || item['Dompet'] || '-';
                             const ket = item['Keterangan'] ? `<span class="font-normal text-slate-400"> · ${esc(item['Keterangan'])}</span>` : '';
                             const kode = item['Kode'] ? esc(item['Kode']) : '';
-                            return `<button type="button" ${kode ? `onclick="bukaDetailTransaksi('${kode}')"` : ''} class="w-full text-left flex items-center gap-3 py-2.5 ${batal ? 'opacity-50' : ''}">
+                            const panah = (modeManual && kode) ? `<span class="flex flex-col shrink-0"><button type="button" onclick="geserUrutanLog('${kode}',-1)" class="w-9 h-6 text-slate-400 active:text-brand"><i class="fa-solid fa-chevron-up text-xs"></i></button><button type="button" onclick="geserUrutanLog('${kode}',1)" class="w-9 h-6 text-slate-400 active:text-brand"><i class="fa-solid fa-chevron-down text-xs"></i></button></span>` : '';
+                            return `<div class="flex items-center gap-1"><button type="button" ${kode ? `onclick="bukaDetailTransaksi('${kode}')"` : ''} class="flex-1 min-w-0 text-left flex items-center gap-3 py-2.5 ${batal ? 'opacity-50' : ''}">
                                 <span class="w-9 h-9 rounded-xl ${batal ? 'bg-slate-200 dark:bg-white/10 text-slate-400' : (masuk ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-500')} flex items-center justify-center shrink-0"><i class="fa-solid ${batal ? 'fa-ban' : (masuk ? 'fa-arrow-down' : 'fa-arrow-up')}"></i></span>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-[13px] font-bold text-slate-800 dark:text-white truncate ${batal ? 'line-through' : ''}">${esc(item['Kategori'])}${ket}</p>
                                     <p class="text-[11px] text-slate-400">${jam} · ${esc(dompet)}${kode ? ` · <span class="font-mono">${kode}</span>` : ''}${batal ? ' · <span class="font-bold text-red-400">Dibatalkan</span>' : ''}</p>
                                 </div>
                                 <span class="text-[13px] font-extrabold tabular-nums shrink-0 ${batal ? 'line-through text-slate-400' : (masuk ? 'text-brand' : 'text-red-500')}">${masuk ? '+' : '-'} ${formatRp(Number(item['Nominal']) || 0)}</span>
-                            </button>`;
+                            </button>${panah}</div>`;
                         }).join('')}
                     </div>
                 </div>`).join('');
