@@ -1093,10 +1093,10 @@
                         <option value="waktu">Waktu dicatat (terbaru dulu)</option>
                         <option value="order-naik">No. order kecil ke besar (sesuai urutan jalan)</option>
                         <option value="order-turun">No. order besar ke kecil</option>
-                        <option value="manual">Atur sendiri (tahan lalu geser)</option>
+                        <option value="manual">Atur sendiri (pakai tombol panah)</option>
                     </select>
                 </div>
-                <p class="text-[11px] text-slate-400 mb-3"><i class="fa-solid fa-hand-pointer mr-1"></i>Sentuh dan geser ikon garis (≡) di kanan transaksi naik/turun untuk mengubah urutannya (atau tahan sebentar barisnya). Ketuk biasa untuk edit atau batalkan. Transaksi yang dibatalkan tetap tampil sebagai jejak, tidak dihitung.</p>
+                <p class="text-[11px] text-slate-400 mb-3"><i class="fa-solid fa-hand-pointer mr-1"></i>Tekan tombol panah ▲ ▼ di kanan transaksi untuk menaikkan / menurunkan urutannya. Ketuk biasa untuk edit atau batalkan. Transaksi yang dibatalkan tetap tampil sebagai jejak, tidak dihitung.</p>
                 <div id="log-transaksi-list-container" class="space-y-4 mb-8">
                     <!-- Rendered dynamically via JS -->
                 </div>
@@ -2497,7 +2497,7 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.16.2';
+        const VERSI_APP = 'v3.16.3';
         document.addEventListener('DOMContentLoaded', () => {
             const el = document.getElementById('versi-app-label');
             if (el) el.textContent = VERSI_APP;
@@ -4271,10 +4271,7 @@
                     if (e.type === 'mousedown' && e.button !== 0) return;
                     const r = e.target.closest ? e.target.closest('.log-row') : null;
                     if (!r || !r.dataset.kode) return;
-                    mulai = titik(e); lastXY = mulai; baris = r; drag = false;
-                    clearTimeout(timer);
-                    if (e.target.closest('.log-grip')) { mulaiDrag(); return; } // pegangan: langsung bisa digeser
-                    timer = setTimeout(mulaiDrag, TAHAN_MS);
+                    return; // tahan-geser dimatikan: pakai tombol panah
                 }
                 function move(e) {
                     if (!baris) return;
@@ -4349,6 +4346,7 @@
             if (i < 0 || j < 0 || j >= urut.length) return;
             const t = urut[i]; urut[i] = urut[j]; urut[j] = t;
             logUrutanManual[k] = urut.map(x => x['Kode']).filter(Boolean);
+            logUrutan = 'manual';
             simpanUrutanLog();
             renderLogTransaksiList();
         }
@@ -4409,7 +4407,7 @@
                             const dompet = dompetLabelMap[item['Dompet']] || item['Dompet'] || '-';
                             const ket = item['Keterangan'] ? `<span class="font-normal text-slate-400"> · ${esc(item['Keterangan'])}</span>` : '';
                             const kode = item['Kode'] ? esc(item['Kode']) : '';
-                            const panah = kode ? `<span class="log-grip shrink-0 w-11 h-11 flex items-center justify-center text-slate-400 dark:text-slate-500" style="touch-action:none" aria-label="Geser urutan"><i class="fa-solid fa-grip-lines"></i></span>` : '';
+                            const panah = kode ? `<span class="shrink-0 flex flex-col gap-1 pl-1"><button type="button" onclick="geserUrutanLog('${kode}',-1)" aria-label="Naik" class="w-9 h-8 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 flex items-center justify-center active:bg-brand/20"><i class="fa-solid fa-chevron-up text-xs"></i></button><button type="button" onclick="geserUrutanLog('${kode}',1)" aria-label="Turun" class="w-9 h-8 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 flex items-center justify-center active:bg-brand/20"><i class="fa-solid fa-chevron-down text-xs"></i></button></span>` : '';
                             return `<div class="flex items-center gap-1 log-row" data-kode="${kode}" data-hari="${g.k}"><button type="button" ${kode ? `onclick="bukaDetailTransaksi('${kode}')"` : ''} class="flex-1 min-w-0 text-left flex items-center gap-3 py-2.5 ${batal ? 'opacity-50' : ''}">
                                 <span class="w-9 h-9 rounded-xl ${batal ? 'bg-slate-200 dark:bg-white/10 text-slate-400' : (masuk ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-500')} flex items-center justify-center shrink-0"><i class="fa-solid ${batal ? 'fa-ban' : (masuk ? 'fa-arrow-down' : 'fa-arrow-up')}"></i></span>
                                 <div class="flex-1 min-w-0">
