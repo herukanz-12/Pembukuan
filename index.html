@@ -1096,7 +1096,7 @@
                         <option value="manual">Atur sendiri (tahan lalu geser)</option>
                     </select>
                 </div>
-                <p class="text-[11px] text-slate-400 mb-3"><i class="fa-solid fa-hand-pointer mr-1"></i>Tahan sebentar sebuah transaksi lalu geser naik/turun untuk mengubah urutannya. Ketuk biasa untuk edit atau batalkan. Transaksi yang dibatalkan tetap tampil sebagai jejak, tidak dihitung.</p>
+                <p class="text-[11px] text-slate-400 mb-3"><i class="fa-solid fa-hand-pointer mr-1"></i>Sentuh dan geser ikon garis (≡) di kanan transaksi naik/turun untuk mengubah urutannya (atau tahan sebentar barisnya). Ketuk biasa untuk edit atau batalkan. Transaksi yang dibatalkan tetap tampil sebagai jejak, tidak dihitung.</p>
                 <div id="log-transaksi-list-container" class="space-y-4 mb-8">
                     <!-- Rendered dynamically via JS -->
                 </div>
@@ -2497,7 +2497,7 @@
             } catch (e) { console.error('terapkanSaldoDariRespons gagal', e); }
         }
 
-        const VERSI_APP = 'v3.16.1';
+        const VERSI_APP = 'v3.16.2';
         document.addEventListener('DOMContentLoaded', () => {
             const el = document.getElementById('versi-app-label');
             if (el) el.textContent = VERSI_APP;
@@ -4216,7 +4216,7 @@
             renderLogTransaksiList();
         }
         (function pasangDragLog() {
-            const TAHAN_MS = 380, GERAK_BATAL = 9;
+            const TAHAN_MS = 350, GERAK_BATAL = 16;
             let timer = null, mulai = null, baris = null, drag = false, lastXY = { x: 0, y: 0 }, autoTimer = null, tutupKlikSampai = 0;
             const titik = (e) => { const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e; return { x: t.clientX, y: t.clientY }; };
             function scrollInduk(el) {
@@ -4265,14 +4265,16 @@
                 const kont = document.getElementById('log-transaksi-list-container');
                 if (!kont) return;
                 const st = document.createElement('style');
-                st.textContent = '.log-row{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}';
+                st.textContent = '.log-row{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}.log-grip{touch-action:none;cursor:grab}';
                 document.head.appendChild(st);
                 function down(e) {
                     if (e.type === 'mousedown' && e.button !== 0) return;
                     const r = e.target.closest ? e.target.closest('.log-row') : null;
                     if (!r || !r.dataset.kode) return;
                     mulai = titik(e); lastXY = mulai; baris = r; drag = false;
-                    clearTimeout(timer); timer = setTimeout(mulaiDrag, TAHAN_MS);
+                    clearTimeout(timer);
+                    if (e.target.closest('.log-grip')) { mulaiDrag(); return; } // pegangan: langsung bisa digeser
+                    timer = setTimeout(mulaiDrag, TAHAN_MS);
                 }
                 function move(e) {
                     if (!baris) return;
@@ -4407,7 +4409,7 @@
                             const dompet = dompetLabelMap[item['Dompet']] || item['Dompet'] || '-';
                             const ket = item['Keterangan'] ? `<span class="font-normal text-slate-400"> · ${esc(item['Keterangan'])}</span>` : '';
                             const kode = item['Kode'] ? esc(item['Kode']) : '';
-                            const panah = '';
+                            const panah = kode ? `<span class="log-grip shrink-0 w-11 h-11 flex items-center justify-center text-slate-400 dark:text-slate-500" style="touch-action:none" aria-label="Geser urutan"><i class="fa-solid fa-grip-lines"></i></span>` : '';
                             return `<div class="flex items-center gap-1 log-row" data-kode="${kode}" data-hari="${g.k}"><button type="button" ${kode ? `onclick="bukaDetailTransaksi('${kode}')"` : ''} class="flex-1 min-w-0 text-left flex items-center gap-3 py-2.5 ${batal ? 'opacity-50' : ''}">
                                 <span class="w-9 h-9 rounded-xl ${batal ? 'bg-slate-200 dark:bg-white/10 text-slate-400' : (masuk ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-500')} flex items-center justify-center shrink-0"><i class="fa-solid ${batal ? 'fa-ban' : (masuk ? 'fa-arrow-down' : 'fa-arrow-up')}"></i></span>
                                 <div class="flex-1 min-w-0">
