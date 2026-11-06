@@ -1093,10 +1093,10 @@
                         <option value="waktu">Waktu dicatat (terbaru dulu)</option>
                         <option value="order-naik">No. order kecil ke besar (sesuai urutan jalan)</option>
                         <option value="order-turun">No. order besar ke kecil</option>
-                        <option value="manual">Atur sendiri (pakai panah)</option>
+                        <option value="manual">Atur sendiri (tahan lalu geser)</option>
                     </select>
                 </div>
-                <p class="text-[11px] text-slate-400 mb-3">Ketuk transaksi untuk edit atau batalkan. Transaksi yang dibatalkan tetap tampil sebagai jejak, tidak dihitung.</p>
+                <p class="text-[11px] text-slate-400 mb-3"><i class="fa-solid fa-hand-pointer mr-1"></i>Tahan sebentar sebuah transaksi lalu geser naik/turun untuk mengubah urutannya. Ketuk biasa untuk edit atau batalkan. Transaksi yang dibatalkan tetap tampil sebagai jejak, tidak dihitung.</p>
                 <div id="log-transaksi-list-container" class="space-y-4 mb-8">
                     <!-- Rendered dynamically via JS -->
                 </div>
@@ -4198,6 +4198,108 @@
                 localStorage.setItem('ojol_log_manual', JSON.stringify(logUrutanManual));
             } catch (e) {}
         }
+        // ===== TAHAN & GESER baris Log Transaksi =====
+        function simpanUrutanDrag(b) {
+            const k = Number(b.dataset.hari);
+            const kodeBaru = Array.from(b.parentElement.querySelectorAll('.log-row')).map(r => r.dataset.kode).filter(Boolean);
+            const desc = (x, y) => new Date(y['Timestamp']) - new Date(x['Timestamp']);
+            const semua = allDetailSemua.filter(i => kunciHari(i['Timestamp']) === k).sort(desc);
+            const full = urutkanItemLog(semua, k); // urutan tampil sebelum digeser (termasuk baris yang tersaring)
+            const byKode = {}; full.forEach(it => { if (it['Kode']) byKode[it['Kode']] = it; });
+            if (kodeBaru.some(c => !byKode[c])) { renderLogTransaksiList(); return; }
+            const slot = [];
+            full.forEach((it, idx) => { if (it['Kode'] && kodeBaru.includes(it['Kode'])) slot.push(idx); });
+            slot.forEach((si, n) => { full[si] = byKode[kodeBaru[n]]; });
+            logUrutanManual[k] = full.map(x => x['Kode']).filter(Boolean);
+            logUrutan = 'manual';
+            simpanUrutanLog();
+            renderLogTransaksiList();
+        }
+        (function pasangDragLog() {
+            const TAHAN_MS = 380, GERAK_BATAL = 9;
+            let timer = null, mulai = null, baris = null, drag = false, lastXY = { x: 0, y: 0 }, autoTimer = null, tutupKlikSampai = 0;
+            const titik = (e) => { const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e; return { x: t.clientX, y: t.clientY }; };
+            function scrollInduk(el) {
+                let n = el.parentElement;
+                while (n && n !== document.body) {
+                    const o = getComputedStyle(n).overflowY;
+                    if ((o === 'auto' || o === 'scroll') && n.scrollHeight > n.clientHeight) return n;
+                    n = n.parentElement;
+                }
+                return null;
+            }
+            function geserKe(p) {
+                if (!drag || !baris) return;
+                const el = document.elementFromPoint(p.x, p.y);
+                const t = el && el.closest ? el.closest('.log-row') : null;
+                if (!t || t === baris || t.parentElement !== baris.parentElement) return;
+                const r = t.getBoundingClientRect();
+                if (p.y < r.top + r.height / 2) t.parentElement.insertBefore(baris, t);
+                else t.parentElement.insertBefore(baris, t.nextSibling);
+            }
+            function mulaiDrag() {
+                if (!baris) return;
+                drag = true;
+                baris.style.cssText += ';background:rgba(16,185,129,.16);border-radius:14px;transform:scale(1.02);box-shadow:0 8px 24px rgba(0,0,0,.28);position:relative;z-index:5;pointer-events:none;transition:transform .12s';
+                try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) {}
+                const induk = scrollInduk(baris);
+                autoTimer = setInterval(() => {
+                    let dy = 0;
+                    if (lastXY.y < 130) dy = -10; else if (lastXY.y > window.innerHeight - 180) dy = 10;
+                    if (!dy) return;
+                    if (induk) induk.scrollTop += dy; else window.scrollBy(0, dy);
+                    geserKe(lastXY);
+                }, 16);
+            }
+            function akhiri(simpan) {
+                clearTimeout(timer); timer = null;
+                clearInterval(autoTimer); autoTimer = null;
+                const b = baris, tadiDrag = drag;
+                baris = null; drag = false;
+                if (tadiDrag && b) {
+                    tutupKlikSampai = Date.now() + 500;
+                    if (simpan) simpanUrutanDrag(b); else renderLogTransaksiList();
+                }
+            }
+            function init() {
+                const kont = document.getElementById('log-transaksi-list-container');
+                if (!kont) return;
+                const st = document.createElement('style');
+                st.textContent = '.log-row{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}';
+                document.head.appendChild(st);
+                function down(e) {
+                    if (e.type === 'mousedown' && e.button !== 0) return;
+                    const r = e.target.closest ? e.target.closest('.log-row') : null;
+                    if (!r || !r.dataset.kode) return;
+                    mulai = titik(e); lastXY = mulai; baris = r; drag = false;
+                    clearTimeout(timer); timer = setTimeout(mulaiDrag, TAHAN_MS);
+                }
+                function move(e) {
+                    if (!baris) return;
+                    const p = titik(e); lastXY = p;
+                    if (!drag) {
+                        if (Math.abs(p.x - mulai.x) > GERAK_BATAL || Math.abs(p.y - mulai.y) > GERAK_BATAL) { clearTimeout(timer); baris = null; }
+                        return;
+                    }
+                    if (e.cancelable) e.preventDefault();
+                    geserKe(p);
+                }
+                function up() {
+                    if (!baris) return;
+                    if (drag) akhiri(true); else { clearTimeout(timer); baris = null; }
+                }
+                kont.addEventListener('touchstart', down, { passive: true });
+                kont.addEventListener('touchmove', move, { passive: false });
+                kont.addEventListener('touchend', up);
+                kont.addEventListener('touchcancel', () => akhiri(false));
+                kont.addEventListener('mousedown', down);
+                document.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', up);
+                kont.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.log-row')) e.preventDefault(); });
+                kont.addEventListener('click', e => { if (Date.now() < tutupKlikSampai) { e.stopPropagation(); e.preventDefault(); } }, true);
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+        })();
         function setLogUrutan(v) { logUrutan = v; simpanUrutanLog(); renderLogTransaksiList(); }
         function nomorOrderRB(it) {
             const m = String(it['Keterangan'] || '').match(/RB-(\d+)/i);
@@ -4305,8 +4407,8 @@
                             const dompet = dompetLabelMap[item['Dompet']] || item['Dompet'] || '-';
                             const ket = item['Keterangan'] ? `<span class="font-normal text-slate-400"> · ${esc(item['Keterangan'])}</span>` : '';
                             const kode = item['Kode'] ? esc(item['Kode']) : '';
-                            const panah = (modeManual && kode) ? `<span class="flex flex-col shrink-0"><button type="button" onclick="geserUrutanLog('${kode}',-1)" class="w-9 h-6 text-slate-400 active:text-brand"><i class="fa-solid fa-chevron-up text-xs"></i></button><button type="button" onclick="geserUrutanLog('${kode}',1)" class="w-9 h-6 text-slate-400 active:text-brand"><i class="fa-solid fa-chevron-down text-xs"></i></button></span>` : '';
-                            return `<div class="flex items-center gap-1"><button type="button" ${kode ? `onclick="bukaDetailTransaksi('${kode}')"` : ''} class="flex-1 min-w-0 text-left flex items-center gap-3 py-2.5 ${batal ? 'opacity-50' : ''}">
+                            const panah = '';
+                            return `<div class="flex items-center gap-1 log-row" data-kode="${kode}" data-hari="${g.k}"><button type="button" ${kode ? `onclick="bukaDetailTransaksi('${kode}')"` : ''} class="flex-1 min-w-0 text-left flex items-center gap-3 py-2.5 ${batal ? 'opacity-50' : ''}">
                                 <span class="w-9 h-9 rounded-xl ${batal ? 'bg-slate-200 dark:bg-white/10 text-slate-400' : (masuk ? 'bg-brand/10 text-brand' : 'bg-red-500/10 text-red-500')} flex items-center justify-center shrink-0"><i class="fa-solid ${batal ? 'fa-ban' : (masuk ? 'fa-arrow-down' : 'fa-arrow-up')}"></i></span>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-[13px] font-bold text-slate-800 dark:text-white truncate ${batal ? 'line-through' : ''}">${esc(item['Kategori'])}${ket}</p>
